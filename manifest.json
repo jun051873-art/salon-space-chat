@@ -1,0 +1,10 @@
+{
+  "name": "專屬空間 SALON",
+  "short_name": "專屬空間",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f5f1ea",
+  "theme_color": "#f5f1ea",
+  "description": "專屬空間 SALON 即時聊天與通知"
+}
