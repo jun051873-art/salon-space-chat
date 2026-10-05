@@ -12,7 +12,15 @@ self.addEventListener("activate",event=>event.waitUntil(self.clients.claim()));
 messaging.onBackgroundMessage(payload=>{
  const d=payload.data||{};
  const title=d.title||"專屬空間 SALON";
- const options={body:d.body||"您有一則新訊息",tag:d.tag||"salon-message",data:{url:d.url||"/salon-space-chat/customer.html"}};
+ const options={
+  body:d.body||"您有一則新訊息",
+  tag:d.tag||("salon-message-"+Date.now()),
+  renotify:true,
+  requireInteraction:false,
+  silent:false,
+  timestamp:Date.now(),
+  data:{url:d.url||"/salon-space-chat/customer.html"}
+ };
  return saveDiag({stage:"received",data:d}).then(()=>self.registration.showNotification(title,options)).then(()=>saveDiag({stage:"shown",data:d})).catch(e=>saveDiag({stage:"show-error",error:String(e),data:d}));
 });
 self.addEventListener("notificationclick",event=>{
