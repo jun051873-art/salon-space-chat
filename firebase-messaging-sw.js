@@ -26,14 +26,19 @@ messaging.onBackgroundMessage(payload=>{
 self.addEventListener("notificationclick",event=>{
  event.notification.close();
  const url=event.notification?.data?.url||"/salon-space-chat/customer.html";
- event.waitUntil(clients.matchAll({type:"window",includeUncontrolled:true}).then(async list=>{
+ event.waitUntil((async()=>{
   const absolute=new URL(url,self.location.origin).href;
-  for(const client of list){
-   if(client.url.includes("/salon-space-chat/admin.html")||client.url.includes("/salon-space-chat/customer.html")){
-    client.postMessage({type:"OPEN_NOTIFICATION_URL",url:absolute});
-    if("focus" in client)return client.focus();
+  const list=await clients.matchAll({type:"window",includeUncontrolled:true});
+  // Apple/WebKit 對既有 standalone 視窗的 focus 較穩；Android 則優先走深連結開啟。
+  const isApple=/iPhone|iPad|iPod|Macintosh/i.test(self.navigator?.userAgent||"");
+  if(isApple){
+   for(const client of list){
+    if(client.url.includes("/salon-space-chat/")){
+     client.postMessage({type:"OPEN_NOTIFICATION_URL",url:absolute});
+     if("focus" in client)return client.focus();
+    }
    }
   }
   return clients.openWindow?clients.openWindow(absolute):undefined;
- }));
+ })());
 });
