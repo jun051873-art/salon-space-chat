@@ -9,13 +9,16 @@ function deviceLabel(){const ua=navigator.userAgent;let type=/iPad|Tablet/i.test
   if(token){await setDoc(doc(db,"pushTokens",user.uid,"devices",deviceId()),{token,uid:user.uid,role,deviceId:deviceId(),deviceType:deviceLabel(),userAgent:navigator.userAgent,updatedAt:serverTimestamp()},{merge:true});if(role==="admin")updateAdminNotifyUI(true)}else if(role==="admin")updateAdminNotifyUI(false);
  }catch(e){console.warn("push sync",e);if(role==="admin")updateAdminNotifyUI(false)}
 }
+async function openCustomerChat(uidToOpen){sel=uidToOpen;const u=await getDoc(doc(db,"users",sel));$("who").textContent=u.data()?.name||"客人";show("adminChat");listen(sel,$("adminMsgs"),ADMIN)}
 async function openAdminHome(){
  show("admin");
  onSnapshot(query(collection(db,"chats"),orderBy("updatedAt","desc")),s=>{
   $("list").innerHTML=s.docs.map(d=>'<div class="card" data-u="'+d.id+'"><b>'+(d.data().name||"客人")+"</b><br>"+(d.data().lastMessage||"尚無訊息")+"</div>").join("")||"目前沒有客人";
-  document.querySelectorAll("[data-u]").forEach(e=>e.onclick=async()=>{sel=e.dataset.u;let u=await getDoc(doc(db,"users",sel));$("who").textContent=u.data()?.name||"客人";show("adminChat");listen(sel,$("adminMsgs"),ADMIN)})
+  document.querySelectorAll("[data-u]").forEach(e=>e.onclick=()=>openCustomerChat(e.dataset.u))
  });
  await syncPushToken(auth.currentUser,"admin");
+ const target=new URLSearchParams(location.search).get("chat");
+ if(target){history.replaceState(null,"",location.pathname);await openCustomerChat(target)}
 }
 onAuthStateChanged(auth,async user=>{
  if(booted)return;
