@@ -20,7 +20,7 @@ async function openAdminHome(){
  const target=new URLSearchParams(location.search).get("chat");
  if(target){history.replaceState(null,"",location.pathname);await openCustomerChat(target)}
 }
-onAuthStateChanged(auth,async user=>{
+navigator.serviceWorker?.addEventListener("message",async event=>{const m=event.data;if(m?.type!=="OPEN_NOTIFICATION_URL"||!m.url)return;try{const u=new URL(m.url);const target=u.searchParams.get("chat");if(target)await openCustomerChat(target)}catch(e){console.warn("notification route",e)}});onAuthStateChanged(auth,async user=>{
  if(booted)return;
  booted=true;
  if(user?.uid===ADMIN){await openAdminHome();return}
