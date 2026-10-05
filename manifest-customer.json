@@ -1,0 +1,21 @@
+{
+  "name": "專屬空間 SALON",
+  "short_name": "專屬空間",
+  "start_url": "./customer.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f5f1ea",
+  "theme_color": "#f5f1ea",
+  "description": "專屬空間 SALON 客人聊天",
+  "display_override": [
+    "standalone"
+  ],
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
