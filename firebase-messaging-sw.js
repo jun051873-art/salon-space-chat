@@ -30,7 +30,7 @@ self.addEventListener("notificationclick",event=>{
   const absolute=new URL(url,self.location.origin).href;
   for(const client of list){
    if(client.url.includes("/salon-space-chat/admin.html")||client.url.includes("/salon-space-chat/customer.html")){
-    if("navigate" in client)await client.navigate(absolute);
+    client.postMessage({type:"OPEN_NOTIFICATION_URL",url:absolute});
     if("focus" in client)return client.focus();
    }
   }
