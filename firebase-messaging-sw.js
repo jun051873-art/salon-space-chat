@@ -26,8 +26,14 @@ messaging.onBackgroundMessage(payload=>{
 self.addEventListener("notificationclick",event=>{
  event.notification.close();
  const url=event.notification?.data?.url||"/salon-space-chat/customer.html";
- event.waitUntil(clients.matchAll({type:"window",includeUncontrolled:true}).then(list=>{
-  for(const client of list){if("focus"in client)return client.focus()}
-  return clients.openWindow?clients.openWindow(url):undefined;
+ event.waitUntil(clients.matchAll({type:"window",includeUncontrolled:true}).then(async list=>{
+  const absolute=new URL(url,self.location.origin).href;
+  for(const client of list){
+   if(client.url.includes("/salon-space-chat/admin.html")||client.url.includes("/salon-space-chat/customer.html")){
+    if("navigate" in client)await client.navigate(absolute);
+    if("focus" in client)return client.focus();
+   }
+  }
+  return clients.openWindow?clients.openWindow(absolute):undefined;
  }));
 });
