@@ -1,0 +1,21 @@
+{
+  "name": "專屬空間 SALON 店家",
+  "short_name": "專屬空間店家",
+  "start_url": "./admin.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f5f1ea",
+  "theme_color": "#f5f1ea",
+  "description": "專屬空間 SALON 店家管理",
+  "display_override": [
+    "standalone"
+  ],
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
