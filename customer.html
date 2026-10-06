@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#f5f1ea"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><link rel="manifest" href="./manifest-customer.json">
+<meta name="theme-color" content="#f5f1ea"><link rel="manifest" href="./manifest-customer.json">
 <title>專屬空間</title>
 <style>
 *{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f5f1ea;color:#292722}
@@ -23,11 +23,11 @@ button{padding:14px 18px;border:0;border-radius:16px;background:#292722;color:#f
 #chat>.card{background:rgba(255,255,255,.78);box-shadow:0 14px 40px rgba(70,58,42,.06)}
 #msgs{padding:10px 2px 18px}.msg{max-width:76%;padding:11px 14px;margin:9px 0;border-radius:18px 18px 18px 6px;background:#fff;box-shadow:0 5px 18px rgba(70,58,42,.06);line-height:1.45}.msg.mine{margin-left:auto;border-radius:18px 18px 6px 18px;background:#292722;color:#fff}
 .bottomNav{border-radius:24px 24px 0 0;box-shadow:0 -8px 30px rgba(70,58,42,.08)}.navBtn span{width:30px;height:30px;margin:0 auto 4px;display:grid;place-items:center;border-radius:10px;font-size:17px;background:rgba(41,39,34,.06)}.navBtn.active span{background:rgba(255,255,255,.15)}
-.quickPills{display:flex;gap:8px;overflow-x:auto;padding:4px 0 10px}.quickPills button{flex:0 0 auto;background:#eee9e2;color:#292722;border-radius:999px;padding:8px 13px;font-size:13px;font-weight:650}.quickPills::-webkit-scrollbar{display:none}.msgWrap{display:flex;flex-direction:column;align-items:flex-start;margin:8px 0}.mineWrap{align-items:flex-end}.msgMeta{font-size:10px;color:#99938b;margin:3px 6px}.msgActions{display:flex;gap:5px;margin:2px 4px}.msgActions button{background:transparent;color:#8b857d;padding:3px 6px;font-size:10px;font-weight:600}.navBtn,.quickPills button{transition:transform .12s ease,opacity .12s ease,background-color .18s ease}.navBtn:active,.quickPills button:active{transform:scale(.985)}button:disabled{opacity:.55}</style></head>
+.quickPills{display:flex;gap:8px;overflow-x:auto;padding:4px 0 10px}.quickPills button{flex:0 0 auto;background:#eee9e2;color:#292722;border-radius:999px;padding:8px 13px;font-size:13px;font-weight:650}.quickPills::-webkit-scrollbar{display:none}</style></head>
 <body>
 <div id="splash"><div><div class="logo">專屬空間 SALON</div><div class="sub">連線中…</div></div></div>
 <div class="app">
-<h1>專屬空間 SALON <small id="custBuild" style="font-size:10px;opacity:.35">C-1006-13</small></h1><div id="custDiag" class="status" style="opacity:.45"></div>
+<h1>專屬空間 SALON</h1>
 <section id="setup" class="card hidden">
 <h2>第一次使用</h2>
 <p>留下稱呼與手機，之後這台裝置會直接進入聊天室。</p>
@@ -48,7 +48,7 @@ button{padding:14px 18px;border:0;border-radius:16px;background:#292722;color:#f
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
 import{getAuth,signInAnonymously,onAuthStateChanged,signOut,setPersistence,browserLocalPersistence}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-import{getFirestore,doc,setDoc,getDoc,collection,addDoc,query,orderBy,onSnapshot,serverTimestamp,updateDoc,writeBatch}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+import{getFirestore,doc,setDoc,getDoc,collection,addDoc,query,orderBy,onSnapshot,serverTimestamp}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 import{getMessaging,getToken}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-messaging.js";
 const cfg={apiKey:"AIzaSyBS-lHTp1YPhhFOKriBRSrwdSomT3ZGw0c",authDomain:"salon-space-chat.firebaseapp.com",projectId:"salon-space-chat",storageBucket:"salon-space-chat.firebasestorage.app",messagingSenderId:"103245363547",appId:"1:103245363547:web:3f19674918bbf257a4c27e"};
 const ADMIN="HcFJGmzHw6MYoWbFmtq9IyFSjvL2",VAPID="BJEl8aiGHazU3HbeuXaJabs0omFsCTic-EBlYV9xox3EMN2Ns2C2EwbxYaUC-rcqYNlkKHvJxisZx7mE5T91RtI";
@@ -57,23 +57,21 @@ let uid,unsub,started=false;
 function show(id){["setup","chat","info","gallery"].forEach(x=>$(x)?.classList.add("hidden"));$(id)?.classList.remove("hidden");$("splash")?.remove();if(id!=="setup")$("customerNav")?.classList.remove("hidden")}
 function showCustomerPage(id){show(id);document.querySelectorAll("[data-customer-page]").forEach(b=>b.classList.toggle("active",b.dataset.customerPage===id))}
 document.querySelectorAll("[data-customer-page]").forEach(b=>b.onclick=()=>showCustomerPage(b.dataset.customerPage));
-function listen(){unsub?.();unsub=onSnapshot(query(collection(db,"chats",uid,"messages"),orderBy("createdAt","asc")),async s=>{
- $("msgs").innerHTML=s.docs.map(d=>{const m=d.data(),mine=m.senderId===uid,withdrawn=m.withdrawn===true,text=withdrawn?"此訊息已收回":escapeHtml(m.text||""),meta=[m.editedAt?"已編輯":"",mine&&m.readAt?"已讀":""].filter(Boolean).join(" · ");return '<div class="msgWrap '+(mine?"mineWrap":"")+'"><div class="msg '+(mine?"mine":"")+'">'+text+'</div>'+(meta?'<small class="msgMeta">'+meta+'</small>':"")+(mine&&!withdrawn?'<div class="msgActions"><button data-edit="'+d.id+'">編輯</button><button data-withdraw="'+d.id+'">收回</button></div>':"")+'</div>'}).join("");
- $("msgs").scrollTop=$("msgs").scrollHeight;
- document.querySelectorAll("[data-edit]").forEach(b=>b.onclick=async()=>{const snap=s.docs.find(x=>x.id===b.dataset.edit);const old=snap?.data()?.text||"";const next=prompt("編輯訊息",old);if(next!==null&&next.trim()&&next!==old)await updateDoc(doc(db,"chats",uid,"messages",b.dataset.edit),{text:next.trim(),editedAt:serverTimestamp()})});
- document.querySelectorAll("[data-withdraw]").forEach(b=>b.onclick=async()=>{if(confirm("收回這則訊息？"))await updateDoc(doc(db,"chats",uid,"messages",b.dataset.withdraw),{withdrawn:true,text:"",withdrawnAt:serverTimestamp()})});
- const batch=writeBatch(db);let n=0;s.docs.forEach(d=>{const m=d.data();if(m.senderId===ADMIN&&!m.readAt){batch.update(d.ref,{readAt:serverTimestamp()});n++}});if(n)await batch.commit()
-})}
+function listen(){
+ unsub?.();
+ let first=true;
+ unsub=onSnapshot(query(collection(db,"chats",uid,"messages"),orderBy("createdAt","asc")),s=>{
+  const el=$("msgs");
+  const nearBottom=first||(el.scrollHeight-el.scrollTop-el.clientHeight<90);
+  el.innerHTML=s.docs.map(d=>{const m=d.data();return '<div class="msg '+(m.senderId===uid?"mine":"")+'">'+escapeHtml(m.text||"")+"</div>"}).join("");
+  if(nearBottom)requestAnimationFrame(()=>{el.scrollTop=el.scrollHeight});
+  first=false;
+ })
+}
 function escapeHtml(s){return s.replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
 function updateNotifyUI(){const b=$("notifyBox");if(!b)return;if(!("Notification"in window)||Notification.permission==="granted")b.classList.add("hidden");else b.classList.remove("hidden")}async function syncPush(){try{if(Notification.permission!=="granted"||!("serviceWorker"in navigator)){updateNotifyUI();return;}const reg=await navigator.serviceWorker.register("./firebase-messaging-sw.js");await navigator.serviceWorker.ready;const token=await getToken(messaging,{vapidKey:VAPID,serviceWorkerRegistration:reg});if(token)await setDoc(doc(db,"pushTokens",uid),{token,uid,role:"customer",updatedAt:serverTimestamp()},{merge:true})}catch(e){console.warn(e)}finally{updateNotifyUI()}}
 await setPersistence(auth,browserLocalPersistence).catch(()=>{});
-onAuthStateChanged(auth,async user=>{if(started)return;started=true;try{if(user?.uid===ADMIN){await signOut(auth);user=null}if(!auth.currentUser)await signInAnonymously(auth);uid=auth.currentUser.uid;
-const prevUid=localStorage.getItem("salonCustomerUid");
-if(prevUid && prevUid!==uid){$("custDiag").textContent="身分診斷：UID 已變更 "+prevUid.slice(-6)+" → "+uid.slice(-6)}
-else $("custDiag").textContent="身分診斷："+uid.slice(-6);
-localStorage.setItem("salonCustomerUid",uid);
-const p=await getDoc(doc(db,"users",uid));if(p.exists()){show("chat");$("text").value=localStorage.getItem("customerDraft")||"";listen();syncPush()}else show("setup")}catch(e){$("splash").querySelector(".sub").textContent="連線失敗，請重新整理"}});
-$("enableNotify").onclick=async()=>{try{if(!uid)throw Error("客人身分尚未完成");if(!("Notification"in window))throw Error("此裝置不支援通知");const p=await Notification.requestPermission();if(p!=="granted")throw Error("尚未允許通知");$("notifyStatus").textContent="正在設定通知…";await syncPush();$("notifyStatus").textContent="✅ 訊息通知已開啟";$("notifyBox").classList.add("hidden")}catch(e){$("notifyStatus").textContent="通知設定失敗："+e.message}};$("start").onclick=async()=>{try{const name=$("name").value.trim(),phone=$("phone").value.trim(),birthMonth=Number($("birthMonth").value),birthDay=Number($("birthDay").value);if(!name||!phone||!birthMonth||!birthDay)throw Error("請填寫稱呼、手機與生日月日");if(birthMonth<1||birthMonth>12||birthDay<1||birthDay>31)throw Error("請確認生日月日");await setDoc(doc(db,"users",uid),{name,phone,birthMonth,birthDay,role:"customer",createdAt:serverTimestamp(),updatedAt:serverTimestamp()},{merge:true});await setDoc(doc(db,"chats",uid),{userId:uid,name,phone,lastMessage:"",updatedAt:serverTimestamp()},{merge:true});show("chat");$("text").value=localStorage.getItem("customerDraft")||"";listen();syncPush()}catch(e){$("setupErr").textContent=e.message}};
-async function readPushDiag(){try{const r=await caches.match("/salon-space-chat/__push_diag__");if(!r){$("pushDiag").textContent="推播診斷：尚未收到背景推播";return}const d=await r.json();$("pushDiag").textContent="推播診斷："+d.stage+"｜"+new Date(d.at).toLocaleString()}catch(e){$("pushDiag").textContent="推播診斷讀取失敗"}}setTimeout(readPushDiag,1200);$("text").addEventListener("input",()=>localStorage.setItem("customerDraft",$("text").value));
-document.querySelectorAll("[data-quick]").forEach(b=>b.onclick=()=>{$("text").value=b.dataset.quick;localStorage.setItem("customerDraft",$("text").value);$("send").click()});
-$("send").onclick=async()=>{const t=$("text").value.trim();if(!t)return;$("text").value="";await addDoc(collection(db,"chats",uid,"messages"),{text:t,senderId:uid,senderRole:"customer",createdAt:serverTimestamp()});await setDoc(doc(db,"chats",uid),{lastMessage:t,updatedAt:serverTimestamp()},{merge:true});try{const r=await fetch("https://salon-space-notify.jun051873.workers.dev/",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({target:"admin",customerUid:uid,title:"專屬空間 SALON｜客人新訊息",body:t})});const out=await r.json();$("pushStatus").textContent=(r.ok&&out.ok)?("店家推播診斷：裝置 "+(out.devices??"-")+"｜成功 "+(out.success??"-")+"｜失敗 "+(out.failed??"-")):("通知傳送失敗："+JSON.stringify(out))}catch(e){$("pushStatus").textContent="通知傳送失敗"}};</script></body></html>
+onAuthStateChanged(auth,async user=>{if(started)return;started=true;try{if(user?.uid===ADMIN){await signOut(auth);user=null}if(!auth.currentUser)await signInAnonymously(auth);uid=auth.currentUser.uid;const p=await getDoc(doc(db,"users",uid));if(p.exists()){show("chat");listen();syncPush()}else show("setup")}catch(e){$("splash").querySelector(".sub").textContent="連線失敗，請重新整理"}});
+$("enableNotify").onclick=async()=>{try{if(!uid)throw Error("客人身分尚未完成");if(!("Notification"in window))throw Error("此裝置不支援通知");const p=await Notification.requestPermission();if(p!=="granted")throw Error("尚未允許通知");$("notifyStatus").textContent="正在設定通知…";await syncPush();$("notifyStatus").textContent="✅ 訊息通知已開啟";$("notifyBox").classList.add("hidden")}catch(e){$("notifyStatus").textContent="通知設定失敗："+e.message}};$("start").onclick=async()=>{try{const name=$("name").value.trim(),phone=$("phone").value.trim(),birthMonth=Number($("birthMonth").value),birthDay=Number($("birthDay").value);if(!name||!phone||!birthMonth||!birthDay)throw Error("請填寫稱呼、手機與生日月日");if(birthMonth<1||birthMonth>12||birthDay<1||birthDay>31)throw Error("請確認生日月日");await setDoc(doc(db,"users",uid),{name,phone,birthMonth,birthDay,role:"customer",createdAt:serverTimestamp(),updatedAt:serverTimestamp()},{merge:true});await setDoc(doc(db,"chats",uid),{userId:uid,name,phone,lastMessage:"",updatedAt:serverTimestamp()},{merge:true});show("chat");listen();syncPush()}catch(e){$("setupErr").textContent=e.message}};
+async function readPushDiag(){try{const r=await caches.match("/salon-space-chat/__push_diag__");if(!r){$("pushDiag").textContent="推播診斷：尚未收到背景推播";return}const d=await r.json();$("pushDiag").textContent="推播診斷："+d.stage+"｜"+new Date(d.at).toLocaleString()}catch(e){$("pushDiag").textContent="推播診斷讀取失敗"}}setTimeout(readPushDiag,1200);document.querySelectorAll("[data-quick]").forEach(b=>b.onclick=()=>{$("text").value=b.dataset.quick;$("send").click()});$("send").onclick=async()=>{const t=$("text").value.trim();if(!t)return;$("text").value="";await addDoc(collection(db,"chats",uid,"messages"),{text:t,senderId:uid,senderRole:"customer",createdAt:serverTimestamp()});await setDoc(doc(db,"chats",uid),{lastMessage:t,updatedAt:serverTimestamp()},{merge:true});try{const r=await fetch("https://salon-space-notify.jun051873.workers.dev/",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({target:"admin",customerUid:uid,title:"專屬空間 SALON｜客人新訊息",body:t})});const out=await r.json();$("pushStatus").textContent=(r.ok&&out.ok)?("店家推播診斷：裝置 "+(out.devices??"-")+"｜成功 "+(out.success??"-")+"｜失敗 "+(out.failed??"-")):("通知傳送失敗："+JSON.stringify(out))}catch(e){$("pushStatus").textContent="通知傳送失敗"}};
+</script></body></html>
