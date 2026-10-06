@@ -85,7 +85,7 @@ export function createDelivery({auth,projectId,role,notify,onChange,storage=loca
  }
  function acknowledge(ids){for(const id of ids)seen.add(id);for(const e of all())cleanup(e);}
  return {enqueue,flush,entries:all,acknowledge,api,
-  resume(){for(const e of all()){if(e.stage!=="done"){if(!e.quotaBlocked)e.nextAt=0;if(e.stage==="notify-error"){e.stage="stored";e.attempts=0;}save(e);}}void flush();},
+  resume(){void flush();},
   stop(){stopped=true;clearTimeout(timer);}
  };
 }

@@ -45,7 +45,7 @@ button{padding:14px 18px;border:0;border-radius:16px;background:#292722;color:#f
 <section id="gallery" class="card hidden placeholder"><div><h2>🖼 作品・產品</h2><p>作品照片、產品介紹與連結<br>之後會顯示在這裡。</p></div></section>
 <nav id="customerNav" class="bottomNav hidden"><button class="navBtn active" data-customer-page="chat"><span>◉</span>聊天</button><button class="navBtn" data-customer-page="info"><span>⌂</span>SALON 資訊</button><button class="navBtn" data-customer-page="gallery"><span>▧</span>作品・產品</button></nav>
 </div>
-<script type="module">import{createDelivery}from"./chat-delivery.js?v=D3.1";const CHAT_ROLE="customer";
+<script type="module">import{createDelivery}from"./chat-delivery.js?v=D3.2";const CHAT_ROLE="customer";
 import{initializeApp}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
 import{getAuth,signInAnonymously,onAuthStateChanged,signOut,setPersistence,browserLocalPersistence}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 import{getFirestore,doc,setDoc,getDoc,collection,addDoc,query,orderBy,onSnapshot,serverTimestamp,writeBatch}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
@@ -66,7 +66,7 @@ function ensureChatStatus(room){
  if(!box){
   box=document.createElement("div");box.id="chatStatus";
   box.style.cssText="grid-column:1/-1;flex-basis:100%;font-size:13px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere;padding:5px 0;color:#62584c";
-  box.innerHTML='<div id="chatRead" role="status"></div><div id="chatWrite" role="status"></div><details><summary>連線檢查 D3.1</summary><div id="chatIdentity"></div></details>';
+  box.innerHTML='<div id="chatRead" role="status"></div><div id="chatWrite" role="status"></div><details><summary>連線檢查 D3.2</summary><div id="chatIdentity"></div></details>';
   const composer=document.querySelector("#adminChat .composer");
   if(composer)composer.appendChild(box);else $("msgs").after(box);
  }
@@ -94,15 +94,9 @@ async function pushRequest(body){
   return out;
  }finally{clearTimeout(timer);}
 }
-async function notifyDelivery(e,api){
- if(e.role==="customer"){
-  await pushRequest({target:"admin",customerUid:e.room,messageId:e.id,title:"專屬空間 SALON｜客人新訊息",body:e.text,url:"https://jun051873-art.github.io/salon-space-chat/admin.html?chat="+encodeURIComponent(e.room)});
- }else{
-  let p;try{p=await api("/pushTokens/"+encodeURIComponent(e.room));}catch(err){if(err.status!==404)throw err;}
-  const token=p?.fields?.token?.stringValue;
-  if(!token)throw Error("客戶裝置尚未登記通知；聊天訊息已存入雲端");
-  await pushRequest({token,customerUid:e.room,messageId:e.id,title:"專屬空間 SALON",body:e.text,url:"https://jun051873-art.github.io/salon-space-chat/customer.html"});
- }
+async function notifyDelivery(e){
+ // Worker v4 resolves recipient devices; avoid an extra client-side token read.
+ await pushRequest({target:e.role==="customer"?"admin":"customer",customerUid:e.room,messageId:e.id});
 }
 function renderChatView(){
  const v=currentChatView;if(!v)return;

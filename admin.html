@@ -86,9 +86,14 @@ body.chatMode #adminNav{display:none!important}body.chatMode .app{padding-bottom
 <div id="adminAnalysis" class="card hidden shellPage"><h2>分析</h2><div class="analysisCards"><div><small>客戶數</small><b>—</b></div><div><small>本月新客</small><b>—</b></div><div><small>訊息數</small><b>—</b></div><div><small>本月壽星</small><b>—</b></div></div><p style="color:#8b857d">分析內容先預留，之後再決定要放哪些統計。</p></div>
 <div id="adminChat" class="hidden"><button id="back">← 訊息列表</button><h2 id="who">聊天室</h2><div id="adminMsgs"></div><div class="composer"><input id="reply" placeholder="輸入回覆"><button id="replyBtn">傳送</button></div><p id="pushStatus"></p></div>
 <nav id="adminNav" class="bottomNav hidden"><button class="navBtn active" data-admin-page="adminHome"><span>⌂</span>主頁</button><button class="navBtn" data-admin-page="admin"><span>◉</span>訊息</button><button class="navBtn" data-admin-page="adminAnalysis"><span>▥</span>分析</button></nav>
-</div><script type="module">import{createDelivery}from"./chat-delivery.js?v=D3.1";const CHAT_ROLE="admin";import{initializeApp}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";import{getAuth,signInAnonymously,signInWithEmailAndPassword,signOut,onAuthStateChanged,setPersistence,browserLocalPersistence}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";import{getFirestore,doc,setDoc,getDoc,collection,addDoc,query,orderBy,onSnapshot,serverTimestamp,writeBatch}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";import{getMessaging,getToken,onMessage,isSupported}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-messaging.js";const cfg={apiKey:"AIzaSyBS-lHTp1YPhhFOKriBRSrwdSomT3ZGw0c",authDomain:"salon-space-chat.firebaseapp.com",projectId:"salon-space-chat",storageBucket:"salon-space-chat.firebasestorage.app",messagingSenderId:"103245363547",appId:"1:103245363547:web:3f19674918bbf257a4c27e"},ADMIN="HcFJGmzHw6MYoWbFmtq9IyFSjvL2",app=initializeApp(cfg),auth=getAuth(app),db=getFirestore(app),$=x=>document.getElementById(x);const VAPID="BJEl8aiGHazU3HbeuXaJabs0omFsCTic-EBlYV9xox3EMN2Ns2C2EwbxYaUC-rcqYNlkKHvJxisZx7mE5T91RtI";const MODE="admin";localStorage.setItem("salonMode","admin");let uid,sel,booted=false;
+</div><script type="module">import{createDelivery}from"./chat-delivery.js?v=D3.2";const CHAT_ROLE="admin";import{initializeApp}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";import{getAuth,signInAnonymously,signInWithEmailAndPassword,signOut,onAuthStateChanged,setPersistence,browserLocalPersistence}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";import{getFirestore,doc,setDoc,getDoc,collection,addDoc,query,orderBy,onSnapshot,serverTimestamp,writeBatch}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";import{getMessaging,getToken,onMessage,isSupported}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-messaging.js";const cfg={apiKey:"AIzaSyBS-lHTp1YPhhFOKriBRSrwdSomT3ZGw0c",authDomain:"salon-space-chat.firebaseapp.com",projectId:"salon-space-chat",storageBucket:"salon-space-chat.firebasestorage.app",messagingSenderId:"103245363547",appId:"1:103245363547:web:3f19674918bbf257a4c27e"},ADMIN="HcFJGmzHw6MYoWbFmtq9IyFSjvL2",app=initializeApp(cfg),auth=getAuth(app),db=getFirestore(app),$=x=>document.getElementById(x);const VAPID="BJEl8aiGHazU3HbeuXaJabs0omFsCTic-EBlYV9xox3EMN2Ns2C2EwbxYaUC-rcqYNlkKHvJxisZx7mE5T91RtI";const MODE="admin";localStorage.setItem("salonMode","admin");let uid,sel,booted=false;
 /* CHAT-DIAG-01: report server acknowledgement separately from local echo. */
-let activeChatUnsubscribe=null, activeReadTimer=null;
+let activeChatUnsubscribe=null, activeReadTimer=null, adminListUnsubscribe=null;
+function closeChatListener(){
+ activeChatUnsubscribe?.();activeChatUnsubscribe=null;
+ clearTimeout(activeReadTimer);activeReadTimer=null;currentChatView=null;
+}
+
 function chatError(e){
  const code=e?.code||"unknown";
  const labels={"permission-denied":"雲端權限拒絕","unavailable":"雲端暫時無法連線","unauthenticated":"登入已失效","resource-exhausted":"雲端用量限制"};
@@ -99,7 +104,7 @@ function ensureChatStatus(room){
  if(!box){
   box=document.createElement("div");box.id="chatStatus";
   box.style.cssText="grid-column:1/-1;flex-basis:100%;font-size:13px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere;padding:5px 0;color:#62584c";
-  box.innerHTML='<div id="chatRead" role="status"></div><div id="chatWrite" role="status"></div><details><summary>連線檢查 D3.1</summary><div id="chatIdentity"></div></details>';
+  box.innerHTML='<div id="chatRead" role="status"></div><div id="chatWrite" role="status"></div><details><summary>連線檢查 D3.2</summary><div id="chatIdentity"></div></details>';
   const composer=document.querySelector("#adminChat .composer");
   if(composer)composer.appendChild(box);else $("msgs").after(box);
  }
@@ -127,15 +132,9 @@ async function pushRequest(body){
   return out;
  }finally{clearTimeout(timer);}
 }
-async function notifyDelivery(e,api){
- if(e.role==="customer"){
-  await pushRequest({target:"admin",customerUid:e.room,messageId:e.id,title:"專屬空間 SALON｜客人新訊息",body:e.text,url:"https://jun051873-art.github.io/salon-space-chat/admin.html?chat="+encodeURIComponent(e.room)});
- }else{
-  let p;try{p=await api("/pushTokens/"+encodeURIComponent(e.room));}catch(err){if(err.status!==404)throw err;}
-  const token=p?.fields?.token?.stringValue;
-  if(!token)throw Error("客戶裝置尚未登記通知；聊天訊息已存入雲端");
-  await pushRequest({token,customerUid:e.room,messageId:e.id,title:"專屬空間 SALON",body:e.text,url:"https://jun051873-art.github.io/salon-space-chat/customer.html"});
- }
+async function notifyDelivery(e){
+ // Worker v4 resolves recipient devices; avoid an extra client-side token read.
+ await pushRequest({target:e.role==="customer"?"admin":"customer",customerUid:e.room,messageId:e.id});
 }
 function renderChatView(){
  const v=currentChatView;if(!v)return;
@@ -186,7 +185,7 @@ async function getChatMessaging(){
 }
 
 function deviceId(){let id=localStorage.getItem("salonDeviceId");if(!id){id=(crypto.randomUUID?crypto.randomUUID():(Date.now()+"-"+Math.random().toString(36).slice(2)));localStorage.setItem("salonDeviceId",id)}return id}
-function deviceLabel(){const ua=navigator.userAgent;const platform=navigator.platform||"";if(/iPad/i.test(ua)||(/Macintosh/i.test(ua)&&navigator.maxTouchPoints>1))return"iPad";if(/iPhone/i.test(ua))return"iPhone";if(/Android/i.test(ua)&&!/Mobile/i.test(ua))return"Android Tablet";if(/Android/i.test(ua))return"Android Phone";if(/Mac/i.test(platform)||/Macintosh/i.test(ua))return"Mac";if(/Win/i.test(platform)||/Windows/i.test(ua))return"Windows";return"Other"}function show(x){["login","adminHome","adminTool","admin","adminAnalysis","adminChat"].forEach(i=>{const el=$(i);if(el)el.classList.toggle("hidden",i!==x)});const s=document.getElementById("bootSplash");if(s)s.remove()}function listen(u,el,viewer){watchChat(u,el,viewer)}async function send(u,t,sender,role){if(!t.trim())return;await addDoc(collection(db,"chats",u,"messages"),{text:t.trim(),senderId:sender,senderRole:role,createdAt:serverTimestamp()});await setDoc(doc(db,"chats",u),{lastMessage:t.trim(),updatedAt:serverTimestamp()},{merge:true})}function updateAdminNotifyUI(ok=false){const b=$("adminNotifyBox");if(!b)return;if(!supportsPushAPIs()){$("adminNotify").classList.add("hidden");$("adminNotifyStatus").textContent="此系統不支援背景通知；開啟聊天室仍可收發訊息。";b.classList.remove("hidden");return;}if(ok&&Notification.permission==="granted")b.classList.add("hidden");else b.classList.remove("hidden")}async function syncPushToken(user,role){
+function deviceLabel(){const ua=navigator.userAgent;const platform=navigator.platform||"";if(/iPad/i.test(ua)||(/Macintosh/i.test(ua)&&navigator.maxTouchPoints>1))return"iPad";if(/iPhone/i.test(ua))return"iPhone";if(/Android/i.test(ua)&&!/Mobile/i.test(ua))return"Android Tablet";if(/Android/i.test(ua))return"Android Phone";if(/Mac/i.test(platform)||/Macintosh/i.test(ua))return"Mac";if(/Win/i.test(platform)||/Windows/i.test(ua))return"Windows";return"Other"}function show(x){["login","adminHome","adminTool","admin","adminAnalysis","adminChat"].forEach(i=>{const el=$(i);if(el)el.classList.toggle("hidden",i!==x)});const s=document.getElementById("bootSplash");if(s)s.remove()}function listen(u,el,viewer){watchChat(u,el,viewer)}function updateAdminNotifyUI(ok=false){const b=$("adminNotifyBox");if(!b)return;if(!supportsPushAPIs()){$("adminNotify").classList.add("hidden");$("adminNotifyStatus").textContent="此系統不支援背景通知；開啟聊天室仍可收發訊息。";b.classList.remove("hidden");return;}if(ok&&Notification.permission==="granted")b.classList.add("hidden");else b.classList.remove("hidden")}async function syncPushToken(user,role){
  try{
   if(!supportsPushAPIs()||Notification.permission!=="granted"){if(role==="admin")updateAdminNotifyUI(false);return;}
   const messaging=await getChatMessaging();if(!messaging)return;
@@ -197,6 +196,7 @@ function deviceLabel(){const ua=navigator.userAgent;const platform=navigator.pla
  }catch(e){console.warn("push sync",e);if(role==="admin")updateAdminNotifyUI(false)}
 }
 function showAdminPage(id){
+ closeChatListener();
  const pages=["adminHome","admin","adminAnalysis"];
  if(!pages.includes(id))id="adminHome";
  ["login","adminHome","adminTool","admin","adminAnalysis","adminChat","adminNav"].forEach(x=>{const el=$(x);if(el)el.style.removeProperty("display")});
@@ -226,8 +226,9 @@ async function openCustomerChat(uidToOpen){
 }
 async function openAdminHome(){
  $("adminNav").classList.remove("hidden");showAdminPage("adminHome");
- onSnapshot(query(collection(db,"chats"),orderBy("updatedAt","desc")),s=>{
-  $("list").innerHTML=s.docs.map(d=>{const x=d.data();const n=x.name||"客人";const initial=n.trim().slice(0,1)||"客";return '<div class="customerRow" data-u="'+d.id+'"><div class="avatar">'+initial+'</div><div class="customerMain"><div class="customerName">'+n+'</div><div class="customerPreview">'+(x.lastMessage||"尚無訊息")+'</div></div><div class="customerMeta">›</div></div>'}).join("")||"目前沒有客人";
+ adminListUnsubscribe?.();
+ adminListUnsubscribe=onSnapshot(query(collection(db,"chats"),orderBy("updatedAt","desc")),s=>{
+  $("list").innerHTML=s.docs.map(d=>{const x=d.data();const n=x.name||"客人";const initial=n.trim().slice(0,1)||"客";return '<div class="customerRow" data-u="'+safeChatText(d.id)+'"><div class="avatar">'+safeChatText(initial)+'</div><div class="customerMain"><div class="customerName">'+safeChatText(n)+'</div><div class="customerPreview">'+safeChatText(x.lastMessage||"尚無訊息")+'</div></div><div class="customerMeta">›</div></div>'}).join("")||"目前沒有客人";
   document.querySelectorAll("#list .customerRow").forEach(row=>{row.addEventListener("click",async ev=>{ev.preventDefault();ev.stopImmediatePropagation();await openCustomerChat(row.getAttribute("data-u"))},{once:false})})
  },e=>{$("list").textContent="客戶列表讀取失敗："+chatError(e);});
  void syncPushToken(auth.currentUser,"admin");
@@ -235,6 +236,7 @@ async function openAdminHome(){
  if(target){history.replaceState(null,"",location.pathname);await openCustomerChat(target)}
 }
 navigator.serviceWorker?.addEventListener("message",async event=>{const m=event.data;if(m?.type!=="OPEN_NOTIFICATION_URL"||!m.url)return;try{const u=new URL(m.url);const target=u.searchParams.get("chat");if(target)await openCustomerChat(target)}catch(e){console.warn("notification route",e)}});onAuthStateChanged(auth,async user=>{
+ if(user?.uid!==ADMIN){adminListUnsubscribe?.();adminListUnsubscribe=null;closeChatListener();}
  if(booted)return;
  booted=true;
  if(user?.uid===ADMIN){await openAdminHome();return}
