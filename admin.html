@@ -19,8 +19,53 @@ body.chatMode #adminNav{display:none!important}body.chatMode .app{padding-bottom
 #adminChat .composer input{flex:1;min-width:0;margin:0}
 #adminChat .composer button{flex:0 0 auto;margin:0}
 #adminChat #pushStatus{flex:0 0 auto;margin:5px 0 0;font-size:12px}
-.shopHeader{display:grid;grid-template-columns:56px 1fr auto;gap:12px;align-items:center;padding:8px 4px 20px}.shopLogo{width:54px;height:54px;border-radius:50%;display:grid;place-items:center;background:#eee7dd;font-weight:900;font-size:20px}.shopHeader b,.shopHeader small{display:block}.shopHeader b{font-size:19px}.shopHeader small{color:#8b857d;margin-top:4px}.shopHeader>span{font-size:32px;color:#aaa39a}.toolGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:22px 10px;padding:12px 0 24px}.toolItem{background:transparent;color:#292722;margin:0;padding:0;text-align:center;font-size:12px}.toolItem span{width:50px;height:50px;margin:0 auto 8px;display:grid;place-items:center;border-radius:17px;background:#f1ede7;font-size:25px;font-weight:700}.toolItem b{display:block;font-size:12px;font-weight:650}.analysisCards{display:grid;grid-template-columns:1fr 1fr;gap:12px}.analysisCards>div{padding:18px;background:#f6f2ec;border-radius:18px}.analysisCards small,.analysisCards b{display:block}.analysisCards b{font-size:28px;margin-top:8px}.bottomNav .navBtn{font-size:13px}.bottomNav .navBtn span{font-size:20px}.simpleBox{padding:6px 2px}.simpleBox textarea{width:100%;min-height:130px;padding:14px;border:1px solid #ddd;border-radius:14px;font:inherit;box-sizing:border-box;margin:6px 0}.simpleBox #arSave{width:100%;margin:8px 0}.demoPills{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}.demoPills span{padding:8px 12px;border-radius:999px;background:#eee9e2;font-size:13px}.hint{font-size:12px;color:#8b857d;line-height:1.6}</style></head><body><div id="bootSplash" style="position:fixed;inset:0;z-index:9999;background:#f5f1ea;display:flex;align-items:center;justify-content:center;font-family:system-ui;color:#292722"><div style="text-align:center"><div style="font-size:30px;font-weight:800">專屬空間 SALON</div><div style="margin-top:12px;font-size:15px;opacity:.55">店家管理</div></div></div><div class="app">
-<h1>專屬空間 SALON <small style="font-size:11px;opacity:.35;font-weight:600">A-1006-05</small></h1>
+.shopHeader{display:grid;grid-template-columns:56px 1fr auto;gap:12px;align-items:center;padding:8px 4px 20px}.shopLogo{width:54px;height:54px;border-radius:50%;display:grid;place-items:center;background:#eee7dd;font-weight:900;font-size:20px}.shopHeader b,.shopHeader small{display:block}.shopHeader b{font-size:19px}.shopHeader small{color:#8b857d;margin-top:4px}.shopHeader>span{font-size:32px;color:#aaa39a}.toolGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:22px 10px;padding:12px 0 24px}.toolItem{background:transparent;color:#292722;margin:0;padding:0;text-align:center;font-size:12px}.toolItem span{width:50px;height:50px;margin:0 auto 8px;display:grid;place-items:center;border-radius:17px;background:#f1ede7;font-size:25px;font-weight:700}.toolItem b{display:block;font-size:12px;font-weight:650}.analysisCards{display:grid;grid-template-columns:1fr 1fr;gap:12px}.analysisCards>div{padding:18px;background:#f6f2ec;border-radius:18px}.analysisCards small,.analysisCards b{display:block}.analysisCards b{font-size:28px;margin-top:8px}.bottomNav .navBtn{font-size:13px}.bottomNav .navBtn span{font-size:20px}.simpleBox{padding:6px 2px}.simpleBox textarea{width:100%;min-height:130px;padding:14px;border:1px solid #ddd;border-radius:14px;font:inherit;box-sizing:border-box;margin:6px 0}.simpleBox #arSave{width:100%;margin:8px 0}.demoPills{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}.demoPills span{padding:8px 12px;border-radius:999px;background:#eee9e2;font-size:13px}.hint{font-size:12px;color:#8b857d;line-height:1.6}
+/* A-1006-06: true viewport chat layout */
+#adminChat:not(.hidden){
+ position:fixed!important;
+ inset:0!important;
+ z-index:1000!important;
+ width:100%!important;
+ height:100dvh!important;
+ box-sizing:border-box!important;
+ margin:0!important;
+ padding:calc(env(safe-area-inset-top) + 10px) 16px 0!important;
+ background:#f5f1ea!important;
+ display:grid!important;
+ grid-template-rows:auto auto minmax(0,1fr) auto auto!important;
+ overflow:hidden!important;
+}
+#adminChat #back{grid-row:1;margin:0 0 6px!important;justify-self:start}
+#adminChat #who{grid-row:2;margin:2px 0 8px!important;font-size:28px}
+#adminChat #adminMsgs{
+ grid-row:3;
+ min-height:0!important;
+ height:auto!important;
+ overflow-y:auto!important;
+ -webkit-overflow-scrolling:touch;
+ overscroll-behavior:contain;
+ padding:8px 2px 14px!important;
+}
+#adminChat .composer{
+ grid-row:4;
+ display:grid!important;
+ grid-template-columns:minmax(0,1fr) auto;
+ gap:8px;
+ align-items:center;
+ width:100%;
+ box-sizing:border-box;
+ padding:10px 0 calc(10px + env(safe-area-inset-bottom))!important;
+ margin:0!important;
+ background:#f5f1ea!important;
+}
+#adminChat .composer input{width:100%!important;min-width:0!important;margin:0!important;box-sizing:border-box}
+#adminChat .composer button{margin:0!important;white-space:nowrap}
+#adminChat #pushStatus{grid-row:5;display:none!important}
+@media (orientation:landscape){
+ #adminChat:not(.hidden){padding-left:max(16px,env(safe-area-inset-left))!important;padding-right:max(16px,env(safe-area-inset-right))!important}
+}
+</style></head><body><div id="bootSplash" style="position:fixed;inset:0;z-index:9999;background:#f5f1ea;display:flex;align-items:center;justify-content:center;font-family:system-ui;color:#292722"><div style="text-align:center"><div style="font-size:30px;font-weight:800">專屬空間 SALON</div><div style="margin-top:12px;font-size:15px;opacity:.55">店家管理</div></div></div><div class="app">
+<h1>專屬空間 SALON <small style="font-size:11px;opacity:.35;font-weight:600">A-1006-06</small></h1>
 <div id="login" class="card hidden"><h2>店家登入</h2><input id="email" type="email" placeholder="Email"><input id="pw" type="password" placeholder="密碼"><button id="go">登入</button><p id="err"></p></div>
 <div id="adminHome" class="card hidden shellPage">
 <h2>主頁</h2>
@@ -52,7 +97,14 @@ function deviceLabel(){const ua=navigator.userAgent;const platform=navigator.pla
   if(token){await setDoc(doc(db,"pushTokens",user.uid,"devices",deviceId()),{token,uid:user.uid,role,deviceId:deviceId(),deviceType:deviceLabel(),userAgent:navigator.userAgent,updatedAt:serverTimestamp()},{merge:true});if(role==="admin")updateAdminNotifyUI(true)}else if(role==="admin")updateAdminNotifyUI(false);
  }catch(e){console.warn("push sync",e);if(role==="admin")updateAdminNotifyUI(false)}
 }
-function showAdminPage(id){document.body.classList.remove("chatMode");const pages=["adminHome","admin","adminAnalysis"];if(!pages.includes(id))id="adminHome";show(id);$("adminNav")?.classList.remove("hidden");document.querySelectorAll("#adminNav [data-admin-page]").forEach(b=>b.classList.toggle("active",b.dataset.adminPage===id))}
+function showAdminPage(id){
+ const pages=["adminHome","admin","adminAnalysis"];
+ if(!pages.includes(id))id="adminHome";
+ ["login","adminHome","adminTool","admin","adminAnalysis","adminChat","adminNav"].forEach(x=>{const el=$(x);if(el)el.style.removeProperty("display")});
+ show(id);
+ $("adminNav")?.classList.remove("hidden");
+ document.querySelectorAll("#adminNav [data-admin-page]").forEach(b=>b.classList.toggle("active",b.dataset.adminPage===id));
+}
 $("adminNav")?.addEventListener("click",e=>{const b=e.target.closest("#adminNav [data-admin-page]");if(!b)return;e.preventDefault();e.stopPropagation();showAdminPage(b.dataset.adminPage)});
 const TOOL_NAMES={broadcast:"群發訊息",welcome:"新客歡迎",autoreply:"自動回覆",notice:"公告・休假",gallery:"作品・產品",customers:"客戶管理",tags:"標籤分類",settings:"設定"};
 function openTool(key){
