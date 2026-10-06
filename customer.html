@@ -23,7 +23,7 @@ button{padding:14px 18px;border:0;border-radius:16px;background:#292722;color:#f
 #chat>.card{background:rgba(255,255,255,.78);box-shadow:0 14px 40px rgba(70,58,42,.06)}
 #msgs{padding:10px 2px 18px}.msg{max-width:76%;padding:11px 14px;margin:9px 0;border-radius:18px 18px 18px 6px;background:#fff;box-shadow:0 5px 18px rgba(70,58,42,.06);line-height:1.45}.msg.mine{margin-left:auto;border-radius:18px 18px 6px 18px;background:#292722;color:#fff}
 .bottomNav{border-radius:24px 24px 0 0;box-shadow:0 -8px 30px rgba(70,58,42,.08)}.navBtn span{width:30px;height:30px;margin:0 auto 4px;display:grid;place-items:center;border-radius:10px;font-size:17px;background:rgba(41,39,34,.06)}.navBtn.active span{background:rgba(255,255,255,.15)}
-.quickPills{display:flex;gap:8px;overflow-x:auto;padding:4px 0 10px}.quickPills button{flex:0 0 auto;background:#eee9e2;color:#292722;border-radius:999px;padding:8px 13px;font-size:13px;font-weight:650}.quickPills::-webkit-scrollbar{display:none}</style></head>
+.quickPills{display:flex;gap:8px;overflow-x:auto;padding:4px 0 10px}.quickPills button{flex:0 0 auto;background:#eee9e2;color:#292722;border-radius:999px;padding:8px 13px;font-size:13px;font-weight:650}.quickPills::-webkit-scrollbar{display:none}.msgWrap{display:flex;flex-direction:column;align-items:flex-start;margin:8px 0}.mineWrap{align-items:flex-end}.msgMeta{font-size:10px;color:#99938b;margin:3px 6px}.msgActions{display:flex;gap:5px;margin:2px 4px}.msgActions button{background:transparent;color:#8b857d;padding:3px 6px;font-size:10px;font-weight:600}</style></head>
 <body>
 <div id="splash"><div><div class="logo">專屬空間 SALON</div><div class="sub">連線中…</div></div></div>
 <div class="app">
@@ -48,7 +48,7 @@ button{padding:14px 18px;border:0;border-radius:16px;background:#292722;color:#f
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
 import{getAuth,signInAnonymously,onAuthStateChanged,signOut,setPersistence,browserLocalPersistence}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-import{getFirestore,doc,setDoc,getDoc,collection,addDoc,query,orderBy,onSnapshot,serverTimestamp}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+import{getFirestore,doc,setDoc,getDoc,collection,addDoc,query,orderBy,onSnapshot,serverTimestamp,updateDoc,writeBatch}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 import{getMessaging,getToken}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-messaging.js";
 const cfg={apiKey:"AIzaSyBS-lHTp1YPhhFOKriBRSrwdSomT3ZGw0c",authDomain:"salon-space-chat.firebaseapp.com",projectId:"salon-space-chat",storageBucket:"salon-space-chat.firebasestorage.app",messagingSenderId:"103245363547",appId:"1:103245363547:web:3f19674918bbf257a4c27e"};
 const ADMIN="HcFJGmzHw6MYoWbFmtq9IyFSjvL2",VAPID="BJEl8aiGHazU3HbeuXaJabs0omFsCTic-EBlYV9xox3EMN2Ns2C2EwbxYaUC-rcqYNlkKHvJxisZx7mE5T91RtI";
@@ -57,7 +57,13 @@ let uid,unsub,started=false;
 function show(id){["setup","chat","info","gallery"].forEach(x=>$(x)?.classList.add("hidden"));$(id)?.classList.remove("hidden");$("splash")?.remove();if(id!=="setup")$("customerNav")?.classList.remove("hidden")}
 function showCustomerPage(id){show(id);document.querySelectorAll("[data-customer-page]").forEach(b=>b.classList.toggle("active",b.dataset.customerPage===id))}
 document.querySelectorAll("[data-customer-page]").forEach(b=>b.onclick=()=>showCustomerPage(b.dataset.customerPage));
-function listen(){unsub?.();unsub=onSnapshot(query(collection(db,"chats",uid,"messages"),orderBy("createdAt","asc")),s=>{$("msgs").innerHTML=s.docs.map(d=>{const m=d.data();return '<div class="msg '+(m.senderId===uid?"mine":"")+'">'+escapeHtml(m.text||"")+"</div>"}).join("");$("msgs").scrollTop=$("msgs").scrollHeight})}
+function listen(){unsub?.();unsub=onSnapshot(query(collection(db,"chats",uid,"messages"),orderBy("createdAt","asc")),async s=>{
+ $("msgs").innerHTML=s.docs.map(d=>{const m=d.data(),mine=m.senderId===uid,withdrawn=m.withdrawn===true,text=withdrawn?"此訊息已收回":escapeHtml(m.text||""),meta=[m.editedAt?"已編輯":"",mine&&m.readAt?"已讀":""].filter(Boolean).join(" · ");return '<div class="msgWrap '+(mine?"mineWrap":"")+'"><div class="msg '+(mine?"mine":"")+'">'+text+'</div>'+(meta?'<small class="msgMeta">'+meta+'</small>':"")+(mine&&!withdrawn?'<div class="msgActions"><button data-edit="'+d.id+'">編輯</button><button data-withdraw="'+d.id+'">收回</button></div>':"")+'</div>'}).join("");
+ $("msgs").scrollTop=$("msgs").scrollHeight;
+ document.querySelectorAll("[data-edit]").forEach(b=>b.onclick=async()=>{const snap=s.docs.find(x=>x.id===b.dataset.edit);const old=snap?.data()?.text||"";const next=prompt("編輯訊息",old);if(next!==null&&next.trim()&&next!==old)await updateDoc(doc(db,"chats",uid,"messages",b.dataset.edit),{text:next.trim(),editedAt:serverTimestamp()})});
+ document.querySelectorAll("[data-withdraw]").forEach(b=>b.onclick=async()=>{if(confirm("收回這則訊息？"))await updateDoc(doc(db,"chats",uid,"messages",b.dataset.withdraw),{withdrawn:true,text:"",withdrawnAt:serverTimestamp()})});
+ const batch=writeBatch(db);let n=0;s.docs.forEach(d=>{const m=d.data();if(m.senderId===ADMIN&&!m.readAt){batch.update(d.ref,{readAt:serverTimestamp()});n++}});if(n)await batch.commit()
+})}
 function escapeHtml(s){return s.replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
 function updateNotifyUI(){const b=$("notifyBox");if(!b)return;if(!("Notification"in window)||Notification.permission==="granted")b.classList.add("hidden");else b.classList.remove("hidden")}async function syncPush(){try{if(Notification.permission!=="granted"||!("serviceWorker"in navigator)){updateNotifyUI();return;}const reg=await navigator.serviceWorker.register("./firebase-messaging-sw.js");await navigator.serviceWorker.ready;const token=await getToken(messaging,{vapidKey:VAPID,serviceWorkerRegistration:reg});if(token)await setDoc(doc(db,"pushTokens",uid),{token,uid,role:"customer",updatedAt:serverTimestamp()},{merge:true})}catch(e){console.warn(e)}finally{updateNotifyUI()}}
 await setPersistence(auth,browserLocalPersistence).catch(()=>{});
