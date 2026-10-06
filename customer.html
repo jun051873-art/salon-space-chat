@@ -48,7 +48,7 @@ button{padding:14px 18px;border:0;border-radius:16px;background:#292722;color:#f
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
 import{getAuth,signInAnonymously,onAuthStateChanged,signOut,setPersistence,browserLocalPersistence}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-import{getFirestore,doc,setDoc,getDoc,collection,addDoc,query,orderBy,onSnapshot,serverTimestamp,updateDoc,writeBatch,waitForPendingWrites}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+import{getFirestore,doc,setDoc,getDoc,collection,addDoc,query,orderBy,onSnapshot,serverTimestamp,updateDoc,writeBatch}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 import{getMessaging,getToken}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-messaging.js";
 const cfg={apiKey:"AIzaSyBS-lHTp1YPhhFOKriBRSrwdSomT3ZGw0c",authDomain:"salon-space-chat.firebaseapp.com",projectId:"salon-space-chat",storageBucket:"salon-space-chat.firebasestorage.app",messagingSenderId:"103245363547",appId:"1:103245363547:web:3f19674918bbf257a4c27e"};
 const ADMIN="HcFJGmzHw6MYoWbFmtq9IyFSjvL2",VAPID="BJEl8aiGHazU3HbeuXaJabs0omFsCTic-EBlYV9xox3EMN2Ns2C2EwbxYaUC-rcqYNlkKHvJxisZx7mE5T91RtI";
@@ -67,7 +67,6 @@ function listen(){unsub?.();unsub=onSnapshot(query(collection(db,"chats",uid,"me
 async function sendCustomerConfirmed(t){
  const ref=await addDoc(collection(db,"chats",uid,"messages"),{text:t,senderId:uid,senderRole:"customer",createdAt:serverTimestamp()});
  await setDoc(doc(db,"chats",uid),{lastMessage:t,updatedAt:serverTimestamp()},{merge:true});
- await waitForPendingWrites(db);
  return ref;
 }
 function escapeHtml(s){return s.replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
