@@ -17,7 +17,7 @@ input,button{font:inherit}input{width:100%;padding:14px;border:1px solid #ddd;bo
 button{padding:14px 18px;border:0;border-radius:16px;background:#292722;color:#fff;font-weight:700}
 #msgs{height:58vh;overflow:auto;padding:8px}.msg{padding:10px 13px;border-radius:16px;margin:7px;max-width:78%;background:#fff}.mine{margin-left:auto;background:#292722;color:#fff}
 .composer{display:flex;gap:8px}.composer input{flex:1}.status{font-size:12px;opacity:.7;margin-top:8px}
-</style></head>
+.bottomNav{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:min(720px,100%);display:flex;gap:6px;padding:9px 10px calc(9px + env(safe-area-inset-bottom));background:rgba(250,248,244,.96);backdrop-filter:blur(18px);border-top:1px solid #e4ddd4;z-index:50}.navBtn{flex:1;background:transparent;color:#716b63;padding:10px 4px;margin:0;border-radius:15px;font-size:12px}.navBtn span{display:block;font-size:22px;margin-bottom:3px}.navBtn.active{background:#292722;color:#fff}.placeholder{min-height:62vh;display:flex;align-items:center;justify-content:center;text-align:center}.placeholder p{color:#817b72;line-height:1.7}.app{padding-bottom:100px}</style></head>
 <body>
 <div id="splash"><div><div class="logo">專屬空間 SALON</div><div class="sub">連線中…</div></div></div>
 <div class="app">
@@ -35,6 +35,9 @@ button{padding:14px 18px;border:0;border-radius:16px;background:#292722;color:#f
 <div class="composer"><input id="text" placeholder="輸入訊息…"><button id="send">傳送</button></div>
 <div id="notifyBox" class="hidden" style="margin-top:14px"><button id="enableNotify">🔔 開啟訊息通知</button><p id="notifyStatus" class="status">開啟後，店家回覆時手機會提醒你。</p></div><p id="pushStatus" class="status"></p><p id="pushDiag" class="status"></p></div>
 </section>
+<section id="info" class="card hidden placeholder"><div><h2>🏠 SALON 資訊</h2><p>公告、休假日、活動與店家資訊<br>之後會顯示在這裡。</p></div></section>
+<section id="gallery" class="card hidden placeholder"><div><h2>🖼 作品・產品</h2><p>作品照片、產品介紹與連結<br>之後會顯示在這裡。</p></div></section>
+<nav id="customerNav" class="bottomNav hidden"><button class="navBtn active" data-customer-page="chat"><span>💬</span>聊天</button><button class="navBtn" data-customer-page="info"><span>🏠</span>SALON 資訊</button><button class="navBtn" data-customer-page="gallery"><span>🖼</span>作品・產品</button></nav>
 </div>
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
@@ -45,7 +48,9 @@ const cfg={apiKey:"AIzaSyBS-lHTp1YPhhFOKriBRSrwdSomT3ZGw0c",authDomain:"salon-sp
 const ADMIN="HcFJGmzHw6MYoWbFmtq9IyFSjvL2",VAPID="BJEl8aiGHazU3HbeuXaJabs0omFsCTic-EBlYV9xox3EMN2Ns2C2EwbxYaUC-rcqYNlkKHvJxisZx7mE5T91RtI";
 const app=initializeApp(cfg),auth=getAuth(app),db=getFirestore(app),messaging=getMessaging(app),$=id=>document.getElementById(id);
 let uid,unsub,started=false;
-function show(id){$("setup").classList.add("hidden");$("chat").classList.add("hidden");$(id).classList.remove("hidden");$("splash")?.remove()}
+function show(id){["setup","chat","info","gallery"].forEach(x=>$(x)?.classList.add("hidden"));$(id)?.classList.remove("hidden");$("splash")?.remove();if(id!=="setup")$("customerNav")?.classList.remove("hidden")}
+function showCustomerPage(id){show(id);document.querySelectorAll("[data-customer-page]").forEach(b=>b.classList.toggle("active",b.dataset.customerPage===id))}
+document.querySelectorAll("[data-customer-page]").forEach(b=>b.onclick=()=>showCustomerPage(b.dataset.customerPage));
 function listen(){unsub?.();unsub=onSnapshot(query(collection(db,"chats",uid,"messages"),orderBy("createdAt","asc")),s=>{$("msgs").innerHTML=s.docs.map(d=>{const m=d.data();return '<div class="msg '+(m.senderId===uid?"mine":"")+'">'+escapeHtml(m.text||"")+"</div>"}).join("");$("msgs").scrollTop=$("msgs").scrollHeight})}
 function escapeHtml(s){return s.replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
 function updateNotifyUI(){const b=$("notifyBox");if(!b)return;if(!("Notification"in window)||Notification.permission==="granted")b.classList.add("hidden");else b.classList.remove("hidden")}async function syncPush(){try{if(Notification.permission!=="granted"||!("serviceWorker"in navigator)){updateNotifyUI();return;}const reg=await navigator.serviceWorker.register("./firebase-messaging-sw.js");await navigator.serviceWorker.ready;const token=await getToken(messaging,{vapidKey:VAPID,serviceWorkerRegistration:reg});if(token)await setDoc(doc(db,"pushTokens",uid),{token,uid,role:"customer",updatedAt:serverTimestamp()},{merge:true})}catch(e){console.warn(e)}finally{updateNotifyUI()}}
