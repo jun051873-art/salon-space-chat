@@ -33,7 +33,7 @@ self.addEventListener("notificationclick",event=>{
   const isApple=/iPhone|iPad|iPod|Macintosh/i.test(self.navigator?.userAgent||"");
   if(isApple){
    for(const client of list){
-    if(client.url.includes("/salon-space-chat/")){
+    if(new URL(client.url).origin===self.location.origin && new URL(client.url).pathname===new URL(absolute).pathname){
      client.postMessage({type:"OPEN_NOTIFICATION_URL",url:absolute});
      if("focus" in client)return client.focus();
     }
