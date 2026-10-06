@@ -52,7 +52,7 @@ import{getFirestore,doc,setDoc,getDoc,collection,addDoc,query,orderBy,onSnapshot
 import{getMessaging,getToken}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-messaging.js";
 const cfg={apiKey:"AIzaSyBS-lHTp1YPhhFOKriBRSrwdSomT3ZGw0c",authDomain:"salon-space-chat.firebaseapp.com",projectId:"salon-space-chat",storageBucket:"salon-space-chat.firebasestorage.app",messagingSenderId:"103245363547",appId:"1:103245363547:web:3f19674918bbf257a4c27e"};
 const ADMIN="HcFJGmzHw6MYoWbFmtq9IyFSjvL2",VAPID="BJEl8aiGHazU3HbeuXaJabs0omFsCTic-EBlYV9xox3EMN2Ns2C2EwbxYaUC-rcqYNlkKHvJxisZx7mE5T91RtI";
-const app=initializeApp(cfg),auth=getAuth(app),db=initializeFirestore(app,{experimentalForceLongPolling:true,experimentalLongPollingOptions:{timeoutSeconds:10}}),messaging=getMessaging(app),$=id=>document.getElementById(id);
+const app=initializeApp(cfg),auth=getAuth(app),db=getFirestore(app),messaging=getMessaging(app),$=id=>document.getElementById(id);
 let uid,unsub,started=false;
 function show(id){["setup","chat","info","gallery"].forEach(x=>$(x)?.classList.add("hidden"));$(id)?.classList.remove("hidden");$("splash")?.remove();if(id!=="setup")$("customerNav")?.classList.remove("hidden")}
 function showCustomerPage(id){show(id);document.querySelectorAll("[data-customer-page]").forEach(b=>b.classList.toggle("active",b.dataset.customerPage===id))}
