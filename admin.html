@@ -10,7 +10,7 @@
 .navBtn span{width:28px;height:28px;margin:0 auto 4px;display:grid;place-items:center;border-radius:10px;font-size:17px;background:rgba(41,39,34,.06)}
 .navBtn.active span{background:rgba(255,255,255,.15)}.navBtn{font-size:12px;letter-spacing:.02em}
 body.chatMode #adminNav{display:none!important}body.chatMode .app{padding-bottom:20px!important}#adminChat.hidden{display:none!important}#adminChat:not(.hidden){display:block!important}</style></head><body><div id="bootSplash" style="position:fixed;inset:0;z-index:9999;background:#f5f1ea;display:flex;align-items:center;justify-content:center;font-family:system-ui;color:#292722"><div style="text-align:center"><div style="font-size:30px;font-weight:800">專屬空間 SALON</div><div style="margin-top:12px;font-size:15px;opacity:.55">店家管理</div></div></div><div class="app">
-<h1>專屬空間 SALON <small style="font-size:11px;opacity:.35;font-weight:600">A-1006-01</small></h1>
+<h1>專屬空間 SALON <small style="font-size:11px;opacity:.35;font-weight:600">A-1006-02</small></h1>
 <div id="login" class="card hidden"><h2>店家登入</h2><input id="email" type="email" placeholder="Email"><input id="pw" type="password" placeholder="密碼"><button id="go">登入</button><p id="err"></p></div>
 <div id="adminHome" class="card hidden shellPage"><h2>主頁</h2><input id="homeSearch" placeholder="搜尋客人姓名／電話"><div class="homeGroups"><button class="groupCard">🎂<b>本月壽星</b><small>生日客戶</small></button><button class="groupCard">◎<b>全部客戶</b><small>所有已建檔客戶</small></button><button class="groupCard">＋<b>新加入</b><small>最近建立</small></button><button class="groupCard">⊘<b>封鎖</b><small>已封鎖客戶</small></button></div></div>
 <div id="admin" class="card hidden shellPage"><h2>客戶訊息</h2><div id="adminNotifyBox" class="hidden"><button id="adminNotify">🔔 開啟店家通知</button><p id="adminNotifyStatus">這台裝置尚未完成通知設定。</p></div><div id="list">目前沒有客人</div></div>
@@ -34,12 +34,13 @@ function showAdminPage(id){document.body.classList.remove("chatMode");const page
 $("adminNav")?.addEventListener("click",e=>{const b=e.target.closest("#adminNav [data-admin-page]");if(!b)return;e.preventDefault();e.stopPropagation();showAdminPage(b.dataset.adminPage)});
 async function openCustomerChat(uidToOpen){
  sel=uidToOpen;
- document.body.classList.add("chatMode");
- $("adminNav")?.classList.add("hidden");
+ const hideIds=["login","adminHome","admin","adminBroadcast","adminContent","adminSettings","adminNav"];
+ hideIds.forEach(id=>{const el=$(id);if(el){el.classList.add("hidden");el.style.display="none"}});
+ const chat=$("adminChat");
+ chat.classList.remove("hidden");
+ chat.style.display="block";
  const u=await getDoc(doc(db,"users",sel));
  $("who").textContent=u.data()?.name||"客人";
- ["login","adminHome","admin","adminBroadcast","adminContent","adminSettings"].forEach(id=>$(id)?.classList.add("hidden"));
- $("adminChat").classList.remove("hidden");
  listen(sel,$("adminMsgs"),ADMIN);
 }
 async function openAdminHome(){
@@ -68,4 +69,8 @@ $("go").onclick=async()=>{
   $("err").textContent="";
   await openAdminHome();
  }catch(e){$("err").textContent="登入失敗："+e.message}
-};async function enableAdminNotify(){try{if(!auth.currentUser||auth.currentUser.uid!==ADMIN)throw Error("請先登入店家後台");if(!("serviceWorker" in navigator))throw Error("此瀏覽器不支援背景通知");const perm=await Notification.requestPermission();if(perm!=="granted")throw Error("尚未允許通知");const reg=await navigator.serviceWorker.register("./firebase-messaging-sw.js");const token=await getToken(messaging,{vapidKey:VAPID,serviceWorkerRegistration:reg});await setDoc(doc(db,"pushTokens",ADMIN,"devices",deviceId()),{token,uid:ADMIN,role:"admin",deviceId:deviceId(),deviceType:deviceLabel(),userAgent:navigator.userAgent,updatedAt:serverTimestamp()},{merge:true});$("adminNotifyStatus").textContent="✅ 這台裝置已開啟店家通知";updateAdminNotifyUI(true);}catch(e){$("adminNotifyStatus").textContent="⚠️ 店家通知設定失敗："+e.message}}$("adminNotify").onclick=enableAdminNotify;$("replyBtn").onclick=async()=>{let t=$("reply").value;$("reply").value="";$("pushStatus").textContent="";if(!t.trim())return;await send(sel,t,ADMIN,"admin");try{const p=await getDoc(doc(db,"pushTokens",sel));const token=p.data()?.token;if(!token)throw new Error("找不到這位客人的通知 Token，請客人在同一身分下重新按一次「開啟訊息通知」");const r=await fetch("https://salon-space-notify.jun051873.workers.dev/",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token,title:"專屬空間 SALON",body:t.trim(),url:"https://jun051873-art.github.io/salon-space-chat/customer.html"})});const out=await r.json();if(!r.ok||!out.ok)throw new Error(JSON.stringify(out));$("pushStatus").textContent="✅ 通知已送交 FCM";}catch(e){$("pushStatus").textContent="⚠️ 通知失敗："+e.message;console.error("push failed",e)}};$("back").onclick=()=>{document.body.classList.remove("chatMode");showAdminPage("admin");$("adminNav")?.classList.remove("hidden")};</script></body></html>
+};async function enableAdminNotify(){try{if(!auth.currentUser||auth.currentUser.uid!==ADMIN)throw Error("請先登入店家後台");if(!("serviceWorker" in navigator))throw Error("此瀏覽器不支援背景通知");const perm=await Notification.requestPermission();if(perm!=="granted")throw Error("尚未允許通知");const reg=await navigator.serviceWorker.register("./firebase-messaging-sw.js");const token=await getToken(messaging,{vapidKey:VAPID,serviceWorkerRegistration:reg});await setDoc(doc(db,"pushTokens",ADMIN,"devices",deviceId()),{token,uid:ADMIN,role:"admin",deviceId:deviceId(),deviceType:deviceLabel(),userAgent:navigator.userAgent,updatedAt:serverTimestamp()},{merge:true});$("adminNotifyStatus").textContent="✅ 這台裝置已開啟店家通知";updateAdminNotifyUI(true);}catch(e){$("adminNotifyStatus").textContent="⚠️ 店家通知設定失敗："+e.message}}$("adminNotify").onclick=enableAdminNotify;$("replyBtn").onclick=async()=>{let t=$("reply").value;$("reply").value="";$("pushStatus").textContent="";if(!t.trim())return;await send(sel,t,ADMIN,"admin");try{const p=await getDoc(doc(db,"pushTokens",sel));const token=p.data()?.token;if(!token)throw new Error("找不到這位客人的通知 Token，請客人在同一身分下重新按一次「開啟訊息通知」");const r=await fetch("https://salon-space-notify.jun051873.workers.dev/",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token,title:"專屬空間 SALON",body:t.trim(),url:"https://jun051873-art.github.io/salon-space-chat/customer.html"})});const out=await r.json();if(!r.ok||!out.ok)throw new Error(JSON.stringify(out));$("pushStatus").textContent="✅ 通知已送交 FCM";}catch(e){$("pushStatus").textContent="⚠️ 通知失敗："+e.message;console.error("push failed",e)}};$("back").onclick=()=>{
+ const chat=$("adminChat");chat.classList.add("hidden");chat.style.display="none";
+ ["admin","adminNav"].forEach(id=>{const el=$(id);if(el)el.style.display=""});
+ showAdminPage("admin");
+};</script></body></html>
