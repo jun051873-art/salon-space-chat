@@ -117,6 +117,8 @@ async function savePushToken(path,values){
  await delivery.api(":commit",{method:"POST",body:JSON.stringify({writes:[{update:{name:"projects/"+cfg.projectId+"/databases/(default)/documents/"+path,fields},updateMask:{fieldPaths:Object.keys(fields)},updateTransforms:[{fieldPath:"updatedAt",setToServerValue:"REQUEST_TIME"}]}]})});
 }
 async function pushRequest(body){
+ const idToken=await auth.currentUser?.getIdToken();if(!idToken)throw Error("請重新登入後再傳送通知");
+ body={...body,idToken};
  const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),12000);
  try{
   const r=await fetch("https://salon-space-notify.jun051873.workers.dev/",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body),signal:ctrl.signal});
@@ -132,7 +134,7 @@ async function notifyDelivery(e,api){
   let p;try{p=await api("/pushTokens/"+encodeURIComponent(e.room));}catch(err){if(err.status!==404)throw err;}
   const token=p?.fields?.token?.stringValue;
   if(!token)throw Error("客戶裝置尚未登記通知；聊天訊息已存入雲端");
-  await pushRequest({token,messageId:e.id,title:"專屬空間 SALON",body:e.text,url:"https://jun051873-art.github.io/salon-space-chat/customer.html"});
+  await pushRequest({token,customerUid:e.room,messageId:e.id,title:"專屬空間 SALON",body:e.text,url:"https://jun051873-art.github.io/salon-space-chat/customer.html"});
  }
 }
 function renderChatView(){
