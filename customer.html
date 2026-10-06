@@ -64,11 +64,10 @@ function listen(){unsub?.();unsub=onSnapshot(query(collection(db,"chats",uid,"me
  document.querySelectorAll("[data-withdraw]").forEach(b=>b.onclick=async()=>{if(confirm("收回這則訊息？"))await updateDoc(doc(db,"chats",uid,"messages",b.dataset.withdraw),{withdrawn:true,text:"",withdrawnAt:serverTimestamp()})});
  const batch=writeBatch(db);let n=0;s.docs.forEach(d=>{const m=d.data();if(m.senderId===ADMIN&&!m.readAt){batch.update(d.ref,{readAt:serverTimestamp()});n++}});if(n)await batch.commit()
 })}
-function queueCustomerMessage(t){
- const ref=doc(collection(db,"chats",uid,"messages"));
- const write=setDoc(ref,{text:t,senderId:uid,senderRole:"customer",createdAt:serverTimestamp()});
- write.then(()=>setDoc(doc(db,"chats",uid),{lastMessage:t,updatedAt:serverTimestamp()},{merge:true}).catch(()=>{})).catch(()=>{});
- return {ref,write};
+async function sendCustomerConfirmed(t){
+ const ref=await addDoc(collection(db,"chats",uid,"messages"),{text:t,senderId:uid,senderRole:"customer",createdAt:serverTimestamp()});
+ await setDoc(doc(db,"chats",uid),{lastMessage:t,updatedAt:serverTimestamp()},{merge:true});
+ return ref;
 }
 function escapeHtml(s){return s.replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
 function updateNotifyUI(){const b=$("notifyBox");if(!b)return;if(!("Notification"in window)||Notification.permission==="granted")b.classList.add("hidden");else b.classList.remove("hidden")}async function syncPush(){try{if(Notification.permission!=="granted"||!("serviceWorker"in navigator)){updateNotifyUI();return;}const reg=await navigator.serviceWorker.register("./firebase-messaging-sw.js");await navigator.serviceWorker.ready;const token=await getToken(messaging,{vapidKey:VAPID,serviceWorkerRegistration:reg});if(token)await setDoc(doc(db,"pushTokens",uid),{token,uid,role:"customer",updatedAt:serverTimestamp()},{merge:true})}catch(e){console.warn(e)}finally{updateNotifyUI()}}
@@ -78,16 +77,25 @@ $("enableNotify").onclick=async()=>{try{if(!uid)throw Error("客人身分尚未�
 async function readPushDiag(){try{const r=await caches.match("/salon-space-chat/__push_diag__");if(!r){$("pushDiag").textContent="推播診斷：尚未收到背景推播";return}const d=await r.json();$("pushDiag").textContent="推播診斷："+d.stage+"｜"+new Date(d.at).toLocaleString()}catch(e){$("pushDiag").textContent="推播診斷讀取失敗"}}setTimeout(readPushDiag,1200);$("text").addEventListener("input",()=>localStorage.setItem("customerDraft",$("text").value));
 document.querySelectorAll("[data-quick]").forEach(b=>b.onclick=()=>{$("text").value=b.dataset.quick;localStorage.setItem("customerDraft",$("text").value);$("send").click()});
 $("send").onclick=async()=>{
- const t=$("text").value.trim();if(!t)return;
- const btn=$("send");btn.disabled=true;btn.textContent="傳送中…";
- const original=t;
- const queued=queueCustomerMessage(t);
- $("text").value="";localStorage.removeItem("customerDraft");
- btn.disabled=false;btn.textContent="傳送";
- queued.write.catch(()=>{
-  if(!$("text").value)$("text").value=original;
-  localStorage.setItem("customerDraft",original);
-  $("pushStatus").textContent="⚠️ 訊息同步失敗，內容已恢復，請稍後再傳";
- });
- try{const r=await fetch("https://salon-space-notify.jun051873.workers.dev/",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({target:"admin",customerUid:uid,title:"專屬空間 SALON｜客人新訊息",body:t})});const out=await r.json();$("pushStatus").textContent=(r.ok&&out.ok)?("店家推播診斷：裝置 "+(out.devices??"-")+"｜成功 "+(out.success??"-")+"｜失敗 "+(out.failed??"-")):("通知傳送失敗："+JSON.stringify(out))}catch(e){$("pushStatus").textContent="通知傳送失敗"}};
+ const t=$("text").value.trim();
+ if(!t)return;
+ const btn=$("send");
+ $("pushStatus").textContent="";
+ btn.disabled=true;btn.textContent="傳送中…";
+ try{
+   await sendCustomerConfirmed(t);
+   $("text").value="";
+   localStorage.removeItem("customerDraft");
+   btn.disabled=false;btn.textContent="傳送";
+ }catch(e){
+   btn.disabled=false;btn.textContent="傳送";
+   $("pushStatus").textContent="⚠️ 傳送失敗："+(e?.code||e?.message||String(e));
+   localStorage.setItem("customerDraft",t);
+   return;
+ }
+ try{
+   const r=await fetch("https://salon-space-notify.jun051873.workers.dev/",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({target:"admin",customerUid:uid,title:"專屬空間 SALON｜客人新訊息",body:t})});
+   await r.json();
+ }catch(e){console.warn("push failed",e)}
+};
 </script></body></html>
