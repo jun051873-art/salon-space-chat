@@ -64,7 +64,12 @@ function listen(){unsub?.();unsub=onSnapshot(query(collection(db,"chats",uid,"me
  document.querySelectorAll("[data-withdraw]").forEach(b=>b.onclick=async()=>{if(confirm("收回這則訊息？"))await updateDoc(doc(db,"chats",uid,"messages",b.dataset.withdraw),{withdrawn:true,text:"",withdrawnAt:serverTimestamp()})});
  const batch=writeBatch(db);let n=0;s.docs.forEach(d=>{const m=d.data();if(m.senderId===ADMIN&&!m.readAt){batch.update(d.ref,{readAt:serverTimestamp()});n++}});if(n)await batch.commit()
 })}
-async function withTimeout(p,ms=8000){return Promise.race([p,new Promise((_,rej)=>setTimeout(()=>rej(new Error("timeout")),ms))])}
+function queueCustomerMessage(t){
+ const ref=doc(collection(db,"chats",uid,"messages"));
+ const write=setDoc(ref,{text:t,senderId:uid,senderRole:"customer",createdAt:serverTimestamp()});
+ write.then(()=>setDoc(doc(db,"chats",uid),{lastMessage:t,updatedAt:serverTimestamp()},{merge:true}).catch(()=>{})).catch(()=>{});
+ return {ref,write};
+}
 function escapeHtml(s){return s.replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
 function updateNotifyUI(){const b=$("notifyBox");if(!b)return;if(!("Notification"in window)||Notification.permission==="granted")b.classList.add("hidden");else b.classList.remove("hidden")}async function syncPush(){try{if(Notification.permission!=="granted"||!("serviceWorker"in navigator)){updateNotifyUI();return;}const reg=await navigator.serviceWorker.register("./firebase-messaging-sw.js");await navigator.serviceWorker.ready;const token=await getToken(messaging,{vapidKey:VAPID,serviceWorkerRegistration:reg});if(token)await setDoc(doc(db,"pushTokens",uid),{token,uid,role:"customer",updatedAt:serverTimestamp()},{merge:true})}catch(e){console.warn(e)}finally{updateNotifyUI()}}
 await setPersistence(auth,browserLocalPersistence).catch(()=>{});
@@ -75,14 +80,14 @@ document.querySelectorAll("[data-quick]").forEach(b=>b.onclick=()=>{$("text").va
 $("send").onclick=async()=>{
  const t=$("text").value.trim();if(!t)return;
  const btn=$("send");btn.disabled=true;btn.textContent="傳送中…";
- try{
-  await withTimeout(addDoc(collection(db,"chats",uid,"messages"),{text:t,senderId:uid,senderRole:"customer",createdAt:serverTimestamp()}));setDoc(doc(db,"chats",uid),{lastMessage:t,updatedAt:serverTimestamp()},{merge:true}).catch(e=>console.warn("chat summary update failed",e));
+ const original=t;
+ const queued=queueCustomerMessage(t);
  $("text").value="";localStorage.removeItem("customerDraft");
  btn.disabled=false;btn.textContent="傳送";
- }catch(e){
-  $("pushStatus").textContent="⚠️ 訊息尚未送出，內容已保留，請檢查網路後再試";
-  btn.disabled=false;btn.textContent="傳送";
-  return;
- }
+ queued.write.catch(()=>{
+  if(!$("text").value)$("text").value=original;
+  localStorage.setItem("customerDraft",original);
+  $("pushStatus").textContent="⚠️ 訊息同步失敗，內容已恢復，請稍後再傳";
+ });
  try{const r=await fetch("https://salon-space-notify.jun051873.workers.dev/",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({target:"admin",customerUid:uid,title:"專屬空間 SALON｜客人新訊息",body:t})});const out=await r.json();$("pushStatus").textContent=(r.ok&&out.ok)?("店家推播診斷：裝置 "+(out.devices??"-")+"｜成功 "+(out.success??"-")+"｜失敗 "+(out.failed??"-")):("通知傳送失敗："+JSON.stringify(out))}catch(e){$("pushStatus").textContent="通知傳送失敗"}};
 </script></body></html>
