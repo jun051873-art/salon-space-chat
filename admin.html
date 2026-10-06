@@ -24,8 +24,8 @@ function deviceLabel(){const ua=navigator.userAgent;const platform=navigator.pla
   if(token){await setDoc(doc(db,"pushTokens",user.uid,"devices",deviceId()),{token,uid:user.uid,role,deviceId:deviceId(),deviceType:deviceLabel(),userAgent:navigator.userAgent,updatedAt:serverTimestamp()},{merge:true});if(role==="admin")updateAdminNotifyUI(true)}else if(role==="admin")updateAdminNotifyUI(false);
  }catch(e){console.warn("push sync",e);if(role==="admin")updateAdminNotifyUI(false)}
 }
-function showAdminPage(id){show(id);$("adminNav")?.classList.remove("hidden");document.querySelectorAll("[data-admin-page]").forEach(b=>b.classList.toggle("active",b.dataset.adminPage===id))}
-document.querySelectorAll("[data-admin-page]").forEach(b=>b.onclick=()=>showAdminPage(b.dataset.adminPage));
+function showAdminPage(id){const pages=["admin","adminBroadcast","adminContent","adminCustomers","adminSettings"];if(!pages.includes(id))id="admin";show(id);$("adminNav")?.classList.remove("hidden");document.querySelectorAll("#adminNav [data-admin-page]").forEach(b=>b.classList.toggle("active",b.dataset.adminPage===id))}
+$("adminNav")?.addEventListener("click",e=>{const b=e.target.closest("[data-admin-page]");if(!b)return;e.preventDefault();showAdminPage(b.dataset.adminPage)});
 async function openCustomerChat(uidToOpen){sel=uidToOpen;const u=await getDoc(doc(db,"users",sel));$("who").textContent=u.data()?.name||"客人";show("adminChat");listen(sel,$("adminMsgs"),ADMIN)}
 async function openAdminHome(){
  $("adminNav").classList.remove("hidden");showAdminPage("admin");
