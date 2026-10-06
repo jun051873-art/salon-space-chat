@@ -20,7 +20,7 @@ body.chatMode #adminNav{display:none!important}body.chatMode .app{padding-bottom
 #adminChat .composer button{flex:0 0 auto;margin:0}
 #adminChat #pushStatus{flex:0 0 auto;margin:5px 0 0;font-size:12px}
 .shopHeader{display:grid;grid-template-columns:56px 1fr auto;gap:12px;align-items:center;padding:8px 4px 20px}.shopLogo{width:54px;height:54px;border-radius:50%;display:grid;place-items:center;background:#eee7dd;font-weight:900;font-size:20px}.shopHeader b,.shopHeader small{display:block}.shopHeader b{font-size:19px}.shopHeader small{color:#8b857d;margin-top:4px}.shopHeader>span{font-size:32px;color:#aaa39a}.toolGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:22px 10px;padding:12px 0 24px}.toolItem{background:transparent;color:#292722;margin:0;padding:0;text-align:center;font-size:12px}.toolItem span{width:50px;height:50px;margin:0 auto 8px;display:grid;place-items:center;border-radius:17px;background:#f1ede7;font-size:25px;font-weight:700}.toolItem b{display:block;font-size:12px;font-weight:650}.analysisCards{display:grid;grid-template-columns:1fr 1fr;gap:12px}.analysisCards>div{padding:18px;background:#f6f2ec;border-radius:18px}.analysisCards small,.analysisCards b{display:block}.analysisCards b{font-size:28px;margin-top:8px}.bottomNav .navBtn{font-size:13px}.bottomNav .navBtn span{font-size:20px}.simpleBox{padding:6px 2px}.simpleBox textarea{width:100%;min-height:130px;padding:14px;border:1px solid #ddd;border-radius:14px;font:inherit;box-sizing:border-box;margin:6px 0}.simpleBox #arSave{width:100%;margin:8px 0}.demoPills{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}.demoPills span{padding:8px 12px;border-radius:999px;background:#eee9e2;font-size:13px}.hint{font-size:12px;color:#8b857d;line-height:1.6}
-/* A-1006-12: true viewport chat layout */
+/* A-1006-13: true viewport chat layout */
 #adminChat:not(.hidden){
  position:fixed!important;
  inset:0!important;
@@ -65,14 +65,14 @@ body.chatMode #adminNav{display:none!important}body.chatMode .app{padding-bottom
  #adminChat:not(.hidden){padding-left:max(16px,env(safe-area-inset-left))!important;padding-right:max(16px,env(safe-area-inset-right))!important}
 }
 .msgWrap{display:flex;flex-direction:column;align-items:flex-start;margin:8px 0}.mineWrap{align-items:flex-end}.msgMeta{font-size:10px;color:#99938b;margin:3px 6px}.msgActions{display:flex;gap:5px;margin:2px 4px}.msgActions button{background:transparent;color:#8b857d;padding:3px 6px;margin:0;font-size:10px;font-weight:600}
-/* A-1006-12 glass chrome for the 3 main tabs */
+/* A-1006-13 glass chrome for the 3 main tabs */
 #appTopGlass{position:sticky;top:0;z-index:45;margin:-20px -20px 8px;padding:calc(16px + env(safe-area-inset-top)) 20px 14px;background:rgba(245,241,234,.68);backdrop-filter:blur(22px) saturate(1.25);-webkit-backdrop-filter:blur(22px) saturate(1.25);border-bottom:1px solid rgba(255,255,255,.55);box-shadow:0 8px 28px rgba(64,54,43,.05)}
 #appTopGlass h1{margin:0;font-size:28px}
 .bottomNav{background:rgba(250,248,244,.66)!important;backdrop-filter:blur(24px) saturate(1.25)!important;-webkit-backdrop-filter:blur(24px) saturate(1.25)!important;border:1px solid rgba(255,255,255,.62)!important;border-bottom:0!important;box-shadow:0 -10px 34px rgba(64,54,43,.08)!important}
 #adminHome,#admin,#adminAnalysis{background:rgba(255,255,255,.70)!important}
 body:has(#adminChat:not(.hidden)) #appTopGlass{display:none!important}
 .navBtn,.customerRow,.toolItem{transition:transform .12s ease,opacity .12s ease,background-color .18s ease}.navBtn:active,.customerRow:active,.toolItem:active{transform:scale(.985)}button:disabled{opacity:.55}</style></head><body><div id="bootSplash" style="position:fixed;inset:0;z-index:9999;background:#f5f1ea;display:flex;align-items:center;justify-content:center;font-family:system-ui;color:#292722"><div style="text-align:center"><div style="font-size:30px;font-weight:800">專屬空間 SALON</div><div style="margin-top:12px;font-size:15px;opacity:.55">店家管理</div></div></div><div class="app">
-<header id="appTopGlass"><h1>專屬空間 SALON <small style="font-size:11px;opacity:.35;font-weight:600">A-1006-12</small></h1></header>
+<header id="appTopGlass"><h1>專屬空間 SALON <small style="font-size:11px;opacity:.35;font-weight:600">A-1006-13</small></h1></header>
 <div id="login" class="card hidden"><h2>店家登入</h2><input id="email" type="email" placeholder="Email"><input id="pw" type="password" placeholder="密碼"><button id="go">登入</button><p id="err"></p></div>
 <div id="adminHome" class="card hidden shellPage">
 <h2>主頁</h2>
@@ -101,15 +101,15 @@ function deviceLabel(){const ua=navigator.userAgent;const platform=navigator.pla
  document.querySelectorAll("[data-edit]").forEach(b=>b.onclick=async()=>{const id=b.dataset.edit;const snap=s.docs.find(x=>x.id===id);const old=snap?.data()?.text||"";const next=prompt("編輯訊息",old);if(next!==null&&next.trim()&&next!==old)await updateDoc(doc(db,"chats",u,"messages",id),{text:next.trim(),editedAt:serverTimestamp()})});
  document.querySelectorAll("[data-withdraw]").forEach(b=>b.onclick=async()=>{if(confirm("收回這則訊息？"))await updateDoc(doc(db,"chats",u,"messages",b.dataset.withdraw),{withdrawn:true,text:"",withdrawnAt:serverTimestamp()})});
  if(viewer===ADMIN){const batch=writeBatch(db);let n=0;s.docs.forEach(d=>{const m=d.data();if(m.senderId!==ADMIN&&!m.readAt){batch.update(d.ref,{readAt:serverTimestamp()});n++}});if(n)await batch.commit()}
-})}function queueMessage(u,t,sender,role){
- const ref=doc(collection(db,"chats",u,"messages"));
- const write=setDoc(ref,{text:t.trim(),senderId:sender,senderRole:role,createdAt:serverTimestamp()});
- write.then(()=>setDoc(doc(db,"chats",u),{lastMessage:t.trim(),updatedAt:serverTimestamp()},{merge:true}).catch(()=>{})).catch(()=>{});
- return {ref,write};
-}function updateAdminNotifyUI(ok=false){const b=$("adminNotifyBox");if(!b)return;if(ok&&Notification.permission==="granted")b.classList.add("hidden");else b.classList.remove("hidden")}async function syncPushToken(user,role){
+})}async function sendConfirmed(u,t,sender,role){
+ const ref=await addDoc(collection(db,"chats",u,"messages"),{text:t.trim(),senderId:sender,senderRole:role,createdAt:serverTimestamp()});
+ await setDoc(doc(db,"chats",u),{lastMessage:t.trim(),updatedAt:serverTimestamp()},{merge:true});
+ return ref;
+}
+function updateAdminNotifyUI(ok=false){const b=$("adminNotifyBox");if(!b)return;if(ok&&Notification.permission==="granted")b.classList.add("hidden");else b.classList.remove("hidden")}async function syncPushToken(user,role){
  try{
   if(Notification.permission!=="granted"||!("serviceWorker" in navigator)){if(role==="admin")updateAdminNotifyUI(false);return;}
-  const reg=await navigator.serviceWorker.register("./firebase-messaging-sw.js?v=A-1006-12",{updateViaCache:"none"});await reg.update();
+  const reg=await navigator.serviceWorker.register("./firebase-messaging-sw.js?v=A-1006-13",{updateViaCache:"none"});await reg.update();
   await navigator.serviceWorker.ready;
   const token=await getToken(messaging,{vapidKey:VAPID,serviceWorkerRegistration:reg});
   if(token){await setDoc(doc(db,"pushTokens",user.uid,"devices",deviceId()),{token,uid:user.uid,role,deviceId:deviceId(),deviceType:deviceLabel(),userAgent:navigator.userAgent,updatedAt:serverTimestamp()},{merge:true});if(role==="admin")updateAdminNotifyUI(true)}else if(role==="admin")updateAdminNotifyUI(false);
@@ -173,22 +173,32 @@ $("go").onclick=async()=>{
  }catch(e){$("err").textContent="登入失敗："+e.message}
 };async function enableAdminNotify(){try{if(!auth.currentUser||auth.currentUser.uid!==ADMIN)throw Error("請先登入店家後台");if(!("serviceWorker" in navigator))throw Error("此瀏覽器不支援背景通知");const perm=await Notification.requestPermission();if(perm!=="granted")throw Error("尚未允許通知");const reg=await navigator.serviceWorker.register("./firebase-messaging-sw.js");const token=await getToken(messaging,{vapidKey:VAPID,serviceWorkerRegistration:reg});await setDoc(doc(db,"pushTokens",ADMIN,"devices",deviceId()),{token,uid:ADMIN,role:"admin",deviceId:deviceId(),deviceType:deviceLabel(),userAgent:navigator.userAgent,updatedAt:serverTimestamp()},{merge:true});$("adminNotifyStatus").textContent="✅ 這台裝置已開啟店家通知";updateAdminNotifyUI(true);}catch(e){$("adminNotifyStatus").textContent="⚠️ 店家通知設定失敗："+e.message}}$("adminNotify").onclick=enableAdminNotify;$("reply").addEventListener("input",()=>{if(sel)localStorage.setItem("adminDraft:"+sel,$("reply").value)});
 $("replyBtn").onclick=async()=>{
- const t=$("reply").value;
- $("pushStatus").textContent="";
- if(!t.trim())return;
+ const t=$("reply").value.trim();
+ if(!t)return;
  const btn=$("replyBtn");
+ $("pushStatus").textContent="";
  btn.disabled=true;btn.textContent="傳送中…";
- const original=t;
- const queued=queueMessage(sel,t,ADMIN,"admin");
- $("reply").value="";
- localStorage.removeItem("adminDraft:"+sel);
- btn.disabled=false;btn.textContent="傳送";
- queued.write.catch(()=>{
-  if(!$("reply").value)$("reply").value=original;
-  localStorage.setItem("adminDraft:"+sel,original);
-  $("pushStatus").textContent="⚠️ 訊息同步失敗，內容已恢復，請稍後再傳";
- });
- try{const p=await getDoc(doc(db,"pushTokens",sel));const token=p.data()?.token;if(!token)throw new Error("找不到這位客人的通知 Token，請客人在同一身分下重新按一次「開啟訊息通知」");const r=await fetch("https://salon-space-notify.jun051873.workers.dev/",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token,title:"專屬空間 SALON",body:t.trim(),url:"https://jun051873-art.github.io/salon-space-chat/customer.html"})});const out=await r.json();if(!r.ok||!out.ok)throw new Error(JSON.stringify(out));$("pushStatus").textContent="✅ 通知已送交 FCM";}catch(e){$("pushStatus").textContent="⚠️ 通知失敗："+e.message;console.error("push failed",e)}};$("back").onclick=()=>{
+ try{
+   await sendConfirmed(sel,t,ADMIN,"admin");
+   $("reply").value="";
+   localStorage.removeItem("adminDraft:"+sel);
+   btn.disabled=false;btn.textContent="傳送";
+ }catch(e){
+   btn.disabled=false;btn.textContent="傳送";
+   $("pushStatus").textContent="⚠️ 傳送失敗："+(e?.code||e?.message||String(e));
+   localStorage.setItem("adminDraft:"+sel,t);
+   return;
+ }
+ try{
+   const p=await getDoc(doc(db,"pushTokens",sel));
+   const token=p.data()?.token;
+   if(!token)throw new Error("找不到客人通知 Token");
+   const r=await fetch("https://salon-space-notify.jun051873.workers.dev/",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token,title:"專屬空間 SALON",body:t,url:"https://jun051873-art.github.io/salon-space-chat/customer.html"})});
+   const out=await r.json();
+   if(!r.ok||!out.ok)throw new Error(JSON.stringify(out));
+ }catch(e){console.warn("push failed",e)}
+};
+$("back").onclick=()=>{
  const chat=$("adminChat");chat.classList.add("hidden");chat.style.display="none";
  ["admin","adminNav"].forEach(id=>{const el=$(id);if(el)el.style.display=""});
  showAdminPage("admin");
