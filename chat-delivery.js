@@ -25,7 +25,7 @@ export function createDelivery({auth,projectId,role,notify,onChange,storage=loca
   try{
    const res=await request(base+path,{...options,headers:{"Content-Type":"application/json",Authorization:"Bearer "+token},signal:ctrl.signal});
    const body=await res.json();
-   if(!res.ok){const err=Error(body.error?.message||"雲端請求失敗");err.status=res.status;err.code=body.error?.status;throw err;}
+   if(!res.ok){const err=Error(body.error?.status==="RESOURCE_EXHAUSTED"?"Firebase 雲端配額已用完；訊息已保留，等待配額恢復":body.error?.message||"雲端請求失敗");err.status=res.status;err.code=body.error?.status;throw err;}
    return body;
   }finally{clearTimeout(t);}
  }
@@ -65,8 +65,9 @@ export function createDelivery({auth,projectId,role,notify,onChange,storage=loca
     }catch(err){
      e.attempts=(e.attempts||0)+1;
      e.error=(err.name==="AbortError"?"連線逾時":err.message||String(err));
+     e.quotaBlocked=err.code==="RESOURCE_EXHAUSTED";
      if(e.stage==="stored"&&e.attempts>=3)e.stage="notify-error";
-     e.nextAt=Date.now()+Math.min(60000,5000*2**Math.min(e.attempts-1,4));
+     e.nextAt=Date.now()+(e.quotaBlocked?15*60*1000:Math.min(60000,5000*2**Math.min(e.attempts-1,4)));
      save(e);
      // Preserve order for messages still waiting to reach the server.
      if(e.stage==="queued")break;
@@ -84,7 +85,7 @@ export function createDelivery({auth,projectId,role,notify,onChange,storage=loca
  }
  function acknowledge(ids){for(const id of ids)seen.add(id);for(const e of all())cleanup(e);}
  return {enqueue,flush,entries:all,acknowledge,api,
-  resume(){for(const e of all()){if(e.stage!=="done"){e.nextAt=0;if(e.stage==="notify-error"){e.stage="stored";e.attempts=0;}save(e);}}void flush();},
+  resume(){for(const e of all()){if(e.stage!=="done"){if(!e.quotaBlocked)e.nextAt=0;if(e.stage==="notify-error"){e.stage="stored";e.attempts=0;}save(e);}}void flush();},
   stop(){stopped=true;clearTimeout(timer);}
  };
 }
