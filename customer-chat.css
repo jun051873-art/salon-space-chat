@@ -1,0 +1,28 @@
+/* Customer C6: a dedicated conversation viewport, with no outer-page scroll. */
+.customerApp .app>h1{font-size:16px;padding:calc(11px + env(safe-area-inset-top)) 18px 11px;letter-spacing:.09em;-webkit-backdrop-filter:blur(8px)}
+.customerApp .bottomNav{border-radius:0;bottom:0;width:100%;max-width:900px;padding:4px 8px calc(4px + env(safe-area-inset-bottom));box-shadow:0 -2px 18px #7760440a;-webkit-backdrop-filter:blur(8px)}
+.customerApp .navBtn{padding:6px 3px;border-radius:13px}.customerApp .navBtn span{width:24px;height:22px;margin-bottom:2px;font-size:18px}
+.inboxIntro{margin:14px 4px 26px}.inboxIntro h2{font-size:28px;margin:8px 0}.inboxIntro p,.inboxHint{color:#958571;font-size:13px}.inboxHint{text-align:center;margin-top:24px}
+.conversationEntry{display:flex;align-items:center;gap:15px;width:100%;text-align:left;padding:20px 16px;background:#fffaf1a8;border:1px solid #fff;color:#39392f;border-radius:24px;box-shadow:0 8px 30px #7b63380a}.salonMonogram{width:52px;height:52px;display:grid;place-items:center;border-radius:18px;background:#e9dfd0;font-size:25px;font-weight:500}.conversationCopy{flex:1;min-width:0}.conversationCopy strong{font-size:16px}.conversationCopy small{display:block;font-size:12px;color:#9a8b77;margin-top:8px;font-weight:400}
+html.conversationOpen,body.conversationOpen{height:100%;overflow:hidden;overscroll-behavior:none}
+.customerApp.conversationOpen .app{height:100%;min-height:0;padding:0;overflow:hidden}
+.customerApp.conversationOpen .app>h1,.customerApp.conversationOpen #customerNav{display:none!important}
+.customerApp #chat:not(.hidden){position:fixed;z-index:100;top:var(--chat-top,0px);left:0;right:0;height:var(--chat-height,100dvh);max-width:900px;margin:0 auto;background:var(--paper);overflow:hidden;overscroll-behavior:none}
+.customerApp #chat>.card{height:100%;display:flex;flex-direction:column;min-height:0;padding:0;border-radius:0;position:relative;overflow:hidden}
+.customerApp .conversationHeader{flex:none;display:flex;align-items:center;gap:8px;padding:calc(5px + env(safe-area-inset-top)) 10px 5px;background:rgba(255,253,248,.8);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid #fff;z-index:2}
+.customerApp #chat .chatHeading,.customerApp .conversationHeader h2{flex:1;min-width:0;margin:0!important;font-size:16px!important;letter-spacing:.03em;line-height:1.35}
+.customerApp .chatHeading small{font-size:10px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.customerApp .conversationHeader button{background:transparent;color:#726753;margin:0;padding:0;width:40px;height:42px;flex:none;font-size:29px;font-weight:400;border-radius:12px}
+.customerApp #msgs{flex:1 1 0;height:auto!important;min-height:0!important;overflow-y:auto;overflow-x:hidden;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;padding:16px 16px 22px;touch-action:pan-y}
+.customerApp .conversationFooter{flex:none;background:rgba(255,253,248,.86);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-top:1px solid #fff;padding:4px 10px calc(4px + env(safe-area-inset-bottom));z-index:2}
+.customerApp #chat .composer{display:flex;gap:6px;padding:0!important;min-height:46px;margin:0}
+.customerApp #chat .composer input{height:40px;padding:8px 12px;border-radius:21px;font-size:16px;background:#fffdf8}
+.customerApp #chat .composer button{height:40px;padding:0 12px;margin:0;border-radius:18px;font-size:13px}
+.customerApp #chat .composer .attachBtn{padding:0!important;min-width:34px;width:34px;height:40px;font-size:23px;background:transparent!important}
+.customerApp #chat #chatShortcuts{background:transparent;color:#8b795e;font-size:21px;padding:0;width:30px;flex:none}
+.customerApp #chatPanel[hidden],.customerApp #chatDetails[hidden]{display:none!important}
+.customerApp #chatPanel{max-height:110px;overflow:auto}.customerApp #chatPanel .quickPills{margin:0;padding:5px 0 8px}
+.customerApp #chatDetails{position:absolute;z-index:4;top:calc(62px + env(safe-area-inset-top));right:10px;left:10px;max-height:45%;overflow:auto;padding:12px 15px;background:#fffdf6f5;border:1px solid #e7ddcc;border-radius:18px;box-shadow:0 10px 30px #5c4a3222}
+.customerApp #chatDetails p{margin:6px 0}.customerApp #chatDetails #notifyBox{margin-top:6px!important}.customerApp #chatDetails #enableNotify{padding:10px 12px;font-size:13px}
+.customerApp.conversationOpen #suiteToast{bottom:calc(72px + env(safe-area-inset-bottom));z-index:20000}
+.customerApp .conversationFooter #chatWrite{font-size:11px;color:#8d6848;max-height:44px;overflow:auto;white-space:pre-wrap;padding:3px 2px}.customerApp .conversationFooter #chatWrite:empty{display:none}

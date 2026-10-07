@@ -27,7 +27,9 @@ self.addEventListener("notificationclick",event=>{
  event.notification.close();
  const url=event.notification?.data?.url||"/salon-space-chat/customer.html";
  event.waitUntil((async()=>{
-  const absolute=new URL(url,self.location.origin).href;
+  const destination=new URL(url,self.location.origin);
+  if(destination.pathname.endsWith("/customer.html"))destination.hash="chat";
+  const absolute=destination.href;
   const list=await clients.matchAll({type:"window",includeUncontrolled:true});
   // Apple/WebKit 對既有 standalone 視窗的 focus 較穩；Android 則優先走深連結開啟。
   const isApple=/iPhone|iPad|iPod|Macintosh/i.test(self.navigator?.userAgent||"");
