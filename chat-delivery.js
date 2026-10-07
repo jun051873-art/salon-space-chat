@@ -33,11 +33,12 @@ export function createDelivery({auth,projectId,role,notify,onChange,storage=loca
   if(auth.currentUser?.uid!==e.senderId)throw Error("登入身分已改變，保留訊息待原帳號恢復");
   const path=`/chats/${encodeURIComponent(e.room)}/messages/${e.id}`;
   // A lost HTTP response must not create a second message or change old timestamps.
-  try{
+  if(e.commitStarted||e.attempts>0)try{
    const existing=await api(path);
    if(existing.fields?.senderId?.stringValue!==e.senderId||existing.fields?.text?.stringValue!==e.text)throw Error("訊息識別碼衝突，已保留原文");
    return;
   }catch(err){if(err.status!==404)throw err;}
+  e.commitStarted=true;save(e);
   const s=v=>({stringValue:v});
   await api(":commit",{method:"POST",body:JSON.stringify({writes:[
    {update:{name:root+`/chats/${e.room}/messages/${e.id}`,fields:{text:s(e.text),senderId:s(e.senderId),senderRole:s(e.role),clientMessageId:s(e.id)}},currentDocument:{exists:false},updateTransforms:[{fieldPath:"createdAt",setToServerValue:"REQUEST_TIME"}]},
