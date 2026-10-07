@@ -31,3 +31,5 @@ To complete deployment once access is available:
 - Model tests for tag/date/filter/receipt/idempotency logic: pass.
 - Firebase emulator: owner isolation, notes privacy, message edits, legacy readAt denial, monotonic receipts, blocked sends, files, double-booking, cancellation/rebooking: pass.
 - Physical iPhone background notifications cannot be revalidated from this environment. Existing notification routing is retained. Do not infer successful chat or notifications from Worker health JSON.
+
+- Worker 5-suite isolated tests: duplicate keyword/cron runs create one message only, blocked recipients excluded, no enabled rules skip customer scans, birthday personalization, missing auth and cross-customer requests rejected. Tests mock Google endpoints; Cloudflare deployment and real push delivery remain unverified.
