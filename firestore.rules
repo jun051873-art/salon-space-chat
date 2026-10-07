@@ -1,95 +1,76 @@
 rules_version = '2';
-
-
 service cloud.firestore {
-  match /databases/{database}/documents {
-
-
-    function signedIn() {
-      return request.auth != null;
-    }
-
-
-    function isAdmin() {
-      return signedIn()
-        && request.auth.uid == "HcFJGmzHw6MYoWbFmtq9IyFSjvL2";
-    }
-
-
-    function isOwner(userId) {
-      return signedIn() && request.auth.uid == userId;
-    }
-
-
-    // 客戶基本資料
-    match /users/{userId} {
-      allow create: if isOwner(userId);
-      allow read, update: if isAdmin() || isOwner(userId);
-      allow delete: if isAdmin();
-    }
-
-
-    // 每位客人的聊天室
-    match /chats/{userId} {
-      allow create, read, update: if isAdmin() || isOwner(userId);
-      allow delete: if isAdmin();
-
-
-      // 聊天訊息：只保留一層
-      match /messages/{messageId} {
-        allow create, read: if isAdmin() || isOwner(userId);
-        // Block legacy snapshot-to-readAt write loops.
-        allow update: if isAdmin()
-          && !request.resource.data.diff(resource.data).affectedKeys().hasAny(["readAt"]);
-        allow delete: if isAdmin();
-      }
-    }
-
-
-    // 公告
-    match /announcements/{documentId} {
-      allow read: if signedIn();
-      allow create, update, delete: if isAdmin();
-    }
-
-
-    // 店休日
-    match /holidays/{documentId} {
-      allow read: if signedIn();
-      allow create, update, delete: if isAdmin();
-    }
-
-
-    // 產品與店家資訊
-    match /products/{documentId} {
-      allow read: if signedIn();
-      allow create, update, delete: if isAdmin();
-    }
-
-
-    // 群發紀錄
-    match /broadcasts/{documentId} {
-      allow read, create, update, delete: if isAdmin();
-    }
-
-
-    // 推播 Token
-    match /pushTokens/{userId} {
-      allow read, create, update, delete:
-        if isAdmin() || isOwner(userId);
-
-
-      // 同一帳號的多台裝置
-      match /devices/{deviceId} {
-        allow read, create, update, delete:
-          if isAdmin() || isOwner(userId);
-      }
-    }
-
-
-    // 其他路徑全部拒絕
-    match /{document=**} {
-      allow read, write: if false;
-    }
+ match /databases/{database}/documents {
+  function signedIn(){return request.auth != null;}
+  function admin(){return signedIn() && request.auth.uid == 'HcFJGmzHw6MYoWbFmtq9IyFSjvL2';}
+  function owner(uid){return signedIn() && request.auth.uid == uid;}
+  function active(uid){return get(/databases/$(database)/documents/users/$(uid)).data.get('status','active') == 'active';}
+  function profileFields(){return ['name','phone','birthMonth','birthDay','gender','avatar','role','status','createdAt','joinedAt','updatedAt'];}
+  match /users/{uid} {
+   allow read: if admin() || owner(uid);
+   allow create: if admin() || (owner(uid) && request.resource.data.keys().hasOnly(profileFields()) && request.resource.data.role == 'customer' && request.resource.data.get('status','active') == 'active');
+   allow update: if admin() || (owner(uid) && resource.data.get('status','active') != 'blocked' && request.resource.data.diff(resource.data).affectedKeys().hasOnly(profileFields()) && request.resource.data.role == 'customer' && request.resource.data.get('status','active') == 'active');
+   allow delete: if admin();
   }
+  match /chats/{uid} {
+   allow read: if admin() || owner(uid);
+   allow create: if admin() || (owner(uid) && request.resource.data.keys().hasOnly(['userId','name','phone','status','lastMessage','updatedAt','lastCustomerMessageAt']) && request.resource.data.get('status','active') == 'active');
+   allow update: if admin() || (owner(uid) && (
+    (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['readCustomerMs']) && request.resource.data.readCustomerMs is number && request.resource.data.readCustomerMs >= resource.data.get('readCustomerMs',0) && request.resource.data.readCustomerMs <= request.time.toMillis()) ||
+    (resource.data.get('status','active') != 'blocked' && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name','phone','userId','status','lastMessage','updatedAt','lastCustomerMessageAt']) && request.resource.data.get('status','active') == 'active')
+   ));
+   allow delete: if admin();
+   match /messages/{messageId} {
+    allow read: if admin() || owner(uid);
+    allow create: if (admin() || (owner(uid) && get(/databases/$(database)/documents/chats/$(uid)).data.get('status','active') == 'active')) && request.resource.data.senderId == request.auth.uid && request.resource.data.senderRole == (admin()?'admin':'customer') && request.resource.data.text is string && request.resource.data.text.size() <= 4000 && request.resource.data.createdAt == request.time;
+    // Never permit the legacy per-message readAt loop, including for admin.
+    allow update: if (admin() || (owner(uid) && resource.data.senderId == request.auth.uid && active(uid))) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['text','editedAt','retracted']) && request.resource.data.text is string && request.resource.data.text.size() <= 4000;
+    allow delete: if admin();
+   }
+   match /files/{fileId} {
+    allow read: if admin() || owner(uid);
+    allow create: if (admin() || (owner(uid) && active(uid))) && request.resource.data.senderId == request.auth.uid && request.resource.data.data is string && request.resource.data.data.size() <= 420000 && request.resource.data.type in ['image/jpeg','image/png','image/webp','application/pdf','text/plain'];
+    allow update: if false;
+    allow delete: if admin();
+   }
+  }
+  match /announcements/{id} {allow read: if signedIn();allow write: if admin();}
+  match /holidays/{id} {allow read: if signedIn();allow write: if admin();}
+  match /products/{id} {allow read: if signedIn();allow write: if admin();}
+  match /customerNotes/{uid} {allow read,write: if admin();}
+  match /broadcasts/{id} {allow read,write: if admin();}
+  match /pushTokens/{uid} {
+   allow read,write: if admin() || owner(uid);
+   match /devices/{id} {allow read,write: if admin() || owner(uid);}
+  }
+  function canBook(b){
+   let config=get(/databases/$(database)/documents/announcements/settings).data;
+   return owner(b.userId) && active(b.userId) && config.bookingEnabled == true && config.services.hasAny([b['service']]) && config.times.hasAny([b.time]) && b.status == 'confirmed' && b.startAt > request.time && b.startAt < request.time + duration.value(61,'d') && (!exists(/databases/$(database)/documents/holidays/$(b.date)) || get(/databases/$(database)/documents/holidays/$(b.date)).data.closed == false);
+  }
+  match /bookings/{id} {
+   allow read: if admin() || (signedIn() && resource.data.userId == request.auth.uid);
+   allow create: if admin() || (canBook(request.resource.data) && request.resource.data.slotId == id && id == request.resource.data.date + '_' + request.resource.data.time && getAfter(/databases/$(database)/documents/availability/$(request.resource.data.date)).data.slots[request.resource.data.time] == true);
+   allow update: if admin() || (
+    (owner(resource.data.userId) && resource.data.status == 'confirmed' && request.resource.data.status == 'cancelled' && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status','updatedAt']) && getAfter(/databases/$(database)/documents/availability/$(resource.data.date)).data.slots[resource.data.time] == false) ||
+    (resource.data.status == 'cancelled' && canBook(request.resource.data) && request.resource.data.slotId == id && id == request.resource.data.date + '_' + request.resource.data.time && getAfter(/databases/$(database)/documents/availability/$(request.resource.data.date)).data.slots[request.resource.data.time] == true)
+   );
+   allow delete: if admin();
+  }
+  // Availability contains only occupied flags, never names, phones or user IDs.
+  match /availability/{day} {
+   allow read: if signedIn();
+   function validChange(){
+    let newSlots=request.resource.data.slots;
+    let oldSlots=resource == null ? {} : resource.data.slots;
+    let changed=newSlots.diff(oldSlots).affectedKeys();
+    let time=request.resource.data.changedTime;
+    let bookingId=request.resource.data.bookingId;
+    let booking=getAfter(/databases/$(database)/documents/bookings/$(bookingId)).data;
+    return request.resource.data.keys().hasOnly(['slots','changedTime','bookingId']) && changed.hasOnly([time]) && changed.size() == 1 && booking.date == day && booking.time == time && booking.slotId == bookingId && owner(booking.userId) && ((newSlots[time] == true && oldSlots.get(time,false) == false && booking.status == 'confirmed') || (newSlots[time] == false && oldSlots[time] == true && booking.status == 'cancelled'));
+   }
+   allow create,update: if admin() || (signedIn() && validChange());
+   allow delete: if admin();
+  }
+  match /{document=**} {allow read,write: if false;}
+ }
 }

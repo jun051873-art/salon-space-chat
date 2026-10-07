@@ -23,7 +23,7 @@ button{padding:14px 18px;border:0;border-radius:16px;background:#292722;color:#f
 #chat>.card{background:rgba(255,255,255,.78);box-shadow:0 14px 40px rgba(70,58,42,.06)}
 #msgs{padding:10px 2px 18px}.msg{max-width:76%;padding:11px 14px;margin:9px 0;border-radius:18px 18px 18px 6px;background:#fff;box-shadow:0 5px 18px rgba(70,58,42,.06);line-height:1.45}.msg.mine{margin-left:auto;border-radius:18px 18px 6px 18px;background:#292722;color:#fff}
 .bottomNav{border-radius:24px 24px 0 0;box-shadow:0 -8px 30px rgba(70,58,42,.08)}.navBtn span{width:30px;height:30px;margin:0 auto 4px;display:grid;place-items:center;border-radius:10px;font-size:17px;background:rgba(41,39,34,.06)}.navBtn.active span{background:rgba(255,255,255,.15)}
-.quickPills{display:flex;gap:8px;overflow-x:auto;padding:4px 0 10px}.quickPills button{flex:0 0 auto;background:#eee9e2;color:#292722;border-radius:999px;padding:8px 13px;font-size:13px;font-weight:650}.quickPills::-webkit-scrollbar{display:none}</style></head>
+.quickPills{display:flex;gap:8px;overflow-x:auto;padding:4px 0 10px}.quickPills button{flex:0 0 auto;background:#eee9e2;color:#292722;border-radius:999px;padding:8px 13px;font-size:13px;font-weight:650}.quickPills::-webkit-scrollbar{display:none}</style><link rel="stylesheet" href="./salon.css?v=S5"></head>
 <body>
 <div id="splash"><div><div class="logo">專屬空間 SALON</div><div class="sub">連線中…</div></div></div>
 <div class="app">
@@ -33,7 +33,7 @@ button{padding:14px 18px;border:0;border-radius:16px;background:#292722;color:#f
 <p>留下稱呼與手機，之後這台裝置會直接進入聊天室。</p>
 <input id="name" placeholder="稱呼，例如：王小姐">
 <input id="phone" placeholder="手機號碼"><div style="display:flex;gap:8px"><input id="birthMonth" inputmode="numeric" placeholder="生日月份，例如 5"><input id="birthDay" inputmode="numeric" placeholder="日期，例如 18"></div><p class="status">只需要月／日，不需要出生年份。</p>
-<button id="start">開始使用</button>
+<label>性別<select id="setupGender"><option value="">不透露</option><option>女性</option><option>男性</option><option>其他</option></select></label><button id="start">開始使用</button>
 <p id="setupErr" class="status"></p>
 </section>
 <section id="chat" class="hidden">
@@ -45,7 +45,7 @@ button{padding:14px 18px;border:0;border-radius:16px;background:#292722;color:#f
 <section id="gallery" class="card hidden placeholder"><div><h2>🖼 作品・產品</h2><p>作品照片、產品介紹與連結<br>之後會顯示在這裡。</p></div></section>
 <nav id="customerNav" class="bottomNav hidden"><button class="navBtn active" data-customer-page="chat"><span>◉</span>聊天</button><button class="navBtn" data-customer-page="info"><span>⌂</span>SALON 資訊</button><button class="navBtn" data-customer-page="gallery"><span>▧</span>作品・產品</button></nav>
 </div>
-<script type="module">import{createDelivery}from"./chat-delivery.js?v=D4";import{createPagedFeed}from"./chat-feed.js?v=D4";const CHAT_ROLE="customer";
+<script type="module">import{installSuite,messageHTML}from"./salon-suite.js?v=S5";let suite;import{createDelivery}from"./chat-delivery.js?v=S5";import{createPagedFeed}from"./chat-feed.js?v=D4";const CHAT_ROLE="customer";
 import{initializeApp}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
 import{getAuth,signInAnonymously,onAuthStateChanged,signOut,setPersistence,browserLocalPersistence}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 import{getFirestore,doc,getDoc,collection,query,orderBy,onSnapshot,limit,startAfter,getDocsFromServer}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
@@ -66,7 +66,7 @@ function ensureChatStatus(room){
  if(!box){
   box=document.createElement("div");box.id="chatStatus";
   box.style.cssText="grid-column:1/-1;flex-basis:100%;font-size:13px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere;padding:5px 0;color:#62584c";
-  box.innerHTML='<div id="chatRead" role="status"></div><div id="chatWrite" role="status"></div><details><summary>連線檢查 D4</summary><div id="chatIdentity"></div></details>';
+  box.innerHTML='<div id="chatRead" role="status"></div><div id="chatWrite" role="status"></div><details><summary>連線檢查 S5</summary><div id="chatIdentity"></div></details>';
   const composer=document.querySelector("#adminChat .composer");
   if(composer)composer.appendChild(box);else $("msgs").after(box);
  }
@@ -111,21 +111,22 @@ function renderChatView(reason="update"){
  const followBottom=v.first||previousHeight-previousTop-v.el.clientHeight<100;
  const own=delivery.entries().filter(e=>e.room===v.room);
  const ids=new Set(v.docs.map(d=>d.id));
- const rows=v.docs.map(d=>({text:d.data().text,senderId:d.data().senderId,pending:d.metadata.hasPendingWrites}));
- for(const e of own)if(!ids.has(e.id))rows.push({text:e.text,senderId:e.senderId,pending:e.stage==="queued"});
+ const rows=v.docs.map(d=>({id:d.id,...d.data(),pending:d.metadata.hasPendingWrites||own.some(e=>e.id===d.id&&e.stage==="queued")}));
+ for(const e of own)if(!ids.has(e.id))rows.push({id:e.id,text:e.text,senderId:e.senderId,pending:e.stage==="queued",attachment:e.attachment});
  const moreHtml=v.more?'<button type="button" data-older '+(v.loading?'disabled':'')+' style="display:block;margin:8px auto;background:#eae4db;color:#292722;padding:9px 16px;font-size:13px">'+(v.loading?'載入中…':'查看較早訊息')+'</button>':'';
- v.el.innerHTML=moreHtml+rows.map(m=>'<div class="msg '+(m.senderId===v.viewer?"mine":"")+'">'+safeChatText(m.text)+'<small style="display:block;font-size:11px;opacity:.75;margin-top:5px">'+(m.pending?"已保存在此裝置，等待送達雲端":m.senderId===v.viewer?"已存入雲端":"")+'</small></div>').join("");
+ v.el.innerHTML=moreHtml+rows.map(m=>messageHTML(m,v.viewer,v.peerRead||0)).join("");
  v.el.querySelector('[data-older]')?.addEventListener('click',()=>v.feed.loadMore());
  if(reason==="older")v.el.scrollTop=previousTop+(v.el.scrollHeight-previousHeight);
  else if(followBottom)v.el.scrollTop=v.el.scrollHeight;
  else v.el.scrollTop=previousTop;
  if(v.docs.length)v.first=false;
+ suite?.bindChat();
  const waiting=own.filter(e=>e.stage==="queued"),push=own.filter(e=>e.stage==="stored"||e.stage==="notify-error");
  $("chatWrite").textContent=waiting.length?waiting.length+" 則待傳，已保存在此裝置；重新開啟後會接續傳送。"+(waiting.find(e=>e.error)?.error?"\n原因："+waiting.find(e=>e.error).error:""):"";
  $("pushStatus").textContent=push.length?"訊息已存入雲端；通知尚未完成。"+(push.find(e=>e.error)?.error?"\n"+push.find(e=>e.error).error:""):"";
 }
 function watchChat(room,el,viewer){
- if(currentChatView?.room===room){currentChatView.feed.start();return;}
+ if(currentChatView?.room===room){currentChatView.feed.start();suite?.attachChat(currentChatView);return;}
  activeChatUnsubscribe?.();clearTimeout(activeReadTimer);
  ensureChatStatus(room);$("chatRead").textContent="正在連接雲端訊息…";
  const v={room,el,viewer,docs:[],more:false,loading:false,first:true};currentChatView=v;
@@ -144,7 +145,7 @@ function watchChat(room,el,viewer){
  });
  v.feed=feed;activeChatUnsubscribe=()=>feed.destroy();renderChatView();delivery.resume();
  activeReadTimer=setTimeout(()=>{if(currentChatView===v)$("chatRead").textContent="尚未取得雲端回應，正在等待重新連線。"},12000);
- feed.start();
+ feed.start();suite?.attachChat(v);
 }
 function transmitChat(room,t,sender,role,input,button){
  if(!t.trim())return;
@@ -174,8 +175,8 @@ async function getChatMessaging(){
  return messagingPromise;
 }
 
-function show(id){["setup","chat","info","gallery"].forEach(x=>$(x)?.classList.add("hidden"));$(id)?.classList.remove("hidden");$("splash")?.remove();if(id!=="setup")$("customerNav")?.classList.remove("hidden")}
-function showCustomerPage(id){show(id);if(id==="chat")currentChatView?.feed.start();else currentChatView?.feed.pause();document.querySelectorAll("[data-customer-page]").forEach(b=>b.classList.toggle("active",b.dataset.customerPage===id))}
+function show(id){["setup","chat","info","gallery","booking","profile"].forEach(x=>$(x)?.classList.add("hidden"));$(id)?.classList.remove("hidden");$("splash")?.remove();if(id!=="setup")$("customerNav")?.classList.remove("hidden")}
+function showCustomerPage(id){show(id);suite?.page(id);if(id==="chat")currentChatView?.feed.start();else currentChatView?.feed.pause();document.querySelectorAll("[data-customer-page]").forEach(b=>b.classList.toggle("active",b.dataset.customerPage===id))}
 document.querySelectorAll("[data-customer-page]").forEach(b=>b.onclick=()=>showCustomerPage(b.dataset.customerPage));
 function listen(){watchChat(uid,$("msgs"),uid)}
 function escapeHtml(s){return s.replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
@@ -191,10 +192,11 @@ function updateNotifyUI(){const b=$("notifyBox");if(!b)return;if(!supportsPushAP
  }catch(e){$("notifyStatus").textContent="通知尚未設定完成："+e.message;$("notifyBox").classList.remove("hidden");return false;}
 }
 await setPersistence(auth,browserLocalPersistence).catch(()=>{});
-onAuthStateChanged(auth,async user=>{if(started)return;started=true;try{if(user?.uid===ADMIN){await signOut(auth);user=null}if(!auth.currentUser)await signInAnonymously(auth);uid=auth.currentUser.uid;const p=await getDoc(doc(db,"users",uid));if(p.exists()){show("chat");listen();syncPush()}else show("setup")}catch(e){$("splash").querySelector(".sub").textContent="連線失敗，請重新整理"}});
-$("enableNotify").onclick=async()=>{try{if(!uid)throw Error("客人身分尚未完成");if(!("Notification"in window))throw Error("此裝置不支援通知");const p=await Notification.requestPermission();if(p!=="granted")throw Error("尚未允許通知");$("notifyStatus").textContent="正在設定通知…";if(!await syncPush())return;$("notifyStatus").textContent="✅ 訊息通知已開啟";$("notifyBox").classList.add("hidden")}catch(e){$("notifyStatus").textContent="通知設定失敗："+e.message}};$("start").onclick=async()=>{try{const name=$("name").value.trim(),phone=$("phone").value.trim(),birthMonth=Number($("birthMonth").value),birthDay=Number($("birthDay").value);if(!name||!phone||!birthMonth||!birthDay)throw Error("請填寫稱呼、手機與生日月日");if(birthMonth<1||birthMonth>12||birthDay<1||birthDay>31)throw Error("請確認生日月日");await delivery.api(":commit",{method:"POST",body:JSON.stringify({writes:[
- {update:{name:"projects/"+cfg.projectId+"/databases/(default)/documents/users/"+uid,fields:{name:{stringValue:name},phone:{stringValue:phone},birthMonth:{integerValue:String(birthMonth)},birthDay:{integerValue:String(birthDay)},role:{stringValue:"customer"}}},updateMask:{fieldPaths:["name","phone","birthMonth","birthDay","role"]},updateTransforms:[{fieldPath:"createdAt",setToServerValue:"REQUEST_TIME"},{fieldPath:"updatedAt",setToServerValue:"REQUEST_TIME"}]},
- {update:{name:"projects/"+cfg.projectId+"/databases/(default)/documents/chats/"+uid,fields:{userId:{stringValue:uid},name:{stringValue:name},phone:{stringValue:phone}}},updateMask:{fieldPaths:["userId","name","phone"]},updateTransforms:[{fieldPath:"updatedAt",setToServerValue:"REQUEST_TIME"}]}
- ]})});show("chat");listen();syncPush()}catch(e){$("setupErr").textContent=e.message}};
+onAuthStateChanged(auth,async user=>{if(started)return;started=true;try{if(user?.uid===ADMIN){await signOut(auth);user=null}if(!auth.currentUser)await signInAnonymously(auth);uid=auth.currentUser.uid;const p=await getDoc(doc(db,"users",uid));if(p.exists()){show("chat");listen();syncPush();suite?.authReady(auth.currentUser,p.data())}else show("setup")}catch(e){$("splash").querySelector(".sub").textContent="連線失敗，請重新整理"}});
+$("enableNotify").onclick=async()=>{try{if(!uid)throw Error("客人身分尚未完成");if(!("Notification"in window))throw Error("此裝置不支援通知");const p=await Notification.requestPermission();if(p!=="granted")throw Error("尚未允許通知");$("notifyStatus").textContent="正在設定通知…";if(!await syncPush())return;$("notifyStatus").textContent="✅ 訊息通知已開啟";$("notifyBox").classList.add("hidden")}catch(e){$("notifyStatus").textContent="通知設定失敗："+e.message}};$("start").onclick=async()=>{try{const name=$("name").value.trim(),phone=$("phone").value.trim(),birthMonth=Number($("birthMonth").value),birthDay=Number($("birthDay").value);if(!name||!phone||!birthMonth||!birthDay)throw Error("請填寫稱呼、手機與生日月日");if(!Number.isInteger(birthMonth)||!Number.isInteger(birthDay)||birthMonth<1||birthMonth>12||birthDay<1||birthDay>new Date(2000,birthMonth,0).getDate())throw Error("請確認生日月日");await delivery.api(":commit",{method:"POST",body:JSON.stringify({writes:[
+ {update:{name:"projects/"+cfg.projectId+"/databases/(default)/documents/users/"+uid,fields:{name:{stringValue:name},phone:{stringValue:phone},birthMonth:{integerValue:String(birthMonth)},birthDay:{integerValue:String(birthDay)},role:{stringValue:"customer"},gender:{stringValue:$("setupGender").value},status:{stringValue:"active"}}},updateMask:{fieldPaths:["name","phone","birthMonth","birthDay","role","gender","status"]},updateTransforms:[{fieldPath:"joinedAt",setToServerValue:"REQUEST_TIME"},{fieldPath:"createdAt",setToServerValue:"REQUEST_TIME"},{fieldPath:"updatedAt",setToServerValue:"REQUEST_TIME"}]},
+ {update:{name:"projects/"+cfg.projectId+"/databases/(default)/documents/chats/"+uid,fields:{userId:{stringValue:uid},name:{stringValue:name},phone:{stringValue:phone},status:{stringValue:"active"}}},updateMask:{fieldPaths:["userId","name","phone","status"]},updateTransforms:[{fieldPath:"updatedAt",setToServerValue:"REQUEST_TIME"}]}
+ ]})});show("chat");listen();syncPush();suite?.authReady(auth.currentUser,{name,phone,birthMonth,birthDay,gender:$("setupGender").value},true);}catch(e){$("setupErr").textContent=e.message}};
 async function readPushDiag(){try{const r=await caches.match("/salon-space-chat/__push_diag__");if(!r){$("pushDiag").textContent="推播診斷：尚未收到背景推播";return}const d=await r.json();$("pushDiag").textContent="推播診斷："+d.stage+"｜"+new Date(d.at).toLocaleString()}catch(e){$("pushDiag").textContent="推播診斷讀取失敗"}}setTimeout(readPushDiag,1200);document.querySelectorAll("[data-quick]").forEach(b=>b.onclick=()=>{$("text").value=b.dataset.quick;$("send").click()});$("send").onclick=()=>transmitChat(uid,$("text").value,uid,"customer",$("text"),$("send"));
+suite=installSuite({auth,db,role:CHAT_ROLE,delivery,getChat:()=>currentChatView,renderChat:renderChatView,showPage:showCustomerPage});
 </script></body></html>

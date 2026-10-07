@@ -41,8 +41,9 @@ export function createDelivery({auth,projectId,role,notify,onChange,storage=loca
   e.commitStarted=true;save(e);
   const s=v=>({stringValue:v});
   await api(":commit",{method:"POST",body:JSON.stringify({writes:[
-   {update:{name:root+`/chats/${e.room}/messages/${e.id}`,fields:{text:s(e.text),senderId:s(e.senderId),senderRole:s(e.role),clientMessageId:s(e.id)}},currentDocument:{exists:false},updateTransforms:[{fieldPath:"createdAt",setToServerValue:"REQUEST_TIME"}]},
-   {update:{name:root+`/chats/${e.room}`,fields:{lastMessage:s(e.text)}},updateMask:{fieldPaths:["lastMessage"]},updateTransforms:[{fieldPath:"updatedAt",setToServerValue:"REQUEST_TIME"}]}
+   {update:{name:root+`/chats/${e.room}/messages/${e.id}`,fields:{text:s(e.text),senderId:s(e.senderId),senderRole:s(e.role),clientMessageId:s(e.id),...(e.attachment?{attachment:{mapValue:{fields:{name:s(e.attachment.name),type:s(e.attachment.type),size:{integerValue:String(e.attachment.size)}}}}}:{})}},currentDocument:{exists:false},updateTransforms:[{fieldPath:"createdAt",setToServerValue:"REQUEST_TIME"}]},
+   {update:{name:root+`/chats/${e.room}`,fields:{lastMessage:s(e.text)}},updateMask:{fieldPaths:["lastMessage"]},updateTransforms:[{fieldPath:"updatedAt",setToServerValue:"REQUEST_TIME"},...(e.role==="customer"?[{fieldPath:"lastCustomerMessageAt",setToServerValue:"REQUEST_TIME"}]:[])]},
+   ...(e.attachment?[{update:{name:root+`/chats/${e.room}/files/${e.id}`,fields:{data:s(e.attachment.data),name:s(e.attachment.name),type:s(e.attachment.type),senderId:s(e.senderId)}},currentDocument:{exists:false}}]:[])
   ]})});
  }
  function cleanup(e){if(e.stage==="done"&&seen.has(e.id)){storage.removeItem(key(e));emit();}}
@@ -76,11 +77,13 @@ export function createDelivery({auth,projectId,role,notify,onChange,storage=loca
    }
   }finally{busy=false;if(all().some(e=>e.stage==="queued"||e.stage==="stored"))schedule(5000);}
  }
- function enqueue({room,text,senderId}){
+ function enqueue({room,text,senderId,attachment=null,id:providedId=null}){
   if(auth.currentUser?.uid!==senderId)throw Error("登入身分已改變，文字仍保留在輸入框");
   if(!room||room.includes("/")||!text.trim())throw Error("聊天室或訊息無效");
-  const id="c3_"+(crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+"_"+Array.from(crypto.getRandomValues(new Uint32Array(4))).map(x=>x.toString(36)).join(""));
-  const e={id,room,text:text.trim(),senderId,role,at:Date.now(),stage:"queued",attempts:0,nextAt:0,error:""};
+  const id=providedId||"c3_"+(crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+"_"+Array.from(crypto.getRandomValues(new Uint32Array(4))).map(x=>x.toString(36)).join(""));
+  if(!/^[A-Za-z0-9_-]{1,160}$/.test(id))throw Error("訊息識別碼無效");
+  const previous=storage.getItem(prefix+senderId+":"+id);if(previous)return JSON.parse(previous);
+  const e={id,room,text:text.trim(),senderId,role,attachment,at:Date.now(),stage:"queued",attempts:0,nextAt:0,error:""};
   // A storage error must leave the composer's original text untouched.
   save(e);void flush();return e;
  }

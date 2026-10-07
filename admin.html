@@ -64,7 +64,7 @@ body.chatMode #adminNav{display:none!important}body.chatMode .app{padding-bottom
 @media (orientation:landscape){
  #adminChat:not(.hidden){padding-left:max(16px,env(safe-area-inset-left))!important;padding-right:max(16px,env(safe-area-inset-right))!important}
 }
-</style></head><body><div id="bootSplash" style="position:fixed;inset:0;z-index:9999;background:#f5f1ea;display:flex;align-items:center;justify-content:center;font-family:system-ui;color:#292722"><div style="text-align:center"><div style="font-size:30px;font-weight:800">專屬空間 SALON</div><div style="margin-top:12px;font-size:15px;opacity:.55">店家管理</div></div></div><div class="app">
+</style><link rel="stylesheet" href="./salon.css?v=S5"></head><body><div id="bootSplash" style="position:fixed;inset:0;z-index:9999;background:#f5f1ea;display:flex;align-items:center;justify-content:center;font-family:system-ui;color:#292722"><div style="text-align:center"><div style="font-size:30px;font-weight:800">專屬空間 SALON</div><div style="margin-top:12px;font-size:15px;opacity:.55">店家管理</div></div></div><div class="app">
 <h1>專屬空間 SALON <small style="font-size:11px;opacity:.35;font-weight:600">A-RECOVERY-01</small></h1>
 <div id="login" class="card hidden"><h2>店家登入</h2><input id="email" type="email" placeholder="Email"><input id="pw" type="password" placeholder="密碼"><button id="go">登入</button><p id="err"></p></div>
 <div id="adminHome" class="card hidden shellPage">
@@ -86,10 +86,11 @@ body.chatMode #adminNav{display:none!important}body.chatMode .app{padding-bottom
 <div id="adminAnalysis" class="card hidden shellPage"><h2>分析</h2><div class="analysisCards"><div><small>客戶數</small><b>—</b></div><div><small>本月新客</small><b>—</b></div><div><small>訊息數</small><b>—</b></div><div><small>本月壽星</small><b>—</b></div></div><p style="color:#8b857d">分析內容先預留，之後再決定要放哪些統計。</p></div>
 <div id="adminChat" class="hidden"><button id="back">← 訊息列表</button><h2 id="who">聊天室</h2><div id="adminMsgs"></div><div class="composer"><input id="reply" placeholder="輸入回覆"><button id="replyBtn">傳送</button></div><p id="pushStatus"></p></div>
 <nav id="adminNav" class="bottomNav hidden"><button class="navBtn active" data-admin-page="adminHome"><span>⌂</span>主頁</button><button class="navBtn" data-admin-page="admin"><span>◉</span>訊息</button><button class="navBtn" data-admin-page="adminAnalysis"><span>▥</span>分析</button></nav>
-</div><script type="module">import{createDelivery}from"./chat-delivery.js?v=D4";import{createPagedFeed}from"./chat-feed.js?v=D4";const CHAT_ROLE="admin";import{initializeApp}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";import{getAuth,signInAnonymously,signInWithEmailAndPassword,signOut,onAuthStateChanged,setPersistence,browserLocalPersistence}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";import{getFirestore,doc,getDoc,collection,query,orderBy,onSnapshot,limit,startAfter,getDocsFromServer}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";import{getMessaging,getToken,onMessage,isSupported}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-messaging.js";const cfg={apiKey:"AIzaSyBS-lHTp1YPhhFOKriBRSrwdSomT3ZGw0c",authDomain:"salon-space-chat.firebaseapp.com",projectId:"salon-space-chat",storageBucket:"salon-space-chat.firebasestorage.app",messagingSenderId:"103245363547",appId:"1:103245363547:web:3f19674918bbf257a4c27e"},ADMIN="HcFJGmzHw6MYoWbFmtq9IyFSjvL2",app=initializeApp(cfg),auth=getAuth(app),db=getFirestore(app),$=x=>document.getElementById(x);const VAPID="BJEl8aiGHazU3HbeuXaJabs0omFsCTic-EBlYV9xox3EMN2Ns2C2EwbxYaUC-rcqYNlkKHvJxisZx7mE5T91RtI";const MODE="admin";localStorage.setItem("salonMode","admin");let uid,sel,booted=false;
+</div><script type="module">import{installSuite,messageHTML}from"./salon-suite.js?v=S5";let suite;import{createDelivery}from"./chat-delivery.js?v=S5";import{createPagedFeed}from"./chat-feed.js?v=D4";const CHAT_ROLE="admin";import{initializeApp}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";import{getAuth,signInAnonymously,signInWithEmailAndPassword,signOut,onAuthStateChanged,setPersistence,browserLocalPersistence}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";import{getFirestore,doc,getDoc,collection,query,orderBy,onSnapshot,limit,startAfter,getDocsFromServer}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";import{getMessaging,getToken,onMessage,isSupported}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-messaging.js";const cfg={apiKey:"AIzaSyBS-lHTp1YPhhFOKriBRSrwdSomT3ZGw0c",authDomain:"salon-space-chat.firebaseapp.com",projectId:"salon-space-chat",storageBucket:"salon-space-chat.firebasestorage.app",messagingSenderId:"103245363547",appId:"1:103245363547:web:3f19674918bbf257a4c27e"},ADMIN="HcFJGmzHw6MYoWbFmtq9IyFSjvL2",app=initializeApp(cfg),auth=getAuth(app),db=getFirestore(app),$=x=>document.getElementById(x);const VAPID="BJEl8aiGHazU3HbeuXaJabs0omFsCTic-EBlYV9xox3EMN2Ns2C2EwbxYaUC-rcqYNlkKHvJxisZx7mE5T91RtI";const MODE="admin";localStorage.setItem("salonMode","admin");let uid,sel,booted=false;
 /* CHAT-DIAG-01: report server acknowledgement separately from local echo. */
 let activeChatUnsubscribe=null, activeReadTimer=null;
 function closeChatListener(){
+ suite?.stopReceipt();
  activeChatUnsubscribe?.();activeChatUnsubscribe=null;
  clearTimeout(activeReadTimer);activeReadTimer=null;currentChatView=null;
 }
@@ -104,7 +105,7 @@ function ensureChatStatus(room){
  if(!box){
   box=document.createElement("div");box.id="chatStatus";
   box.style.cssText="grid-column:1/-1;flex-basis:100%;font-size:13px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere;padding:5px 0;color:#62584c";
-  box.innerHTML='<div id="chatRead" role="status"></div><div id="chatWrite" role="status"></div><details><summary>連線檢查 D4</summary><div id="chatIdentity"></div></details>';
+  box.innerHTML='<div id="chatRead" role="status"></div><div id="chatWrite" role="status"></div><details><summary>連線檢查 S5</summary><div id="chatIdentity"></div></details>';
   const composer=document.querySelector("#adminChat .composer");
   if(composer)composer.appendChild(box);else $("msgs").after(box);
  }
@@ -149,21 +150,22 @@ function renderChatView(reason="update"){
  const followBottom=v.first||previousHeight-previousTop-v.el.clientHeight<100;
  const own=delivery.entries().filter(e=>e.room===v.room);
  const ids=new Set(v.docs.map(d=>d.id));
- const rows=v.docs.map(d=>({text:d.data().text,senderId:d.data().senderId,pending:d.metadata.hasPendingWrites}));
- for(const e of own)if(!ids.has(e.id))rows.push({text:e.text,senderId:e.senderId,pending:e.stage==="queued"});
+ const rows=v.docs.map(d=>({id:d.id,...d.data(),pending:d.metadata.hasPendingWrites||own.some(e=>e.id===d.id&&e.stage==="queued")}));
+ for(const e of own)if(!ids.has(e.id))rows.push({id:e.id,text:e.text,senderId:e.senderId,pending:e.stage==="queued",attachment:e.attachment});
  const moreHtml=v.more?'<button type="button" data-older '+(v.loading?'disabled':'')+' style="display:block;margin:8px auto;background:#eae4db;color:#292722;padding:9px 16px;font-size:13px">'+(v.loading?'載入中…':'查看較早訊息')+'</button>':'';
- v.el.innerHTML=moreHtml+rows.map(m=>'<div class="msg '+(m.senderId===v.viewer?"mine":"")+'">'+safeChatText(m.text)+'<small style="display:block;font-size:11px;opacity:.75;margin-top:5px">'+(m.pending?"已保存在此裝置，等待送達雲端":m.senderId===v.viewer?"已存入雲端":"")+'</small></div>').join("");
+ v.el.innerHTML=moreHtml+rows.map(m=>messageHTML(m,v.viewer,v.peerRead||0)).join("");
  v.el.querySelector('[data-older]')?.addEventListener('click',()=>v.feed.loadMore());
  if(reason==="older")v.el.scrollTop=previousTop+(v.el.scrollHeight-previousHeight);
  else if(followBottom)v.el.scrollTop=v.el.scrollHeight;
  else v.el.scrollTop=previousTop;
  if(v.docs.length)v.first=false;
+ suite?.bindChat();
  const waiting=own.filter(e=>e.stage==="queued"),push=own.filter(e=>e.stage==="stored"||e.stage==="notify-error");
  $("chatWrite").textContent=waiting.length?waiting.length+" 則待傳，已保存在此裝置；重新開啟後會接續傳送。"+(waiting.find(e=>e.error)?.error?"\n原因："+waiting.find(e=>e.error).error:""):"";
  $("pushStatus").textContent=push.length?"訊息已存入雲端；通知尚未完成。"+(push.find(e=>e.error)?.error?"\n"+push.find(e=>e.error).error:""):"";
 }
 function watchChat(room,el,viewer){
- if(currentChatView?.room===room){currentChatView.feed.start();return;}
+ if(currentChatView?.room===room){currentChatView.feed.start();suite?.attachChat(currentChatView);return;}
  activeChatUnsubscribe?.();clearTimeout(activeReadTimer);
  ensureChatStatus(room);$("chatRead").textContent="正在連接雲端訊息…";
  const v={room,el,viewer,docs:[],more:false,loading:false,first:true};currentChatView=v;
@@ -182,7 +184,7 @@ function watchChat(room,el,viewer){
  });
  v.feed=feed;activeChatUnsubscribe=()=>feed.destroy();renderChatView();delivery.resume();
  activeReadTimer=setTimeout(()=>{if(currentChatView===v)$("chatRead").textContent="尚未取得雲端回應，正在等待重新連線。"},12000);
- feed.start();
+ feed.start();suite?.attachChat(v);
 }
 function transmitChat(room,t,sender,role,input,button){
  if(!t.trim())return;
@@ -229,7 +231,7 @@ function showAdminPage(id){
  const pages=["adminHome","admin","adminAnalysis"];
  if(!pages.includes(id))id="adminHome";
  ["login","adminHome","adminTool","admin","adminAnalysis","adminChat","adminNav"].forEach(x=>{const el=$(x);if(el)el.style.removeProperty("display")});
- show(id);
+ show(id);suite?.page(id);
  if(id==="admin")startAdminList();
  $("adminNav")?.classList.remove("hidden");
  document.querySelectorAll("#adminNav [data-admin-page]").forEach(b=>b.classList.toggle("active",b.dataset.adminPage===id));
@@ -238,9 +240,8 @@ $("adminNav")?.addEventListener("click",e=>{const b=e.target.closest("#adminNav 
 const TOOL_NAMES={broadcast:"群發訊息",welcome:"新客歡迎",autoreply:"自動回覆",notice:"公告・休假",gallery:"作品・產品",customers:"客戶管理",tags:"標籤分類",settings:"設定"};
 function openTool(key){
  adminFeed?.pause();closeChatListener();
- $("adminHome").classList.add("hidden");$("adminTool").classList.remove("hidden");$("toolTitle").textContent=TOOL_NAMES[key]||"功能";
- if(key==="autoreply")$("toolBody").innerHTML='<div class="simpleBox"><h3>快捷自動回覆</h3><p>建立客人可以直接點選的快捷項目。</p><input id="arName" placeholder="名稱，例如：價目表"><textarea id="arReply" placeholder="自動回覆內容"></textarea><button id="arSave">＋ 新增</button><div class="demoPills"><span>價目表</span><span>預約</span><span>營業時間</span></div><p class="hint">第一版先保持簡單：一個名稱＋一段回覆。圖片與關鍵字之後再加。</p></div>';
- else $("toolBody").innerHTML='<div class="placeholder"><div><h3>'+($("toolTitle").textContent)+'</h3><p>入口先建立，內容下一步再設定。</p></div></div>';
+ show("adminTool");$("adminNav").classList.remove("hidden");$("toolTitle").textContent=TOOL_NAMES[key]||"功能";
+ suite?.openTool(key);
 }
 document.querySelectorAll(".toolItem[data-tool]").forEach(b=>b.onclick=()=>openTool(b.dataset.tool));
 $("toolBack").onclick=()=>{showAdminPage("adminHome")};
@@ -281,6 +282,7 @@ async function openAdminHome(){
  if(target){history.replaceState(null,"",location.pathname);await openCustomerChat(target)}
 }
 navigator.serviceWorker?.addEventListener("message",async event=>{const m=event.data;if(m?.type!=="OPEN_NOTIFICATION_URL"||!m.url)return;try{const u=new URL(m.url);const target=u.searchParams.get("chat");if(target)await openCustomerChat(target)}catch(e){console.warn("notification route",e)}});onAuthStateChanged(auth,async user=>{
+ if(suite?.demo)return;
  if(user?.uid!==ADMIN){adminFeed?.destroy();adminFeed=null;closeChatListener();}
  if(booted)return;
  booted=true;
@@ -303,4 +305,5 @@ $("go").onclick=async()=>{
  showAdminPage("admin");
 };
 
+suite=installSuite({auth,db,role:CHAT_ROLE,delivery,getChat:()=>currentChatView,renderChat:renderChatView,openChat:openCustomerChat,showPage:showAdminPage,openTool});
 </script></body></html>
