@@ -5,7 +5,7 @@ export function daysSince(v,now=Date.now()){const n=millis(v);return n?Math.max(
 export function tagsFor(u,now=Date.now()){
  const tags=[];const joined=daysSince(u.joinedAt||u.createdAt,now);if(joined!==null&&joined<30)tags.push('近一個月加入');
  const days=daysSince(u.lastCustomerMessageAt,now);
- if(days===null)tags.push('尚無來訊紀錄');else if(days>=365)tags.push('一年未聯絡');else if(days>=180)tags.push('半年未聯絡');else if(days>=90)tags.push('三個月未聯絡');else if(days>=60)tags.push('兩個月未聯絡');else if(days>=30)tags.push('一個月未聯絡');else tags.push('近期互動');
+ if(days===null)tags.push('來訊日期待累積');else if(days>=365)tags.push('一年未聯絡');else if(days>=180)tags.push('半年未聯絡');else if(days>=90)tags.push('三個月未聯絡');else if(days>=60)tags.push('兩個月未聯絡');else if(days>=30)tags.push('一個月未聯絡');else tags.push('近期互動');
  if(u.status==='blocked')tags.push('已封鎖');if(u.status==='archived')tags.push('已封存');
  return [...new Set([...tags,...(Array.isArray(u.tags)?u.tags:[])])];
 }

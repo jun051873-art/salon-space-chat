@@ -79,6 +79,7 @@ export function createDelivery({auth,projectId,role,notify,onChange,storage=loca
  }
  function enqueue({room,text,senderId,attachment=null,id:providedId=null}){
   if(auth.currentUser?.uid!==senderId)throw Error("登入身分已改變，文字仍保留在輸入框");
+  if(text.trim().length>4000)throw Error("訊息請控制在 4000 字以內，原文仍留在輸入框");
   if(!room||room.includes("/")||!text.trim())throw Error("聊天室或訊息無效");
   const id=providedId||"c3_"+(crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+"_"+Array.from(crypto.getRandomValues(new Uint32Array(4))).map(x=>x.toString(36)).join(""));
   if(!/^[A-Za-z0-9_-]{1,160}$/.test(id))throw Error("訊息識別碼無效");

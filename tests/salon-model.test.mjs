@@ -4,7 +4,7 @@ const source=readFileSync(new URL('../salon-model.js',import.meta.url),'utf8');
 const {tagsFor,matchesCustomer,validBirthday,receiptCandidate,dueAutomation,automationKey,DAY}=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
 const now=Date.parse('2026-10-07T04:00:00Z');
 const u={id:'u1',name:'小林',phone:'0912000000',createdAt:now-7*DAY,lastCustomerMessageAt:now-70*DAY,birthMonth:10,birthDay:7,gender:'女性',tags:['護髮']};
-assert.deepEqual(tagsFor(u,now),['近一個月加入','兩個月未聯絡','護髮']);assert(tagsFor({...u,lastCustomerMessageAt:null},now).includes('尚無來訊紀錄'));
+assert.deepEqual(tagsFor(u,now),['近一個月加入','兩個月未聯絡','護髮']);assert(tagsFor({...u,lastCustomerMessageAt:null},now).includes('來訊日期待累積'));
 assert(matchesCustomer(u,{tag:'兩個月未聯絡',gender:'女性',birthday:true},now));assert(!matchesCustomer(u,{gender:'男性'},now));assert(validBirthday(2,29));assert(!validBirthday(2,30));assert(!validBirthday(4,31));
 assert.equal(receiptCandidate([{senderId:'other',createdAt:100},{senderId:'me',createdAt:200},{data:()=>({senderId:'other',createdAt:300}),metadata:{hasPendingWrites:true}}],'me',50),100);
 assert.equal(receiptCandidate([{senderId:'other',createdAt:100}],'me',100),100);
