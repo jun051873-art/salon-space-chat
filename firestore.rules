@@ -1,0 +1,95 @@
+rules_version = '2';
+
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+
+    function isAdmin() {
+      return signedIn()
+        && request.auth.uid == "HcFJGmzHw6MYoWbFmtq9IyFSjvL2";
+    }
+
+
+    function isOwner(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+
+    // 客戶基本資料
+    match /users/{userId} {
+      allow create: if isOwner(userId);
+      allow read, update: if isAdmin() || isOwner(userId);
+      allow delete: if isAdmin();
+    }
+
+
+    // 每位客人的聊天室
+    match /chats/{userId} {
+      allow create, read, update: if isAdmin() || isOwner(userId);
+      allow delete: if isAdmin();
+
+
+      // 聊天訊息：只保留一層
+      match /messages/{messageId} {
+        allow create, read: if isAdmin() || isOwner(userId);
+        // Block legacy snapshot-to-readAt write loops.
+        allow update: if isAdmin()
+          && !request.resource.data.diff(resource.data).affectedKeys().hasAny(["readAt"]);
+        allow delete: if isAdmin();
+      }
+    }
+
+
+    // 公告
+    match /announcements/{documentId} {
+      allow read: if signedIn();
+      allow create, update, delete: if isAdmin();
+    }
+
+
+    // 店休日
+    match /holidays/{documentId} {
+      allow read: if signedIn();
+      allow create, update, delete: if isAdmin();
+    }
+
+
+    // 產品與店家資訊
+    match /products/{documentId} {
+      allow read: if signedIn();
+      allow create, update, delete: if isAdmin();
+    }
+
+
+    // 群發紀錄
+    match /broadcasts/{documentId} {
+      allow read, create, update, delete: if isAdmin();
+    }
+
+
+    // 推播 Token
+    match /pushTokens/{userId} {
+      allow read, create, update, delete:
+        if isAdmin() || isOwner(userId);
+
+
+      // 同一帳號的多台裝置
+      match /devices/{deviceId} {
+        allow read, create, update, delete:
+          if isAdmin() || isOwner(userId);
+      }
+    }
+
+
+    // 其他路徑全部拒絕
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
