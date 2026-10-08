@@ -18,5 +18,5 @@ sync();
 // Edge-only back gesture leaves inbox swipe actions and photo cropping independent.
 let backGesture=null;
 document.addEventListener('pointerdown',e=>{if(e.clientX>24||e.target.closest('input,textarea,select,dialog,.swipeShell,canvas'))return;backGesture={id:e.pointerId,x:e.clientX,y:e.clientY};},{passive:true});
-document.addEventListener('pointerup',e=>{const g=backGesture;backGesture=null;if(!g||g.id!==e.pointerId||e.clientX-g.x<85||Math.abs(e.clientY-g.y)>55)return;const candidates=[...document.querySelectorAll('.pageBack,#back,#toolBack,[data-chat-back]')];const button=candidates.find(b=>b.getClientRects().length&&!b.closest('.hidden'));button?.click();},{passive:true});
+document.addEventListener('pointerup',e=>{const g=backGesture;backGesture=null;if(!g||g.id!==e.pointerId||e.clientX-g.x<85||Math.abs(e.clientY-g.y)>55)return;const candidates=[...document.querySelectorAll('.pageBack,#back,#toolBack,#leaveChat,[data-chat-back]')];const button=candidates.find(b=>b.getClientRects().length&&!b.closest('.hidden'));button?.click();},{passive:true});
 document.addEventListener('pointercancel',()=>backGesture=null,{passive:true});
