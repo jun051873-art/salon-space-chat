@@ -1,7 +1,7 @@
 import {EmailAuthProvider,linkWithCredential,signInWithEmailAndPassword,sendPasswordResetEmail,sendEmailVerification} from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js';
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let installPrompt;
-window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installPrompt=e;});
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installPrompt=e;showInstallBanner();});
 const standalone=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone;
 export function installGuide(){
  const apple=/iPhone|iPad|iPod/.test(navigator.userAgent)||(/Macintosh/.test(navigator.userAgent)&&navigator.maxTouchPoints>1),inside=/Line\/|FBAN|FBAV|Instagram/.test(navigator.userAgent);
@@ -26,3 +26,6 @@ export function setupOnboarding(auth,delivery){
  navigator.serviceWorker?.register('./firebase-messaging-sw.js',{updateViaCache:'none'}).catch(()=>{});
  try{if(!localStorage.getItem('salon-intro-c9')&&!standalone())installGuide();}catch{}
 }
+
+function showInstallBanner(){if(standalone()||document.querySelector('#installBanner'))return;try{if(sessionStorage.getItem('salon-install-dismissed'))return;}catch{}const b=document.createElement('aside');b.id='installBanner';b.innerHTML='<span>把專屬空間放到桌面，下次一點就到。</span><button data-install>安裝到桌面</button><button data-dismiss aria-label="稍後安裝">×</button>';b.querySelector('[data-install]').onclick=async()=>{if(!installPrompt){installGuide();return;}const p=installPrompt;installPrompt=null;try{await p.prompt();await p.userChoice;}finally{b.remove();}};b.querySelector('[data-dismiss]').onclick=()=>{b.remove();try{sessionStorage.setItem('salon-install-dismissed','1');}catch{}};document.body.append(b);}
+window.addEventListener('appinstalled',()=>{installPrompt=null;document.querySelector('#installBanner')?.remove();});
