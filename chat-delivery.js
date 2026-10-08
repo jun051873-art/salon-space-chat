@@ -69,7 +69,7 @@ export function createDelivery({auth,projectId,role,notify,onChange,storage=loca
      e.error=(err.name==="AbortError"?"連線逾時":err.message||String(err));
      e.quotaBlocked=err.code==="RESOURCE_EXHAUSTED";
      if(e.stage==="stored"&&e.attempts>=3)e.stage="notify-error";
-     e.nextAt=Date.now()+(e.quotaBlocked?15*60*1000:Math.min(60000,5000*2**Math.min(e.attempts-1,4)));
+     e.nextAt=Date.now()+((e.quotaBlocked||err.code==="PERMISSION_DENIED"||err.status===403)?15*60*1000:Math.min(60000,5000*2**Math.min(e.attempts-1,4)));
      save(e);
      // Preserve order for messages still waiting to reach the server.
      if(e.stage==="queued")break;

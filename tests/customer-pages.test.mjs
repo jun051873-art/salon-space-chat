@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+const src=await readFile(new URL('../customer-pages.js',import.meta.url),'utf8');
+const {createCustomerPages}=await import('data:text/javascript;base64,'+Buffer.from(src).toString('base64'));
+let calls=[],fail=false;
+const pages=createCustomerPages(async(cursor,size)=>{calls.push({cursor,size});await Promise.resolve();if(fail)throw Error('offline');const offset=cursor||0;return{rows:Array.from({length:offset===60?5:30},(_,i)=>({id:String(offset+i)})),cursor:offset+30,more:offset<60};});
+await Promise.all([pages.load(),pages.load()]);assert.equal(calls.length,1);assert.equal((await pages.load()).length,30);assert.equal(calls.length,1);
+assert.equal((await pages.load({next:true})).length,60);fail=true;await assert.rejects(pages.load({next:true}));fail=false;
+assert.equal((await pages.load({next:true})).length,65);assert.equal(calls.at(-1).cursor,60);assert.equal(pages.more,false);
+await pages.load({next:true});assert.equal(calls.length,4);
+assert.equal((await pages.load({refresh:true})).length,30);assert.equal(calls.at(-1).cursor,null);assert.ok(calls.every(c=>c.size===30));
+console.log('PASS: 30-person pages, shared requests, cached navigation, explicit next page, failed page retains cursor, exhaustion and refresh.');

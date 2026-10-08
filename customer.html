@@ -49,7 +49,7 @@ button{padding:14px 18px;border:0;border-radius:16px;background:#292722;color:#f
 <section id="gallery" class="card hidden placeholder"><div><h2>🖼 作品・產品</h2><p>正在讀取商品…</p></div></section>
 <nav id="customerNav" class="bottomNav hidden"><button class="navBtn active" data-customer-page="inbox"><span>◉</span>聊天訊息</button><button class="navBtn" data-customer-page="booking"><span>▦</span>預約</button></nav>
 </div>
-<script type="module">import{installSuite,messageHTML}from"./salon-suite.js?v=C9";let suite;import{createDelivery}from"./chat-delivery.js?v=C9";import{createPagedFeed}from"./chat-feed.js?v=D4";const CHAT_ROLE="customer";
+<script type="module">import{installSuite,messageHTML}from"./salon-suite.js?v=C9.1";let suite;import{createDelivery}from"./chat-delivery.js?v=C9.1";import{createPagedFeed}from"./chat-feed.js?v=D4";const CHAT_ROLE="customer";
 import{initializeApp}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
 import{getAuth,signInAnonymously,onAuthStateChanged,signOut,setPersistence,browserLocalPersistence}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 import{getFirestore,doc,getDoc,collection,query,orderBy,onSnapshot,limit,startAfter,getDocsFromServer}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
