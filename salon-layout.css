@@ -1,0 +1,36 @@
+/* C15: viewport shell. Only the page body or the message list can scroll. */
+html,body{height:100%;width:100%;margin:0;overflow:hidden!important;overscroll-behavior:none}
+body.customerApp .app,body.adminApp .app{position:fixed;inset:0;margin:auto;width:100%;height:100dvh;overflow-y:auto;overflow-x:hidden;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;transform:none;filter:none;contain:none;padding-bottom:calc(110px + env(safe-area-inset-bottom))}
+body .app>section,body .app>div{min-width:0}
+body .bottomNav{position:fixed!important;bottom:calc(12px + env(safe-area-inset-bottom))!important;z-index:80}
+body.customerApp #chat:not(.hidden),body.adminApp #adminChat:not(.hidden){position:fixed!important;top:var(--salon-top,0px)!important;bottom:auto!important;left:0!important;right:0!important;transform:none!important;margin:0 auto!important;width:100%!important;max-width:900px!important;height:var(--salon-height,100dvh)!important;min-height:0!important;overflow:hidden!important;background:var(--salon-bg,#f5f1ea)!important;border:0!important;border-radius:0!important;box-shadow:none!important;z-index:1000!important}
+body.customerApp #chat>.card{height:100%!important;min-height:0!important;display:flex!important;flex-direction:column!important;margin:0!important;padding:calc(env(safe-area-inset-top) + 6px) 8px calc(env(safe-area-inset-bottom) + 8px)!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;overflow:hidden!important}
+body.customerApp #chat .conversationHeader{flex:0 0 auto!important;margin:0 0 8px!important;padding:8px 12px!important;border-radius:999px!important;border:1.5px solid #b6a99099!important;min-height:56px;box-shadow:inset 0 2px 2px white,0 4px 12px #51433312}
+body.customerApp #chat h2{font-size:14px!important;line-height:1.4}body.customerApp #chat h2 small{font-size:11px}
+body #chatOptions,body #chatShortcuts,body #chatPanel,body #chatDetails,body .ownerQuickReplies,body #chatStatus,body #pushStatus,body #pushDiag,body #chatRead{display:none!important}
+body.customerApp.conversationOpen #globalNotice{display:none!important}
+body.customerApp #msgs,body.adminApp #adminMsgs{flex:1 1 0!important;height:0!important;min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior:contain;padding:12px 6px 18px!important;touch-action:pan-y}
+body.customerApp .conversationFooter,body.adminApp #adminChat .composer{flex:0 0 auto!important;width:100%!important;border-radius:30px!important;padding:8px!important;margin:8px 0 0!important;min-height:58px!important;background:linear-gradient(130deg,#ffffffe0,var(--salon-glass,#ffffffb8))!important;border:1.5px solid #b6a99099!important;box-shadow:inset 0 2px 3px white,0 5px 18px #5143331c;backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px)}
+body.customerApp #chat .composer,body.adminApp #adminChat .composer{display:flex!important;align-items:center;gap:8px;grid-template-columns:none!important;flex-wrap:nowrap!important}
+body.customerApp #chat .composer{padding:0!important;margin:0!important}
+body .composer input{flex:1 1 0!important;width:0!important;min-width:0!important;margin:0!important;height:42px!important;border-radius:999px!important;font-size:16px!important}
+body .composer .attachBtn{flex:0 0 38px!important;width:38px!important;min-width:38px!important;height:42px!important;padding:0!important;font-size:28px!important;border-radius:50%!important;background:transparent!important;color:var(--salon-ink)!important}
+body .composer button{flex-shrink:0!important;white-space:nowrap;height:42px!important;padding:0 14px!important;border-radius:999px!important;font-size:14px!important;margin:0!important}
+body.adminApp #adminChat:not(.hidden){display:flex!important;flex-direction:column!important;padding:calc(env(safe-area-inset-top) + 8px) 12px calc(env(safe-area-inset-bottom) + 8px)!important}
+body.adminApp #adminChat #back{align-self:flex-start;flex:none;margin:0!important}
+body.adminApp #adminChat #who{flex:none;margin:6px 0!important;padding:8px 12px!important;font-size:18px!important;background:var(--salon-glass);border:1.5px solid #b6a99088;border-radius:999px}
+body.adminApp #adminChat .composer>div{display:none!important}
+body .chatToolGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:15px}
+body .chatToolGrid button{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;margin:0;padding:20px 10px;background:var(--salon-glass,#fff8);color:var(--salon-ink,#302e28);border:1.5px solid #baab9399;border-radius:26px;font-size:14px}
+body .chatToolGrid .salonIcon{width:27px;height:27px;stroke-width:1.9}
+body .salonIcon{stroke-width:1.85}
+body .card,body .menuCard,body .noticeCard,body .toolItem,body .conversationEntry,body .settingsGroup{border-color:color-mix(in srgb,var(--salon-ink,#302e28) 25%,white)!important;box-shadow:inset 0 2px 2px #fffffff0,0 5px 18px #51433312,0 1px 2px #51433326!important}
+body #info{height:auto!important;min-height:0!important;overflow:visible!important}body #info .noticeCards{grid-template-columns:minmax(0,1fr)}
+body .pageBack{position:relative;font-size:14px!important;font-weight:700!important;border:1.5px solid #ad9e8988!important}
+body #customerHeader [data-header-page=info]{width:40px;min-width:40px}body #customerHeader .headerSwitch{max-width:65%;flex-shrink:1}body #customerHeader .profileSwitch{max-width:60%}body #customerHeader #profileEntry{max-width:140px}
+body .keyboardOpen .conversationFooter{padding-bottom:8px}
+[hidden]{display:none!important}
+
+.shopCover{width:100%;height:auto;max-height:320px;object-fit:cover;border-radius:24px;margin:0 0 18px;display:block}#info .noticeCard{margin:16px 0}body.customerApp #chat h2{width:fit-content}body .chatToolGrid button:disabled{opacity:.4}
+
+body.customerApp[data-page=setup] #customerHeader,body.customerApp[data-page=setup] #customerNav,body.customerApp[data-page=setup] #globalNotice{display:none!important}body.customerApp[data-page=setup] .app{padding-top:calc(20px + env(safe-area-inset-top))!important}#setup input,#profile input{min-height:48px;font-size:16px}#profile .split{gap:12px}

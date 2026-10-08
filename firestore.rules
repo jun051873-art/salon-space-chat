@@ -34,6 +34,18 @@ service cloud.firestore {
     allow delete: if admin();
    }
   }
+  // Reports are private to the owner. Customers can create only their own report.
+  match /feedback/{id} {
+   allow read,update,delete: if admin();
+   allow create: if signedIn() && active(request.auth.uid)
+    && request.resource.data.keys().hasOnly(['userId','name','kind','text','page','createdAt','status'])
+    && request.resource.data.userId == request.auth.uid
+    && request.resource.data.name is string && request.resource.data.name.size() <= 100
+    && request.resource.data.kind in ['操作卡住','畫面問題','功能建議','其他']
+    && request.resource.data.text is string && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 1500
+    && request.resource.data.page is string && request.resource.data.page.size() <= 40
+    && request.resource.data.status == 'new' && request.resource.data.createdAt == request.time;
+  }
   match /announcements/{id} {allow read: if signedIn();allow write: if admin();}
   match /holidays/{id} {allow read: if signedIn();allow write: if admin();}
   match /products/{id} {allow read: if signedIn();allow write: if admin();}
