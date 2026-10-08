@@ -1,5 +1,5 @@
 const paths={
- settings:'<path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="3"/><circle cx="15" cy="17" r="3"/>',
+ settings:'<path d="m9 3-.6 2.2-2 .9-2-.6-2 3.4 1.6 1.6v2.3L2.4 14l2 3.4 2-.6 2 .9L9 20h4l.6-2.3 2-.9 2 .6 2-3.4-1.6-1.2v-2.3l1.6-1.6-2-3.4-2 .6-2-.9L13 3Z"/><circle cx="11" cy="11.5" r="3"/>',
  home:'<path d="m3 10 9-7 9 7M5 9v11h14V9M9 20v-7h6v7"/>',
  chat:'<path d="M20 11a8 8 0 0 1-8 8H5l-3 3v-11a9 9 0 0 1 18 0Z"/><path d="M7 10h8M7 14h5"/>',
  calendar:'<rect x="3" y="5" width="18" height="16" rx="4"/><path d="M7 3v4M17 3v4M3 11h18M8 15h.01M12 15h.01M16 15h.01"/>',
@@ -32,3 +32,14 @@ export function mountPhotoPicker(input,{initial='',max=1000,budget=180000,round=
  preview.onclick=()=>current?editCurrent():input.click();actions.querySelector('[data-choose]').onclick=()=>input.click();actions.querySelector('[data-edit]').onclick=editCurrent;actions.querySelector('[data-remove]').onclick=()=>{current='';input.value='';status.textContent='';draw();};input.onchange=async()=>{const file=input.files[0];if(!file||working)return;working=true;status.textContent='正在準備照片…';try{const img=await loadPhoto(file);const result=await editor(img);if(result)current=result;status.textContent=result?'照片已準備好，儲存後顯示。':'';draw();}catch(e){status.textContent=e.message;}finally{working=false;input.value='';}};draw();return{get value(){if(working)throw Error('請先完成照片調整');return current;}};
 }
 export function bindSwipe(shell){const front=shell.querySelector('.swipeFront');let x=0,y=0,base=0,horizontal=false,moved=false;front.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'&&e.button!==0)return;x=e.clientX;y=e.clientY;base=shell.classList.contains('revealed')?-144:0;horizontal=false;moved=false;});front.addEventListener('pointermove',e=>{if(!e.buttons&&e.pointerType==='mouse')return;const dx=e.clientX-x,dy=e.clientY-y;if(!horizontal){if(Math.abs(dx)<10||Math.abs(dx)<Math.abs(dy)*1.3)return;horizontal=true;front.setPointerCapture(e.pointerId);shell.classList.add('dragging');}moved=true;front.style.transform=`translateX(${Math.max(-154,Math.min(0,base+dx))}px)`;});const end=e=>{if(!horizontal)return;const opened=base+(e.clientX-x)<-55;document.querySelectorAll('.swipeShell.revealed').forEach(other=>{if(other!==shell)other.classList.remove('revealed')});shell.classList.toggle('revealed',opened);shell.classList.remove('dragging');front.style.transform='';horizontal=false;};front.addEventListener('pointerup',end);front.addEventListener('pointercancel',()=>{shell.classList.remove('dragging');front.style.transform='';horizontal=false;});front.addEventListener('click',e=>{if(moved){e.preventDefault();e.stopImmediatePropagation();moved=false;}},true);}
+
+export function mountAttachmentPicker(input,{photos=true}={}){
+ const box=document.createElement('div');box.className='attachmentPicker';input.before(box);input.hidden=true;box.append(input);
+ const status=document.createElement('p');status.className='attachmentStatus';status.setAttribute('role','status');status.textContent='尚未加入附件';
+ const preview=document.createElement('img');preview.className='attachmentPreview';preview.hidden=true;preview.alt='已選照片預覽';let url='';
+ const clear=()=>{if(url)URL.revokeObjectURL(url);url='';preview.removeAttribute('src');preview.hidden=true;};
+ const choose=(label,key,accept)=>{const b=document.createElement('button');b.type='button';b.className='attachmentChoice';b.innerHTML=icon(key)+'<span>'+label+'</span>';b.onclick=()=>{input.accept=accept;input.click();};box.append(b);};
+ if(photos)choose('從相簿選照片','image','image/*');choose('加入 PDF／文字','board','application/pdf,text/plain,.pdf,.txt');box.append(preview,status);
+ input.addEventListener('change',()=>{clear();const f=input.files[0];status.textContent=f?f.name+' · '+Math.ceil(f.size/1024)+' KB':'尚未加入附件';if(f?.type.startsWith('image/')){url=URL.createObjectURL(f);preview.src=url;preview.hidden=false;}});
+ input.closest('dialog')?.addEventListener('close',clear,{once:true});
+}
