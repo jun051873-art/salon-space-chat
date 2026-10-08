@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import {suggestedHours,validateHours,hoursForDay,availableTimes,hoursText} from '../salon-hours.js';
+const hours=suggestedHours();validateHours(hours);
+const c={weeklyHours:hours,times:['11:00','11:30','16:30','17:00','18:30','19:00']};
+assert.equal(hoursForDay(c,'2026-10-12').closed,true);
+assert.equal(hoursForDay(c,'2026-10-13').closed,true);
+assert.deepEqual(availableTimes(c,'2026-10-12'),[]);
+assert.deepEqual(availableTimes(c,'2026-10-11'),['11:30','16:30']);
+assert.deepEqual(availableTimes(c,'2026-10-10'),['11:30','16:30','17:00','18:30']);
+assert.deepEqual(availableTimes({times:c.times},'2026-10-11'),c.times);
+assert.match(hoursText(c),/星期日　11:30–17:00/);
+assert.throws(()=>validateHours({...hours,3:{closed:false,open:'19:00',close:'11:30'}}));
+assert.throws(()=>validateHours({...hours,3:{closed:false,open:'25:00',close:'26:00'}}));
+console.log('PASS: Taipei weekdays, weekly closures, opening/closing boundaries, legacy hours and invalid ranges.');
