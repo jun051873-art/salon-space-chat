@@ -1,0 +1,3 @@
+export function unreadSummary(rows){let count=0;for(const r of rows){const at=typeof r.lastCustomerMessageAt?.toMillis==='function'?r.lastCustomerMessageAt.toMillis():Number(r.lastCustomerMessageAt||0);if(at>Number(r.readAdminMs||0))count++;}return count;}
+export function badge(target,count,label='未讀對話',partial=false){if(!target)return;let el=target.querySelector('.countBadge');if(!el){el=document.createElement('span');el.className='countBadge';target.append(el);}el.hidden=!count;el.textContent=count?String(count)+(partial?'+':''):'';el.setAttribute('aria-label',`${partial?'至少 ':''}${count} 個${label}`);}
+export function appDot(unread,clear=false){try{if(unread)navigator.setAppBadge?.().catch(()=>{});else if(clear)navigator.clearAppBadge?.().catch(()=>{});}catch{}}

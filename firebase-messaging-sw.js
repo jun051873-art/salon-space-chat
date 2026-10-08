@@ -11,6 +11,7 @@ self.addEventListener("install",()=>self.skipWaiting());
 self.addEventListener("activate",event=>event.waitUntil(self.clients.claim()));
 messaging.onBackgroundMessage(payload=>{
  const d=payload.data||{};
+ try{self.navigator.setAppBadge?.().catch(()=>{});}catch{}
  const title=d.title||"專屬空間 SALON";
  const options={
   body:d.body||"您有一則新訊息",
