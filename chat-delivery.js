@@ -41,7 +41,7 @@ export function createDelivery({auth,projectId,role,notify,onChange,storage=loca
   e.commitStarted=true;save(e);
   const s=v=>({stringValue:v});
   await api(":commit",{method:"POST",body:JSON.stringify({writes:[
-   {update:{name:root+`/chats/${e.room}/messages/${e.id}`,fields:{text:s(e.text),senderId:s(e.senderId),senderRole:s(e.role),clientMessageId:s(e.id),...(e.attachment?{attachment:{mapValue:{fields:{name:s(e.attachment.name),type:s(e.attachment.type),size:{integerValue:String(e.attachment.size)}}}}}:{})}},currentDocument:{exists:false},updateTransforms:[{fieldPath:"createdAt",setToServerValue:"REQUEST_TIME"}]},
+   {update:{name:root+`/chats/${e.room}/messages/${e.id}`,fields:{text:s(e.text),senderId:s(e.senderId),senderRole:s(e.role),clientMessageId:s(e.id),...(e.sticker?{sticker:{mapValue:{fields:{id:s(e.sticker.id),name:s(e.sticker.name),data:s(e.sticker.data)}}}}:{}),...(e.attachment?{attachment:{mapValue:{fields:{name:s(e.attachment.name),type:s(e.attachment.type),size:{integerValue:String(e.attachment.size)}}}}}:{})}},currentDocument:{exists:false},updateTransforms:[{fieldPath:"createdAt",setToServerValue:"REQUEST_TIME"}]},
    {update:{name:root+`/chats/${e.room}`,fields:{lastMessage:s(e.text)}},updateMask:{fieldPaths:["lastMessage"]},updateTransforms:[{fieldPath:"updatedAt",setToServerValue:"REQUEST_TIME"},...(e.role==="customer"?[{fieldPath:"lastCustomerMessageAt",setToServerValue:"REQUEST_TIME"}]:[{fieldPath:"lastAdminMessageAt",setToServerValue:"REQUEST_TIME"}])]},
    ...(e.attachment?[{update:{name:root+`/chats/${e.room}/files/${e.id}`,fields:{data:s(e.attachment.data),name:s(e.attachment.name),type:s(e.attachment.type),senderId:s(e.senderId)}},currentDocument:{exists:false}}]:[])
   ]})});
@@ -77,14 +77,15 @@ export function createDelivery({auth,projectId,role,notify,onChange,storage=loca
    }
   }finally{busy=false;if(all().some(e=>e.stage==="queued"||e.stage==="stored"))schedule(5000);}
  }
- function enqueue({room,text,senderId,attachment=null,id:providedId=null}){
+ function enqueue({room,text,senderId,attachment=null,sticker=null,id:providedId=null}){
   if(auth.currentUser?.uid!==senderId)throw Error("登入身分已改變，文字仍保留在輸入框");
+  if(sticker&&(!/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(sticker.data||'')||sticker.data.length>30000||typeof sticker.name!=='string'||sticker.name.length>30))throw Error('貼圖格式或大小不正確');
   if(text.trim().length>4000)throw Error("訊息請控制在 4000 字以內，原文仍留在輸入框");
   if(!room||room.includes("/")||!text.trim())throw Error("聊天室或訊息無效");
   const id=providedId||"c3_"+(crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+"_"+Array.from(crypto.getRandomValues(new Uint32Array(4))).map(x=>x.toString(36)).join(""));
   if(!/^[A-Za-z0-9_-]{1,160}$/.test(id))throw Error("訊息識別碼無效");
   const previous=storage.getItem(prefix+senderId+":"+id);if(previous)return JSON.parse(previous);
-  const e={id,room,text:text.trim(),senderId,role,attachment,at:Date.now(),stage:"queued",attempts:0,nextAt:0,error:""};
+  const e={id,room,text:text.trim(),senderId,role,attachment,sticker,at:Date.now(),stage:"queued",attempts:0,nextAt:0,error:""};
   // A storage error must leave the composer's original text untouched.
   save(e);void flush();return e;
  }

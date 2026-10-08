@@ -6,6 +6,7 @@ export function tagsFor(u,now=Date.now()){
  const tags=[];const joined=daysSince(u.joinedAt||u.createdAt,now);if(joined!==null&&joined<30)tags.push('近一個月加入');
  const days=daysSince(u.lastCustomerMessageAt,now);
  if(days===null)tags.push('來訊日期待累積');else if(days>=365)tags.push('一年未聯絡');else if(days>=180)tags.push('半年未聯絡');else if(days>=90)tags.push('三個月未聯絡');else if(days>=60)tags.push('兩個月未聯絡');else if(days>=30)tags.push('一個月未聯絡');else tags.push('近期互動');
+ const visit=daysSince(u.lastVisitAt,now);if(visit!==null){if(visit>=365)tags.push('一年未到店');else if(visit>=180)tags.push('半年未到店');else if(visit>=90)tags.push('三個月未到店');else if(visit>=60)tags.push('兩個月未到店');else if(visit>=30)tags.push('一個月未到店');else tags.push('近期到店');}
  if(u.status==='blocked')tags.push('已封鎖');if(u.status==='archived')tags.push('已封存');
  return [...new Set([...tags,...(Array.isArray(u.tags)?u.tags:[])])];
 }
@@ -21,9 +22,9 @@ export function dueAutomation(rule,u,date=new Date()){
  if(!rule.enabled||u.status==='blocked'||u.status==='archived'||!u.name)return false;
  const day=localDay(date),[year,month,dateDay]=day.split('-').map(Number);
  if(rule.kind==='birthday')return Number(u.birthMonth)===month&&Number(u.birthDay)===dateDay;
- if(rule.kind==='inactive'){const days=daysSince(u.lastCustomerMessageAt,date.getTime());return days!==null&&days>=Number(rule.days||30);}
+ if(['inactive','visit'].includes(rule.kind)){const days=daysSince(rule.kind==='visit'?u.lastVisitAt:u.lastCustomerMessageAt,date.getTime());return days!==null&&days>=Number(rule.days||30);}
  return false;
 }
 export function automationKey(rule,u,date=new Date()){
- return rule.kind==='birthday'?`${rule.id}_${u.id}_${localDay(date).slice(0,4)}`:`${rule.id}_${u.id}_${millis(u.lastCustomerMessageAt)}`;
+ return rule.kind==='birthday'?`${rule.id}_${u.id}_${localDay(date).slice(0,4)}`:`${rule.id}_${u.id}_${millis(rule.kind==='visit'?u.lastVisitAt:u.lastCustomerMessageAt)}`;
 }

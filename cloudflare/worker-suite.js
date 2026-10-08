@@ -11,7 +11,7 @@ export default {
  async fetch(request, env, ctx) {
   const cors = {"Access-Control-Allow-Origin":SITE,"Access-Control-Allow-Methods":"GET, POST, OPTIONS","Access-Control-Allow-Headers":"Content-Type, Authorization","Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store","Vary":"Origin"};
   if(request.method === "OPTIONS") return new Response(null,{status:204,headers:cors});
-  if(request.method === "GET") return json({ok:true,service:"salon-space-notify",version:"5-suite",authenticated:true,features:{keywordReplies:true,scheduledCare:true}},200,cors);
+  if(request.method === "GET") return json({ok:true,service:"salon-space-notify",version:"6-care",authenticated:true,features:{keywordReplies:true,keywordContains:true,scheduledCare:true,visitCare:true}},200,cors);
   if(request.method !== "POST") return json({ok:false,error:"METHOD_NOT_ALLOWED"},405,cors);
   try {
    if(request.headers.get("Origin") && request.headers.get("Origin") !== SITE) throw fault("ORIGIN_NOT_ALLOWED",403);
@@ -116,7 +116,7 @@ async function salonConfig(root,token){if(salonConfigCache?.until>Date.now())ret
 async function systemMessage(env,root,token,uid,id,text){
  const name='projects/'+env.FIREBASE_PROJECT_ID+'/databases/(default)/documents/';
  const s=v=>({stringValue:v});
- try{await readJSON(root.slice(0,-1)+':commit',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({writes:[{update:{name:name+'chats/'+uid+'/messages/'+id,fields:{text:s(text.slice(0,4000)),senderId:s(ADMIN_UID),senderRole:s('admin'),clientMessageId:s(id),automatic:{booleanValue:true}}},currentDocument:{exists:false},updateTransforms:[{fieldPath:'createdAt',setToServerValue:'REQUEST_TIME'}]},{update:{name:name+'chats/'+uid,fields:{lastMessage:s(text.slice(0,4000))}},updateMask:{fieldPaths:['lastMessage']},updateTransforms:[{fieldPath:'updatedAt',setToServerValue:'REQUEST_TIME'}]}]})},'AUTO_WRITE');}
+ try{await readJSON(root.slice(0,-1)+':commit',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({writes:[{update:{name:name+'chats/'+uid+'/messages/'+id,fields:{text:s(text.slice(0,4000)),senderId:s(ADMIN_UID),senderRole:s('admin'),clientMessageId:s(id),automatic:{booleanValue:true}}},currentDocument:{exists:false},updateTransforms:[{fieldPath:'createdAt',setToServerValue:'REQUEST_TIME'}]},{update:{name:name+'chats/'+uid,fields:{lastMessage:s(text.slice(0,4000))}},updateMask:{fieldPaths:['lastMessage']},updateTransforms:[{fieldPath:'updatedAt',setToServerValue:'REQUEST_TIME'},{fieldPath:'lastAdminMessageAt',setToServerValue:'REQUEST_TIME'}]}]})},'AUTO_WRITE');}
  catch(e){if(e.code?.includes('ALREADY_EXISTS')||e.code?.includes('FAILED_PRECONDITION'))return false;throw e;}
  const tokens=await recipientTokens(root,uid,token);
  for(let i=0;i<tokens.length;i+=5)await Promise.all(tokens.slice(i,i+5).map(device=>readJSON('https://fcm.googleapis.com/v1/projects/'+env.FIREBASE_PROJECT_ID+'/messages:send',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({message:{token:device,data:{title:'專屬空間 SALON',body:text.slice(0,500),messageId:id,tag:'salon-'+uid+'-'+id,url:SITE+'/salon-space-chat/customer.html'},webpush:{headers:{Urgency:'high',TTL:'86400'}}}})},'AUTO_PUSH').catch(e=>console.error('auto-push',e.code))));
@@ -125,7 +125,7 @@ async function systemMessage(env,root,token,uid,id,text){
 async function automaticReply(env,root,token,uid,sourceId,text){
  const config=await salonConfig(root,token);
  if(config.keywordRepliesEnabled!==true)return;
- const reply=(config.quickReplies||[]).find(r=>r.title&&r.answer&&text.trim()===r.title.trim());
+ const reply=findReply(config.quickReplies,text);
  if(!reply)return;
  const customer=fieldsOf(await readJSON(root+'users/'+uid,{headers:{Authorization:'Bearer '+token}},'CUSTOMER'));
  if(['blocked','archived'].includes(customer.status))return;
@@ -137,7 +137,10 @@ async function runCare(env){
  const all=await scanCollection(root,'broadcasts',token),rules=all.filter(r=>r.type==='automation'&&r.enabled===true);
  let sent=0;
  if(rules.length){const [users,chats]=await Promise.all([scanCollection(root,'users',token),scanCollection(root,'chats',token)]),chatMap=new Map(chats.map(c=>[c.id,c]));const day=new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Taipei'}),[year,month,date]=day.split('-').map(Number);
-  outer: for(const rule of rules.slice(0,20))for(const user of users){if(user.id===ADMIN_UID||['blocked','archived'].includes(user.status)||!user.name||!rule.text)continue;const last=Date.parse(chatMap.get(user.id)?.lastCustomerMessageAt||'')||0;const due=rule.kind==='birthday'?Number(user.birthMonth)===month&&Number(user.birthDay)===date:rule.kind==='inactive'&&last>0&&Date.now()-last>=Number(rule.days||30)*86400000;if(!due)continue;const id='care_'+rule.id+'_'+user.id+'_'+(rule.kind==='birthday'?year:last);const text=rule.text.replaceAll('{姓名}',user.name);if(await systemMessage(env,root,token,user.id,id,text))sent++;if(sent>=300)break outer;}
+  outer: for(const rule of rules.slice(0,20))for(const user of users){if(user.id===ADMIN_UID||['blocked','archived'].includes(user.status)||!user.name||!rule.text)continue;const last=Date.parse((rule.kind==='visit'?user.lastVisitAt:chatMap.get(user.id)?.lastCustomerMessageAt)||'')||0;const due=rule.kind==='birthday'?Number(user.birthMonth)===month&&Number(user.birthDay)===date:['inactive','visit'].includes(rule.kind)&&last>0&&Date.now()-last>=Number(rule.days||30)*86400000;if(!due)continue;const id='care_'+rule.id+'_'+user.id+'_'+(rule.kind==='birthday'?year:last);const text=rule.text.replaceAll('{姓名}',user.name);if(await systemMessage(env,root,token,user.id,id,text))sent++;if(sent>=300)break outer;}
  }
  await readJSON(root+'broadcasts/_runtime?updateMask.fieldPaths=lastRun&updateMask.fieldPaths=sent&updateMask.fieldPaths=type',{method:'PATCH',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({fields:{lastRun:{timestampValue:new Date().toISOString()},sent:{integerValue:String(sent)},type:{stringValue:'runtime'}}})},'CARE_HEARTBEAT');
 }
+
+// Literal matching only: customer text never becomes a regular expression.
+function findReply(rules,text){const input=String(text||'').normalize('NFKC').toLocaleLowerCase().trim();return (Array.isArray(rules)?rules:[]).slice(0,12).find(r=>{if(r.enabled===false||!r.title||!r.answer)return false;const keys=Array.isArray(r.keywords)?r.keywords.filter(k=>typeof k==='string'&&k.trim()).slice(0,8):[];return input===String(r.title).normalize('NFKC').toLocaleLowerCase().trim()||keys.some(k=>input.includes(k.normalize('NFKC').toLocaleLowerCase().trim()));});}

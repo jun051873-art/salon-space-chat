@@ -18,3 +18,8 @@ const fileEntry=d.enqueue({room:'customer-test',senderId:'customer-test',text:'p
 assert.equal(attachmentWrites.length,3);assert.equal(attachmentWrites[0].update.fields.attachment.mapValue.fields.name.stringValue,'note.txt');assert.equal(attachmentWrites[0].update.fields.attachment.mapValue.fields.data,undefined);assert.equal(attachmentWrites[2].update.fields.data.stringValue,'data:text/plain;base64,SGk=');assert(attachmentWrites[1].updateTransforms.some(t=>t.fieldPath==='lastCustomerMessageAt'));assert.equal(d.entries()[0].stage,'done');assert.throws(()=>d.enqueue({room:'customer-test',senderId:'customer-test',text:'x'.repeat(4001)}),/4000/);d.stop();
 Date.now=realNow;
 console.log('PASS: resume preserves retry deadlines, durable close/reopen, real server acknowledgement state, idempotent lost-response retry, atomic parent+message request, permission rejection retention, identity isolation, notification recovery, local-storage failure.');
+
+const stickerStorage=new Storage();let stickerWrites;
+const sd=createDelivery({auth,projectId:'test',role:'customer',notify:async()=>{},storage:stickerStorage,request:async(u,o)=>{stickerWrites=JSON.parse(o.body).writes;return response(200,{});}});
+const sticker={id:'one',name:'你好',data:'data:image/png;base64,aGVsbG8='};sd.enqueue({room:'customer-test',senderId:'customer-test',text:'[貼圖] 你好',sticker});await tick();assert.equal(stickerWrites.length,2);assert.equal(stickerWrites[0].update.fields.sticker.mapValue.fields.data.stringValue,sticker.data);assert.throws(()=>sd.enqueue({room:'customer-test',senderId:'customer-test',text:'bad',sticker:{...sticker,data:'javascript:alert(1)'}}),/貼圖/);sd.stop();
+console.log('PASS sticker queued and committed in two writes, rejects unsafe image data.');

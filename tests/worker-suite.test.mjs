@@ -24,7 +24,7 @@ function harness({users=[],chats=[],rules=[],settings={}}={}){
   if(u.includes('broadcasts/_runtime?'))return ok({});
   throw Error('Unexpected request '+u);
  }});
- vm.runInContext(source.replace('export default {','const worker = {')+'\noauthCache={key:"test:test",token:"test",until:Date.now()+3600000};globalThis.api={worker,automaticReply,runCare};',context);
+ vm.runInContext(source.replace('export default {','const worker = {')+'\noauthCache={key:"test:test",token:"test",until:Date.now()+3600000};globalThis.api={worker,automaticReply,runCare,findReply};',context);
  return {api:context.api,calls,messages,get writes(){return writes},get pushes(){return pushes}};
 }
 const h=harness({users:[{id:'c1',name:'測試'}],settings:{keywordRepliesEnabled:true,quickReplies:[{title:'預約',answer:'請選時段'}]}});
@@ -40,3 +40,11 @@ await care.api.runCare(env);await care.api.runCare(env);assert.equal(care.writes
 const unauth=await h.api.worker.fetch(new Request('https://worker.test/',{method:'POST',body:'{}'}),env,{});assert.equal(unauth.status,401);
 const mismatch=await h.api.worker.fetch(new Request('https://worker.test/',{method:'POST',headers:{Authorization:'Bearer test'},body:JSON.stringify({target:'admin',customerUid:'other',messageId:'source'})}),env,{});assert.equal(mismatch.status,403);
 console.log('Worker suite: duplicate prevention, blocked customers, idle scan budget, birthday personalization, auth isolation PASS');
+
+const matcher=h.api.findReply;
+assert.equal(matcher([{title:'護髮多少錢',keywords:['護髮'],answer:'700'}],'請問護髮多少錢呢').answer,'700');
+assert.equal(matcher([{title:'護髮',keywords:['護髮'],answer:'700',enabled:false}],'護髮'),undefined);
+assert.equal(matcher([{title:'價格',keywords:['.*'],answer:'bad'}],'隨便'),undefined);
+const visit=harness({users:[{id:'c1',name:'客人',lastVisitAt:new Date(Date.now()-31*86400000).toISOString()}],rules:[{id:'visit',type:'automation',kind:'visit',days:30,enabled:true,text:'髮況如何？'}]});
+await visit.api.runCare(env);await visit.api.runCare(env);assert.equal(visit.writes,2);assert.equal(visit.pushes,1);
+console.log('PASS literal keyword matching, disabled replies and one care message per visit.');
