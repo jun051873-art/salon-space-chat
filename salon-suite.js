@@ -1,6 +1,6 @@
-import{setupGlassSwitches,resumeNotice}from'./salon-header.js?v=C12';
+import{setupGlassSwitches,resumeNotice}from'./salon-header.js?v=C12.1';
 import{inquiryTimes,inquiryText}from'./booking-inquiry.js?v=C11';
-import{applyTheme,mountThemeEditor,showGreeting,hideGreeting}from'./salon-theme.js?v=C12';
+import{applyTheme,mountThemeEditor,showGreeting,hideGreeting}from'./salon-theme.js?v=C12.1';
 import{createCustomerPages}from'./customer-pages.js?v=C9.1';
 import{badge,appDot,unreadSummary}from'./salon-unread.js?v=C9';
 import{accountDialog,installGuide,setupOnboarding}from'./salon-onboarding.js?v=C11';
