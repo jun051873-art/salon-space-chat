@@ -23,7 +23,7 @@ button{padding:14px 18px;border:0;border-radius:16px;background:#292722;color:#f
 #chat>.card{background:rgba(255,255,255,.78);box-shadow:0 14px 40px rgba(70,58,42,.06)}
 #msgs{padding:10px 2px 18px}.msg{max-width:76%;padding:11px 14px;margin:9px 0;border-radius:18px 18px 18px 6px;background:#fff;box-shadow:0 5px 18px rgba(70,58,42,.06);line-height:1.45}.msg.mine{margin-left:auto;border-radius:18px 18px 6px 18px;background:#292722;color:#fff}
 .bottomNav{border-radius:24px 24px 0 0;box-shadow:0 -8px 30px rgba(70,58,42,.08)}.navBtn span{width:30px;height:30px;margin:0 auto 4px;display:grid;place-items:center;border-radius:10px;font-size:17px;background:rgba(41,39,34,.06)}.navBtn.active span{background:rgba(255,255,255,.15)}
-.quickPills{display:flex;gap:8px;overflow-x:auto;padding:4px 0 10px}.quickPills button{flex:0 0 auto;background:#eee9e2;color:#292722;border-radius:999px;padding:8px 13px;font-size:13px;font-weight:650}.quickPills::-webkit-scrollbar{display:none}</style><link rel="stylesheet" href="./salon.css?v=S5.3"><link rel="stylesheet" href="./customer-chat.css?v=C14"><link rel="stylesheet" href="./salon-refine.css?v=C9"><link rel="stylesheet" href="./salon-theme.css?v=C14"><link rel="stylesheet" href="./salon-layout.css?v=C20"><link rel="stylesheet" href="./salon-upgrade.css?v=C19"></head>
+.quickPills{display:flex;gap:8px;overflow-x:auto;padding:4px 0 10px}.quickPills button{flex:0 0 auto;background:#eee9e2;color:#292722;border-radius:999px;padding:8px 13px;font-size:13px;font-weight:650}.quickPills::-webkit-scrollbar{display:none}</style><link rel="stylesheet" href="./salon.css?v=S5.3"><link rel="stylesheet" href="./customer-chat.css?v=C14"><link rel="stylesheet" href="./salon-refine.css?v=C9"><link rel="stylesheet" href="./salon-theme.css?v=C14"><link rel="stylesheet" href="./salon-layout.css?v=C21"><link rel="stylesheet" href="./salon-upgrade.css?v=C19"></head>
 <body class="customerApp">
 <div id="splash"><div><div class="logo">專屬空間 SALON</div><div class="sub">連線中…</div></div></div>
 <div class="app">
@@ -38,7 +38,7 @@ button{padding:14px 18px;border:0;border-radius:16px;background:#292722;color:#f
 </section>
 <section id="inbox" class="hidden">
 <div class="inboxIntro"><span class="eyebrow">YOUR SALON</span><h2>聊天訊息</h2><p>與專屬空間，保持聯繫。</p></div>
-<button id="enterChat" class="conversationEntry"><span class="salonMonogram">專</span><span class="conversationCopy"><strong>專屬空間 SALON</strong><small>詢問預約、髮型與日常保養</small></span><span aria-hidden="true">›</span></button>
+<button id="enterChat" class="conversationEntry"><span class="salonMonogram" aria-label="店家圖片">專</span><span class="conversationCopy"><strong>專屬空間 SALON</strong><small>詢問預約、髮型與日常保養</small></span><span aria-hidden="true">›</span></button>
 <p class="inboxHint">點選對話，進入你的專屬聊天室。</p></section>
 <section id="chat" class="hidden" aria-label="與店家聊天">
 <div class="card"><header class="conversationHeader"><div class="chatIdentity"><button id="leaveChat" aria-label="返回聊天列表">‹</button><span id="chatCustomerName" class="chatCustomerPill">你</span></div><h2 class="chatSalonPill"><strong id="chatSalonName">專屬空間 SALON</strong></h2><span class="chatHeaderBalance" aria-hidden="true"></span><button id="chatOptions" aria-label="聊天資訊" aria-expanded="false">設定</button></header><div id="msgs" role="log" aria-label="聊天訊息" tabindex="0"></div><footer class="conversationFooter"><div id="chatPanel" hidden>
@@ -47,9 +47,10 @@ button{padding:14px 18px;border:0;border-radius:16px;background:#292722;color:#f
 </section>
 <section id="info" class="card hidden placeholder"><div><h2>🏠 SALON 資訊</h2><p>正在讀取店家資訊…</p></div></section>
 <section id="gallery" class="card hidden placeholder"><div><h2>🖼 作品・產品</h2><p>正在讀取商品…</p></div></section>
+<section id="featureDetail" class="card hidden" aria-label="本月主打"></section>
 <nav id="customerNav" class="bottomNav hidden"><button class="navBtn active" data-customer-page="inbox"><span>◉</span>訊息</button><button class="navBtn" data-customer-page="booking"><span>▦</span>預約</button><button class="navBtn" data-customer-page="gallery"><span>▧</span>商品</button></nav>
 </div>
-<script type="module" src="./salon-layout.js?v=C17"></script><script type="module">import{installSuite,messageHTML}from"./salon-suite.js?v=C21";let suite;let profileReady=false;let accountStatus="new";import{createDelivery}from"./chat-delivery.js?v=C14";import{createPagedFeed}from"./chat-feed.js?v=D4";const CHAT_ROLE="customer";
+<script type="module" src="./salon-layout.js?v=C17"></script><script type="module">import{installSuite,messageHTML}from"./salon-suite.js?v=C22";let suite;let profileReady=false;let accountStatus="new";import{createDelivery}from"./chat-delivery.js?v=C14";import{createPagedFeed}from"./chat-feed.js?v=D4";const CHAT_ROLE="customer";
 import{initializeApp}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
 import{getAuth,signInAnonymously,onAuthStateChanged,signOut,setPersistence,browserLocalPersistence}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 import{getFirestore,doc,getDoc,collection,query,orderBy,onSnapshot,limit,startAfter,getDocsFromServer}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
@@ -180,8 +181,8 @@ async function getChatMessaging(){
  return messagingPromise;
 }
 
-function show(id){["setup","inbox","chat","info","gallery","booking","profile","preferences"].forEach(x=>$(x)?.classList.add("hidden"));$(id)?.classList.remove("hidden");$("splash")?.remove();if(id!=="setup")$("customerNav")?.classList.remove("hidden")}
-function showCustomerPage(id){if(!profileReady&&id!=="setup")id="setup";if(["inbox","chat"].includes(id))delete document.body.dataset.returnToChat;else if(document.body.dataset.page==="chat")document.body.dataset.returnToChat="true";show(id);document.querySelector(".app").scrollTop=0;document.body.dataset.page=id;document.body.classList.toggle("detailOpen",["info","profile","preferences"].includes(id));document.body.classList.toggle("conversationOpen",id==="chat");document.documentElement.classList.toggle("conversationOpen",id==="chat");if(id==="chat"){if(uid)listen();}else{currentChatView?.feed.pause();suite?.stopReceipt();}suite?.page(id);document.querySelectorAll("[data-customer-page]").forEach(b=>b.classList.toggle("active",b.dataset.customerPage===(id==="chat"?"inbox":id)))}
+function show(id){["setup","inbox","chat","info","gallery","featureDetail","booking","profile","preferences"].forEach(x=>$(x)?.classList.add("hidden"));$(id)?.classList.remove("hidden");$("splash")?.remove();if(id!=="setup")$("customerNav")?.classList.remove("hidden")}
+function showCustomerPage(id){if(!profileReady&&id!=="setup")id="setup";if(["inbox","chat"].includes(id))delete document.body.dataset.returnToChat;else if(document.body.dataset.page==="chat")document.body.dataset.returnToChat="true";show(id);document.querySelector(".app").scrollTop=0;document.body.dataset.page=id;document.body.classList.toggle("detailOpen",["info","profile","preferences","featureDetail"].includes(id));document.body.classList.toggle("conversationOpen",id==="chat");document.documentElement.classList.toggle("conversationOpen",id==="chat");if(id==="chat"){if(uid)listen();}else{currentChatView?.feed.pause();suite?.stopReceipt();}suite?.page(id);document.querySelectorAll("[data-customer-page]").forEach(b=>b.classList.toggle("active",b.dataset.customerPage===(id==="chat"?"inbox":id)))}
 document.querySelectorAll("[data-customer-page]").forEach(b=>b.onclick=()=>showCustomerPage(b.dataset.customerPage));
 function listen(){if(!profileReady)return;watchChat(uid,$("msgs"),uid)}
 function escapeHtml(s){return s.replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
