@@ -2,7 +2,7 @@
   "name": "salon-space-chat",
   "private": true,
   "scripts": {
-    "test": "node tests/chat-delivery.test.mjs && node tests/chat-feed.test.mjs && node tests/salon-model.test.mjs && node tests/read-lifecycle.test.cjs && node tests/worker-suite.test.mjs && node tests/salon-hours.test.mjs && node tests/customer-record.test.cjs && node tests/customer-pages.test.mjs && node tests/salon-theme.test.mjs && node tests/booking-inquiry.test.mjs && node tests/salon-header.test.mjs",
+    "test": "node tests/chat-delivery.test.mjs && node tests/chat-feed.test.mjs && node tests/salon-model.test.mjs && node tests/read-lifecycle.test.cjs && node tests/worker-suite.test.mjs && node tests/salon-hours.test.mjs && node tests/customer-record.test.cjs && node tests/customer-pages.test.mjs && node tests/salon-theme.test.mjs && node tests/booking-inquiry.test.mjs && node tests/salon-header.test.mjs && node tests/chat-preview.test.mjs",
     "test:rules": "firebase emulators:exec --project demo-salon --only firestore 'node tests/firestore-rules.test.mjs'"
   },
   "devDependencies": {
