@@ -5,30 +5,30 @@ service cloud.firestore {
   function admin(){return signedIn() && request.auth.uid == 'HcFJGmzHw6MYoWbFmtq9IyFSjvL2';}
   function owner(uid){return signedIn() && request.auth.uid == uid;}
   function active(uid){return get(/databases/$(database)/documents/users/$(uid)).data.get('status','active') == 'active';}
-  function profileFields(){return ['name','phone','birthMonth','birthDay','gender','avatar','role','status','createdAt','joinedAt','updatedAt'];}
+  function profileFields(){return ['name','phone','birthMonth','birthDay','gender','avatar','role','status','createdAt','joinedAt','updatedAt','marketingOptIn'];}
   match /users/{uid} {
    allow read: if admin() || owner(uid);
-   allow create: if admin() || (owner(uid) && request.resource.data.keys().hasOnly(profileFields()) && request.resource.data.role == 'customer' && request.resource.data.get('status','active') == 'active');
-   allow update: if admin() || (owner(uid) && resource.data.get('status','active') != 'blocked' && request.resource.data.diff(resource.data).affectedKeys().hasOnly(profileFields()) && request.resource.data.role == 'customer' && request.resource.data.get('status','active') == 'active');
+   allow create: if admin() || (owner(uid) && request.resource.data.keys().hasOnly(profileFields()) && request.resource.data.role == 'customer' && request.resource.data.get('status','') == 'pending');
+   allow update: if admin() || (owner(uid) && resource.data.get('status','active') == 'active' && request.resource.data.diff(resource.data).affectedKeys().hasOnly(profileFields()) && request.resource.data.role == 'customer' && request.resource.data.get('status','active') == 'active');
    allow delete: if admin();
   }
   match /chats/{uid} {
-   allow read: if admin() || owner(uid);
-   allow create: if admin() || (owner(uid) && request.resource.data.keys().hasOnly(['userId','name','phone','status','lastMessage','updatedAt','lastCustomerMessageAt']) && request.resource.data.get('status','active') == 'active');
-   allow update: if admin() || (owner(uid) && (
+   allow read: if admin() || (owner(uid) && active(uid));
+   allow create: if admin() || (owner(uid) && active(uid) && request.resource.data.keys().hasOnly(['userId','name','phone','status','lastMessage','updatedAt','lastCustomerMessageAt']) && request.resource.data.get('status','active') == 'active');
+   allow update: if admin() || (owner(uid) && active(uid) && (
     (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['readCustomerMs']) && request.resource.data.readCustomerMs is number && request.resource.data.readCustomerMs >= resource.data.get('readCustomerMs',0) && request.resource.data.readCustomerMs <= request.time.toMillis()) ||
     (resource.data.get('status','active') != 'blocked' && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name','phone','userId','status','lastMessage','updatedAt','lastCustomerMessageAt']) && request.resource.data.get('status','active') == 'active')
    ));
    allow delete: if admin();
    match /messages/{messageId} {
-    allow read: if admin() || owner(uid);
-    allow create: if (admin() || (owner(uid) && get(/databases/$(database)/documents/chats/$(uid)).data.get('status','active') == 'active')) && request.resource.data.senderId == request.auth.uid && request.resource.data.senderRole == (admin()?'admin':'customer') && request.resource.data.text is string && request.resource.data.text.size() <= 4000 && request.resource.data.createdAt == request.time;
+    allow read: if admin() || (owner(uid) && active(uid));
+    allow create: if (admin() || (owner(uid) && active(uid) && get(/databases/$(database)/documents/chats/$(uid)).data.get('status','active') == 'active')) && request.resource.data.senderId == request.auth.uid && request.resource.data.senderRole == (admin()?'admin':'customer') && request.resource.data.text is string && request.resource.data.text.size() <= 4000 && request.resource.data.createdAt == request.time;
     // Never permit the legacy per-message readAt loop, including for admin.
     allow update: if (admin() || (owner(uid) && resource.data.senderId == request.auth.uid && active(uid))) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['text','editedAt','retracted']) && request.resource.data.text is string && request.resource.data.text.size() <= 4000;
     allow delete: if admin();
    }
    match /files/{fileId} {
-    allow read: if admin() || owner(uid);
+    allow read: if admin() || (owner(uid) && active(uid));
     allow create: if (admin() || (owner(uid) && active(uid))) && request.resource.data.senderId == request.auth.uid && request.resource.data.data is string && request.resource.data.data.size() <= 420000 && request.resource.data.type in ['image/jpeg','image/png','image/webp','application/pdf','text/plain'];
     allow update: if false;
     allow delete: if admin();
@@ -60,10 +60,10 @@ service cloud.firestore {
    return owner(b.userId) && active(b.userId) && config.bookingEnabled == true && config.services.hasAny([b['service']]) && config.times.hasAny([b.time]) && b.status == 'confirmed' && b.startAt > request.time && b.startAt < request.time + duration.value(61,'d') && (!exists(/databases/$(database)/documents/holidays/$(b.date)) || get(/databases/$(database)/documents/holidays/$(b.date)).data.closed == false);
   }
   match /bookings/{id} {
-   allow read: if admin() || (signedIn() && resource.data.userId == request.auth.uid);
+   allow read: if admin() || (signedIn() && resource.data.userId == request.auth.uid && active(request.auth.uid));
    allow create: if admin() || (canBook(request.resource.data) && request.resource.data.slotId == id && id == request.resource.data.date + '_' + request.resource.data.time && getAfter(/databases/$(database)/documents/availability/$(request.resource.data.date)).data.slots[request.resource.data.time] == true);
    allow update: if admin() || (
-    (owner(resource.data.userId) && resource.data.status == 'confirmed' && request.resource.data.status == 'cancelled' && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status','updatedAt']) && getAfter(/databases/$(database)/documents/availability/$(resource.data.date)).data.slots[resource.data.time] == false) ||
+    (owner(resource.data.userId) && active(resource.data.userId) && resource.data.status == 'confirmed' && request.resource.data.status == 'cancelled' && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status','updatedAt']) && getAfter(/databases/$(database)/documents/availability/$(resource.data.date)).data.slots[resource.data.time] == false) ||
     (resource.data.status == 'cancelled' && canBook(request.resource.data) && request.resource.data.slotId == id && id == request.resource.data.date + '_' + request.resource.data.time && getAfter(/databases/$(database)/documents/availability/$(request.resource.data.date)).data.slots[request.resource.data.time] == true)
    );
    allow delete: if admin();
@@ -80,7 +80,7 @@ service cloud.firestore {
     let booking=getAfter(/databases/$(database)/documents/bookings/$(bookingId)).data;
     return request.resource.data.keys().hasOnly(['slots','changedTime','bookingId']) && changed.hasOnly([time]) && changed.size() == 1 && booking.date == day && booking.time == time && booking.slotId == bookingId && owner(booking.userId) && ((newSlots[time] == true && oldSlots.get(time,false) == false && booking.status == 'confirmed') || (newSlots[time] == false && oldSlots[time] == true && booking.status == 'cancelled'));
    }
-   allow create,update: if admin() || (signedIn() && validChange());
+   allow create,update: if admin() || (signedIn() && active(request.auth.uid) && validChange());
    allow delete: if admin();
   }
   match /{document=**} {allow read,write: if false;}

@@ -44,7 +44,7 @@ export function mountAttachmentPicker(input,{photos=true}={}){
  const preview=document.createElement('img');preview.className='attachmentPreview';preview.hidden=true;preview.alt='已選照片預覽';let url='';
  const clear=()=>{if(url)URL.revokeObjectURL(url);url='';preview.removeAttribute('src');preview.hidden=true;};
  const choose=(label,key,accept)=>{const b=document.createElement('button');b.type='button';b.className='attachmentChoice';b.innerHTML=icon(key)+'<span>'+label+'</span>';b.onclick=()=>{input.accept=accept;input.click();};box.append(b);};
- if(photos)choose('從相簿選照片','image','image/*');choose('加入 PDF／文字','board','application/pdf,text/plain,.pdf,.txt');box.append(preview,status);
+ choose(photos?'選擇照片或檔案':'選擇檔案',photos?'image':'board',photos?'image/*,application/pdf,text/plain,.pdf,.txt':'application/pdf,text/plain,.pdf,.txt');box.append(preview,status);
  input.addEventListener('change',()=>{clear();const f=input.files[0];status.textContent=f?f.name+' · '+Math.ceil(f.size/1024)+' KB':'尚未加入附件';if(f?.type.startsWith('image/')){url=URL.createObjectURL(f);preview.src=url;preview.hidden=false;}});
  input.closest('dialog')?.addEventListener('close',clear,{once:true});
 }

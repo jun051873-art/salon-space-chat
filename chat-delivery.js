@@ -77,6 +77,19 @@ export function createDelivery({auth,projectId,role,notify,onChange,storage=loca
    }
   }finally{busy=false;if(all().some(e=>e.stage==="queued"||e.stage==="stored"))schedule(5000);}
  }
+ function retryFailed(ids=[]){
+  const wanted=new Set(ids);
+  let count=0;
+  for(const e of all()){
+   if(!(['notify-error'].includes(e.stage)||(e.stage==='queued'&&e.error))||(wanted.size&&!wanted.has(e.id)))continue;
+   // Keep the same durable entry and ID. A notification retry never creates a
+   // second chat message; a failed Firestore write resumes its original entry.
+   if(e.stage==='notify-error')e.stage='stored';
+   e.attempts=0;e.nextAt=0;e.error='';e.quotaBlocked=false;save(e);count++;
+  }
+  if(count){stopped=false;void flush();}
+  return count;
+ }
  function enqueue({room,text,senderId,attachment=null,sticker=null,id:providedId=null}){
   if(auth.currentUser?.uid!==senderId)throw Error("登入身分已改變，文字仍保留在輸入框");
   if(sticker&&(!/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(sticker.data||'')||sticker.data.length>30000||typeof sticker.name!=='string'||sticker.name.length>30))throw Error('貼圖格式或大小不正確');
@@ -90,7 +103,7 @@ export function createDelivery({auth,projectId,role,notify,onChange,storage=loca
   save(e);void flush();return e;
  }
  function acknowledge(ids){for(const id of ids)seen.add(id);for(const e of all())cleanup(e);}
- return {enqueue,flush,entries:all,acknowledge,api,
+ return {enqueue,flush,entries:all,acknowledge,api,retryFailed,
   resume(){void flush();},
   stop(){stopped=true;clearTimeout(timer);}
  };

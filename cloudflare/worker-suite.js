@@ -37,17 +37,22 @@ export default {
    if(msg.fields?.senderId?.stringValue !== user.localId) throw fault("MESSAGE_SENDER_MISMATCH",403);
    const message = msg.fields?.text?.stringValue;
    if(typeof message !== "string") throw fault("MESSAGE_NOT_READY",409);
+   const customer=fieldsOf(await readJSON(docRoot+'users/'+encodeURIComponent(room),{headers:{Authorization:'Bearer '+accessToken}},'CUSTOMER'));
+   if((customer.status||'active')!=='active')throw fault('CUSTOMER_INACTIVE',403);
    if(toAdmin){const job=automaticReply(env,docRoot,accessToken,room,body.messageId,message).catch(e=>console.error("auto-reply",e.code||e.message));if(ctx?.waitUntil)ctx.waitUntil(job);else await job;}
    const tokens = await recipientTokens(docRoot,recipient,accessToken);
    if(!tokens.length) return json({ok:false,error:"NO_DEVICE_TOKENS",target:toAdmin?"admin":"customer",devices:0,success:0,failed:0},404,cors);
    const url = SITE+"/salon-space-chat/"+(toAdmin?"admin.html?chat="+encodeURIComponent(room):"customer.html");
-   const title = toAdmin ? "專屬空間 SALON｜客人新訊息" : "專屬空間 SALON";
+   const configuration=await salonConfig(docRoot,accessToken),shopName=configuration.name||'專屬空間';
+   const title=toAdmin?(customer.adminProfile?.name||customer.name||'客人')+'｜新訊息':shopName;
+   const preview=msg.fields?.sticker?'傳來一張貼圖':msg.fields?.attachment?(unpack(msg.fields.attachment)?.type?.startsWith('image/')?'傳來一張照片':'傳來一份附件'):message;
+
    const results=[];
    // Bounded parallelism: one slow device cannot hold up all the others.
    for(let i=0;i<tokens.length;i+=5){
     results.push(...await Promise.all(tokens.slice(i,i+5).map(async token=>{
      try{
-      await readJSON("https://fcm.googleapis.com/v1/projects/"+encodeURIComponent(env.FIREBASE_PROJECT_ID)+"/messages:send",{method:"POST",headers:{Authorization:"Bearer "+accessToken,"Content-Type":"application/json"},body:JSON.stringify({message:{token,data:{title,body:message.slice(0,500),tag:"salon-"+room+"-"+body.messageId,messageId:body.messageId,url},webpush:{headers:{Urgency:"high",TTL:"86400"}}}})},"FCM");
+      await readJSON("https://fcm.googleapis.com/v1/projects/"+encodeURIComponent(env.FIREBASE_PROJECT_ID)+"/messages:send",{method:"POST",headers:{Authorization:"Bearer "+accessToken,"Content-Type":"application/json"},body:JSON.stringify({message:{token,data:{title,body:preview.slice(0,500),tag:"salon-"+room+"-"+body.messageId,messageId:body.messageId,url},webpush:{headers:{Urgency:"high",TTL:"86400"}}}})},"FCM");
       return {ok:true};
      }catch(e){return {ok:false,error:e.code||"FCM_FAILED",status:e.status||502};}
     })));
@@ -137,7 +142,7 @@ async function runCare(env){
  const all=await scanCollection(root,'broadcasts',token),rules=all.filter(r=>r.type==='automation'&&r.enabled===true);
  let sent=0;
  if(rules.length){const [users,chats]=await Promise.all([scanCollection(root,'users',token),scanCollection(root,'chats',token)]),chatMap=new Map(chats.map(c=>[c.id,c]));const day=new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Taipei'}),[year,month,date]=day.split('-').map(Number);
-  outer: for(const rule of rules.slice(0,20))for(const user of users){if(user.id===ADMIN_UID||['blocked','archived'].includes(user.status)||!user.name||!rule.text)continue;const last=Date.parse((rule.kind==='visit'?user.lastVisitAt:chatMap.get(user.id)?.lastCustomerMessageAt)||'')||0;const due=rule.kind==='birthday'?Number(user.birthMonth)===month&&Number(user.birthDay)===date:['inactive','visit'].includes(rule.kind)&&last>0&&Date.now()-last>=Number(rule.days||30)*86400000;if(!due)continue;const id='care_'+rule.id+'_'+user.id+'_'+(rule.kind==='birthday'?year:last);const text=rule.text.replaceAll('{姓名}',user.name);if(await systemMessage(env,root,token,user.id,id,text))sent++;if(sent>=300)break outer;}
+  outer: for(const rule of rules.slice(0,20))for(const user of users){if(user.id===ADMIN_UID||(user.status||'active')!=='active'||user.marketingOptIn===false||!user.name||!rule.text)continue;const last=Date.parse((rule.kind==='visit'?user.lastVisitAt:chatMap.get(user.id)?.lastCustomerMessageAt)||'')||0;const due=rule.kind==='birthday'?Number(user.birthMonth)===month&&Number(user.birthDay)===date:['inactive','visit'].includes(rule.kind)&&last>0&&Date.now()-last>=Number(rule.days||30)*86400000;if(!due)continue;const id='care_'+rule.id+'_'+user.id+'_'+(rule.kind==='birthday'?year:last);const text=rule.text.replaceAll('{姓名}',user.name);if(await systemMessage(env,root,token,user.id,id,text))sent++;if(sent>=300)break outer;}
  }
  await readJSON(root+'broadcasts/_runtime?updateMask.fieldPaths=lastRun&updateMask.fieldPaths=sent&updateMask.fieldPaths=type',{method:'PATCH',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({fields:{lastRun:{timestampValue:new Date().toISOString()},sent:{integerValue:String(sent)},type:{stringValue:'runtime'}}})},'CARE_HEARTBEAT');
 }

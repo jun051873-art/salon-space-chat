@@ -23,3 +23,10 @@ const stickerStorage=new Storage();let stickerWrites;
 const sd=createDelivery({auth,projectId:'test',role:'customer',notify:async()=>{},storage:stickerStorage,request:async(u,o)=>{stickerWrites=JSON.parse(o.body).writes;return response(200,{});}});
 const sticker={id:'one',name:'你好',data:'data:image/png;base64,aGVsbG8='};sd.enqueue({room:'customer-test',senderId:'customer-test',text:'[貼圖] 你好',sticker});await tick();assert.equal(stickerWrites.length,2);assert.equal(stickerWrites[0].update.fields.sticker.mapValue.fields.data.stringValue,sticker.data);assert.throws(()=>sd.enqueue({room:'customer-test',senderId:'customer-test',text:'bad',sticker:{...sticker,data:'javascript:alert(1)'}}),/貼圖/);sd.stop();
 console.log('PASS sticker queued and committed in two writes, rejects unsafe image data.');
+
+const retryStorage=new Storage(),retryKey='salon-outbox-v3:test-project:customer:customer-test:campaign-message';
+retryStorage.setItem(retryKey,JSON.stringify({id:'campaign-message',room:'customer-test',text:'already stored',senderId:'customer-test',role:'customer',at:1,stage:'notify-error',attempts:3,nextAt:999999,error:'push failed'}));
+let retryPushes=0,retryWrites=0;
+const rd=createDelivery({auth,projectId:'test-project',role:'customer',notify:async()=>{retryPushes++;},storage:retryStorage,request:async()=>{retryWrites++;throw Error('a notification retry must not write chat again')}});
+assert.equal(rd.retryFailed(['campaign-message']),1);await tick();assert.equal(retryPushes,1);assert.equal(retryWrites,0);assert.equal(rd.entries()[0].stage,'done');rd.stop();
+console.log('PASS failed broadcast retry reuses stored outbox entry and never duplicates the chat write.');
