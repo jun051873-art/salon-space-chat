@@ -1,3 +1,31 @@
+importScripts('./push-presentation.js?v=C23');
+const BRAND_CACHE='salon-notification-brand-v1';
+const BRAND_URL='/salon-space-chat/__notification_brand__';
+async function readBrand(){try{const response=await (await caches.open(BRAND_CACHE)).match(BRAND_URL);return response?await response.json():{};}catch{return {};}}
+self.addEventListener('message',event=>{
+ if(event.data?.type!=='SALON_NOTIFICATION_BRAND')return;
+ const input=event.data.branding||{},branding={};
+ for(const role of ['admin','customer'])branding[role]={name:String(input[role]?.name||'專屬空間').slice(0,100),color:SalonPush.palette(input[role]?.color,role)};
+ event.waitUntil(caches.open(BRAND_CACHE).then(cache=>cache.put(BRAND_URL,new Response(JSON.stringify(branding),{headers:{'Content-Type':'application/json'}}))));
+});
+// Register click handling before Firebase installs its own listeners.
+self.addEventListener('notificationclick',event=>{
+ event.notification.close();
+ event.stopImmediatePropagation();
+ event.waitUntil((async()=>{
+  const destination=SalonPush.destination(event.notification?.data?.url,self.location.origin);
+  const list=await self.clients.matchAll({type:'window',includeUncontrolled:true});
+  const isApple=/iPhone|iPad|iPod|Macintosh/i.test(self.navigator?.userAgent||'');
+  if(isApple){for(const client of list){
+   const current=new URL(client.url);
+   if(current.origin===destination.origin && current.pathname===destination.pathname){
+    client.postMessage({type:'OPEN_NOTIFICATION_URL',url:destination.href});
+    if('focus' in client)return client.focus();
+   }
+  }}
+  return self.clients.openWindow?.(destination.href);
+ })());
+});
 importScripts("https://www.gstatic.com/firebasejs/12.4.0/firebase-app-compat.js");
 importScripts("https://www.gstatic.com/firebasejs/12.4.0/firebase-messaging-compat.js");
 firebase.initializeApp({apiKey:"AIzaSyBS-lHTp1YPhhFOKriBRSrwdSomT3ZGw0c",authDomain:"salon-space-chat.firebaseapp.com",projectId:"salon-space-chat",storageBucket:"salon-space-chat.firebasestorage.app",messagingSenderId:"103245363547",appId:"1:103245363547:web:3f19674918bbf257a4c27e"});
@@ -9,39 +37,9 @@ async function saveDiag(obj){
 }
 self.addEventListener("install",()=>self.skipWaiting());
 self.addEventListener("activate",event=>event.waitUntil(self.clients.claim()));
-messaging.onBackgroundMessage(payload=>{
+messaging.onBackgroundMessage(async payload=>{
  const d=payload.data||{};
  try{self.navigator.setAppBadge?.().catch(()=>{});}catch{}
- const title=d.title||"專屬空間 SALON";
- const options={
-  body:d.body||"您有一則新訊息",
-  tag:d.tag||("salon-message-"+Date.now()),
-  renotify:true,
-  requireInteraction:false,
-  silent:false,
-  timestamp:Date.now(),
-  data:{url:d.url||"/salon-space-chat/customer.html"}
- };
+ const {title,options}=SalonPush.notification(d,await readBrand(),self.location.origin);
  return saveDiag({stage:"received",data:d}).then(()=>self.registration.showNotification(title,options)).then(()=>saveDiag({stage:"shown",data:d})).catch(e=>saveDiag({stage:"show-error",error:String(e),data:d}));
-});
-self.addEventListener("notificationclick",event=>{
- event.notification.close();
- const url=event.notification?.data?.url||"/salon-space-chat/customer.html";
- event.waitUntil((async()=>{
-  const destination=new URL(url,self.location.origin);
-  if(destination.pathname.endsWith("/customer.html"))destination.hash="chat";
-  const absolute=destination.href;
-  const list=await clients.matchAll({type:"window",includeUncontrolled:true});
-  // Apple/WebKit 對既有 standalone 視窗的 focus 較穩；Android 則優先走深連結開啟。
-  const isApple=/iPhone|iPad|iPod|Macintosh/i.test(self.navigator?.userAgent||"");
-  if(isApple){
-   for(const client of list){
-    if(new URL(client.url).origin===self.location.origin && new URL(client.url).pathname===new URL(absolute).pathname){
-     client.postMessage({type:"OPEN_NOTIFICATION_URL",url:absolute});
-     if("focus" in client)return client.focus();
-    }
-   }
-  }
-  return clients.openWindow?clients.openWindow(absolute):undefined;
- })());
 });

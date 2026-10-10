@@ -6,26 +6,26 @@ const admin='HcFJGmzHw6MYoWbFmtq9IyFSjvL2';
 const env={FIREBASE_PROJECT_ID:'test',FIREBASE_CLIENT_EMAIL:'test',FIREBASE_PRIVATE_KEY:'test'};
 const root='https://firestore.googleapis.com/v1/projects/test/databases/(default)/documents/';
 const pack=x=>typeof x==='string'?{stringValue:x}:typeof x==='boolean'?{booleanValue:x}:typeof x==='number'?{integerValue:String(x)}:Array.isArray(x)?{arrayValue:{values:x.map(pack)}}:{mapValue:{fields:Object.fromEntries(Object.entries(x).map(([k,v])=>[k,pack(v)]))}};
-function harness({users=[],chats=[],rules=[],settings={}}={}){
- const calls=[],messages=new Map();let writes=0,pushes=0;
+function harness({users=[],chats=[],rules=[],settings={},caller="c1",sourceMessage={senderId:"c1",text:"預約"}}={}){
+ const calls=[],payloads=[],messages=new Map();let writes=0,pushes=0;
  const doc=(id,x)=>({name:root+id,fields:pack(x).mapValue.fields});
  const context=vm.createContext({Response,Request,URLSearchParams,AbortController,TextEncoder,Uint8Array,atob,btoa,setTimeout,clearTimeout,console,fetch:async(url,opt={})=>{
   calls.push(String(url));const u=String(url),body=opt.body?JSON.parse(opt.body):null;
   const ok=x=>Response.json(x);
-  if(u.includes('accounts:lookup'))return ok({users:[{localId:'c1'}]});
+  if(u.includes('accounts:lookup'))return ok({users:[{localId:caller}]});
   if(u===root+'announcements/settings')return ok(doc('settings',settings));
   if(u===root+'users/c1')return ok(doc('c1',users.find(x=>x.id==='c1')||{}));
-  if(u.includes('/messages/source'))return ok(doc('source',{senderId:'c1',text:'預約'}));
+  if(u.includes('/messages/source'))return ok(doc('source',sourceMessage));
   if(u.includes('/devices?'))return ok({documents:[doc('device',{token:'device-token'})]});
   if(u.includes('/pushTokens/'))return Response.json({error:{status:'NOT_FOUND'}},{status:404});
   if(u.endsWith(':commit')){const name=body.writes[0].update.name;if(messages.has(name))return Response.json({error:{status:'ALREADY_EXISTS'}},{status:409});messages.set(name,body.writes[0]);writes+=body.writes.length;return ok({});}
-  if(u.includes('messages:send')){pushes++;return ok({name:'accepted'});}
+  if(u.includes('messages:send')){pushes++;payloads.push(body.message);return ok({name:'accepted'});}
   for(const [name,data] of Object.entries({users,chats,broadcasts:rules}))if(u===root+name+'?pageSize=300')return ok({documents:data.map(x=>doc(x.id,x))});
   if(u.includes('broadcasts/_runtime?'))return ok({});
   throw Error('Unexpected request '+u);
  }});
  vm.runInContext(source.replace('export default {','const worker = {')+'\noauthCache={key:"test:test",token:"test",until:Date.now()+3600000};globalThis.api={worker,automaticReply,runCare,findReply};',context);
- return {api:context.api,calls,messages,get writes(){return writes},get pushes(){return pushes}};
+ return {api:context.api,calls,messages,payloads,get writes(){return writes},get pushes(){return pushes}};
 }
 const h=harness({users:[{id:'c1',name:'測試'}],settings:{keywordRepliesEnabled:true,quickReplies:[{title:'預約',answer:'請選時段'}]}});
 await h.api.automaticReply(env,root,'test','c1','source','預約');
@@ -48,3 +48,10 @@ assert.equal(matcher([{title:'價格',keywords:['.*'],answer:'bad'}],'隨便'),u
 const visit=harness({users:[{id:'c1',name:'客人',lastVisitAt:new Date(Date.now()-31*86400000).toISOString()}],rules:[{id:'visit',type:'automation',kind:'visit',days:30,enabled:true,text:'髮況如何？'}]});
 await visit.api.runCare(env);await visit.api.runCare(env);assert.equal(visit.writes,2);assert.equal(visit.pushes,1);
 console.log('PASS literal keyword matching, disabled replies and one care message per visit.');
+
+const sendNotification=async(h,target)=>{const result=await h.api.worker.fetch(new Request('https://worker.test/',{method:'POST',headers:{Authorization:'Bearer test'},body:JSON.stringify({target,customerUid:'c1',messageId:'source'})}),env,{});assert.equal(result.status,200);return h.payloads.at(-1).data;};
+const named=harness({users:[{id:'c1',name:'小刀',adminProfile:{name:'常客小刀'}}],settings:{name:'改名髮藝'}});
+assert.equal((await sendNotification(named,'admin')).title,'常客小刀｜新訊息');
+const renamed=harness({caller:admin,users:[{id:'c1',name:'小刀'}],settings:{name:'改名髮藝'},sourceMessage:{senderId:admin,text:'raw-id',sticker:{id:'raw-id'}}});
+const notice=await sendNotification(renamed,'customer');assert.equal(notice.title,'改名髮藝');assert.equal(notice.body,'傳來一張貼圖');
+console.log('PASS notification payload: customer identity, shop rename, readable attachment preview');
