@@ -51,7 +51,7 @@ console.log('PASS literal keyword matching, disabled replies and one care messag
 
 const sendNotification=async(h,target)=>{const result=await h.api.worker.fetch(new Request('https://worker.test/',{method:'POST',headers:{Authorization:'Bearer test'},body:JSON.stringify({target,customerUid:'c1',messageId:'source'})}),env,{});assert.equal(result.status,200);return h.payloads.at(-1).data;};
 const named=harness({users:[{id:'c1',name:'小刀',adminProfile:{name:'常客小刀'}}],settings:{name:'改名髮藝'}});
-assert.equal((await sendNotification(named,'admin')).title,'常客小刀｜新訊息');
+const adminNotice=await sendNotification(named,'admin');assert.equal(adminNotice.title,'常客小刀｜改名髮藝');assert.equal(adminNotice.body,'預約');
 const renamed=harness({caller:admin,users:[{id:'c1',name:'小刀'}],settings:{name:'改名髮藝'},sourceMessage:{senderId:admin,text:'raw-id',sticker:{id:'raw-id'}}});
-const notice=await sendNotification(renamed,'customer');assert.equal(notice.title,'改名髮藝');assert.equal(notice.body,'傳來一張貼圖');
+const notice=await sendNotification(renamed,'customer');assert.equal(notice.title,'小刀｜改名髮藝');assert.equal(notice.body,'傳來一張貼圖');
 console.log('PASS notification payload: customer identity, shop rename, readable attachment preview');
