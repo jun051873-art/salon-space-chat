@@ -57,3 +57,17 @@ html[data-reading-motion=off] .sceneEffects,html[data-reading-motion=reduced] .s
 @keyframes pageReveal{from{opacity:.3;translate:0 8px}to{opacity:1;translate:none}}
 @media(prefers-reduced-motion:reduce){.customerApp .app>section,.adminApp .app>section{animation:none!important}}
 html[data-reading-motion=off] .app>section,html[data-reading-motion=reduced] .app>section{animation:none!important}
+/* C27: touch-first photo editing and quieter personal typography. */
+dialog.profileSceneDialog:focus{outline:none!important}
+.profileScene button:focus,.profileScene button:focus-visible{outline:none!important}
+.profileSceneDialog.sceneKeyboard button:focus-visible{outline:2px solid currentColor!important;outline-offset:3px}
+.profileScene .sceneIcon .salonIcon{width:20px;height:20px;stroke-width:2.1}
+.profileScene .sceneEdit .salonIcon{width:16px;height:16px;stroke-width:2.1}
+.profileScene .sceneHeader .sceneIcon,.profileScene .sceneHeader .sceneEdit{color:#263a32!important;filter:drop-shadow(0 1px 1px #ffffffe0) drop-shadow(0 0 3px #ffffffa0);font-weight:600}
+.profileScene .sceneName .sceneIcon{color:#f7f5ef!important}.profileScene .sceneName .sceneIcon svg{width:17px;height:17px;stroke-width:2.1}
+.profileScene .sceneCoverEdit{position:absolute;top:31%;left:50%;transform:translateX(-50%);z-index:2;display:flex;align-items:center;gap:8px;min-height:44px;padding:10px 15px;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;color:#263a32!important;filter:drop-shadow(0 1px 1px #ffffffe0) drop-shadow(0 0 3px #ffffffa0);font-size:13px;font-weight:600;letter-spacing:.08em}
+.profileScene .sceneCoverEdit svg{width:17px;height:17px;stroke-width:2.1}.profileScene .sceneCoverEdit:active{transform:translateX(-50%) scale(.97)}.sceneCoverEdit[hidden],.scenePhotoInputs[hidden]{display:none!important}.hasSheet .sceneCoverEdit{opacity:0;pointer-events:none}
+.profileScene .sceneName h1{font-weight:500!important;letter-spacing:.1em;font-size:clamp(22px,5.8vw,29px)!important}.profileScene .sceneStatus{font-family:'Songti TC','Noto Serif TC','PMingLiU',serif;font-weight:400;font-size:14px;letter-spacing:.12em;line-height:1.95;color:#f6f4eceb;max-width:300px;margin-top:13px;text-shadow:0 1px 8px #0007}
+.profileScene .sceneEditBar{max-width:310px;margin-inline:auto}.profileScene .sceneEditBar button{font-weight:400;letter-spacing:.07em;font-size:12px}.sceneEditBar svg{width:21px;height:21px;stroke-width:1.9}
+.profileScene.isEditing .sceneAvatar{overflow:visible;position:relative;cursor:pointer}.profileScene.isEditing .sceneAvatar>img{border-radius:50%}.profileScene.isEditing .sceneAvatar:after{content:'';position:absolute;right:-1px;bottom:2px;width:23px;height:23px;border-radius:50%;background:#f7f5ec url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232c4235' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m15 5 4 4M4 20l4-1L20 7a2.8 2.8 0 0 0-4-4L4 15v5Z'/%3E%3C/svg%3E") center/13px no-repeat;box-shadow:0 2px 6px #0002;pointer-events:none}
+.profileScene .sceneSheetHead h2{font-weight:500!important;letter-spacing:.07em}.profileScene .sceneSheet label{font-weight:400;letter-spacing:.04em}.profileScene .sceneSheet input,.profileScene .sceneSheet textarea{font-weight:400;line-height:1.65;border-color:#e2e5de}.profileScene .sceneSheet input:focus,.profileScene .sceneSheet textarea:focus{outline:1px solid #809787;outline-offset:1px}.profileScene .sceneSheetHead .sceneIcon{color:#2f4237!important}
