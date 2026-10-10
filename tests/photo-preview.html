@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="zh-Hant"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>主打照片品質測試</title>
+<style>body{font:18px system-ui;margin:20px;background:#f5f1ea;color:#292722}main{max-width:680px;margin:auto}img{width:100%;height:auto;border-radius:24px}label{display:block}button{font:inherit;padding:12px;border:0;border-radius:16px;background:#fff}canvas{max-width:100%;height:auto}.photoEditor{max-width:90vw}.photoPreview img{max-height:200px;object-fit:contain}.photoActions{display:flex;gap:8px}</style>
+<main><h1>本月主打</h1><p>測試用文字海報，未連接雲端資料。點擊照片可放大，雙指縮放或使用按鈕。</p><div id="photo"></div><p id="result" role="status">正在準備…</p><label>重新選取原圖<input id="upload" type="file" accept="image/*"></label></main>
+<script type="module">
+import{compressCanvas,mountPhotoPicker}from'../salon-ui.js';
+import{bindPhotoViewer,openPhotoViewer}from'../photo-viewer.js';
+const options={max:2400,budget:420000,minQuality:.82,preservePng:true};
+const canvas=document.createElement('canvas');canvas.width=1600;canvas.height=2400;const ctx=canvas.getContext('2d');
+const g=ctx.createLinearGradient(0,0,1600,2400);g.addColorStop(0,'#61422b');g.addColorStop(.5,'#bf936a');g.addColorStop(1,'#2d211b');ctx.fillStyle=g;ctx.fillRect(0,0,1600,2400);ctx.textAlign='center';ctx.fillStyle='#fff5dc';ctx.font='bold 120px system-ui';ctx.fillText('頭皮去角質',800,600);ctx.font='bold 240px system-ui';ctx.fillText('$300',800,950);ctx.font='bold 50px system-ui';ctx.fillText('剪髮時，順便去一下',800,1200);ctx.font='32px system-ui';for(let i=0;i<15;i++)ctx.fillText('頭皮清潔 · 舒適按摩 · 換季整理 '+(i+1),800,1400+i*48);
+const old=await compressCanvas(canvas,800,50000),data=await compressCanvas(canvas,2400,420000,options);
+const img=new Image();img.src=data;img.alt='頭皮去角質測試海報';await img.decode();document.getElementById('photo').append(img);bindPhotoViewer(img);document.getElementById('result').textContent=img.naturalWidth+' × '+img.naturalHeight+' 像素';
+const picker=mountPhotoPicker(document.getElementById('upload'),{...options,onChange(value){if(value){img.src=value;img.onload=()=>document.getElementById('result').textContent=img.naturalWidth+' × '+img.naturalHeight+' 像素';}}});
+window.photoTest={compressCanvas,openPhotoViewer,canvas,old,data,picker};
+</script></html>
