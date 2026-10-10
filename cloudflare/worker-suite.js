@@ -44,7 +44,10 @@ export default {
    if(!tokens.length) return json({ok:false,error:"NO_DEVICE_TOKENS",target:toAdmin?"admin":"customer",devices:0,success:0,failed:0},404,cors);
    const url = SITE+"/salon-space-chat/"+(toAdmin?"admin.html?chat="+encodeURIComponent(room):"customer.html");
    const configuration=await salonConfig(docRoot,accessToken),shopName=configuration.name||'專屬空間';
-   const title=toAdmin?(customer.adminProfile?.name||customer.name||'客人')+'｜新訊息':shopName;
+   // A shop owner may keep a private admin nickname; never reveal it to the customer.
+   const customerName=(toAdmin?customer.adminProfile?.name:customer.name)||customer.name||'客人';
+   // One compact identity line; keep only the actual message in the preview.
+   const title=customerName+'｜'+shopName;
    const preview=msg.fields?.sticker?'傳來一張貼圖':msg.fields?.attachment?(unpack(msg.fields.attachment)?.type?.startsWith('image/')?'傳來一張照片':'傳來一份附件'):message;
 
    const results=[];
@@ -118,13 +121,14 @@ let salonConfigCache=null;
 function unpack(v){if(v==null)return null;if('stringValue'in v)return v.stringValue;if('integerValue'in v)return Number(v.integerValue);if('doubleValue'in v)return v.doubleValue;if('booleanValue'in v)return v.booleanValue;if('timestampValue'in v)return v.timestampValue;if(v.arrayValue)return(v.arrayValue.values||[]).map(unpack);if(v.mapValue)return Object.fromEntries(Object.entries(v.mapValue.fields||{}).map(([k,x])=>[k,unpack(x)]));return null;}
 function fieldsOf(d){return Object.fromEntries(Object.entries(d.fields||{}).map(([k,v])=>[k,unpack(v)]));}
 async function salonConfig(root,token){if(salonConfigCache?.until>Date.now())return salonConfigCache.data;let data={};try{data=fieldsOf(await readJSON(root+'announcements/settings',{headers:{Authorization:'Bearer '+token}},'SETTINGS'));}catch(e){if(e.status!==404)throw e;}salonConfigCache={until:Date.now()+300000,data};return data;}
-async function systemMessage(env,root,token,uid,id,text){
+async function systemMessage(env,root,token,uid,id,text,customer={},shopName='專屬空間'){
  const name='projects/'+env.FIREBASE_PROJECT_ID+'/databases/(default)/documents/';
  const s=v=>({stringValue:v});
  try{await readJSON(root.slice(0,-1)+':commit',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({writes:[{update:{name:name+'chats/'+uid+'/messages/'+id,fields:{text:s(text.slice(0,4000)),senderId:s(ADMIN_UID),senderRole:s('admin'),clientMessageId:s(id),automatic:{booleanValue:true}}},currentDocument:{exists:false},updateTransforms:[{fieldPath:'createdAt',setToServerValue:'REQUEST_TIME'}]},{update:{name:name+'chats/'+uid,fields:{lastMessage:s(text.slice(0,4000))}},updateMask:{fieldPaths:['lastMessage']},updateTransforms:[{fieldPath:'updatedAt',setToServerValue:'REQUEST_TIME'},{fieldPath:'lastAdminMessageAt',setToServerValue:'REQUEST_TIME'}]}]})},'AUTO_WRITE');}
  catch(e){if(e.code?.includes('ALREADY_EXISTS')||e.code?.includes('FAILED_PRECONDITION'))return false;throw e;}
  const tokens=await recipientTokens(root,uid,token);
- for(let i=0;i<tokens.length;i+=5)await Promise.all(tokens.slice(i,i+5).map(device=>readJSON('https://fcm.googleapis.com/v1/projects/'+env.FIREBASE_PROJECT_ID+'/messages:send',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({message:{token:device,data:{title:'專屬空間 SALON',body:text.slice(0,500),messageId:id,tag:'salon-'+uid+'-'+id,url:SITE+'/salon-space-chat/customer.html'},webpush:{headers:{Urgency:'high',TTL:'86400'}}}})},'AUTO_PUSH').catch(e=>console.error('auto-push',e.code))));
+ const customerName=customer.name||'客人';
+ for(let i=0;i<tokens.length;i+=5)await Promise.all(tokens.slice(i,i+5).map(device=>readJSON('https://fcm.googleapis.com/v1/projects/'+env.FIREBASE_PROJECT_ID+'/messages:send',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({message:{token:device,data:{title:customerName+'｜'+shopName,body:text.slice(0,500),messageId:id,tag:'salon-'+uid+'-'+id,url:SITE+'/salon-space-chat/customer.html'},webpush:{headers:{Urgency:'high',TTL:'86400'}}}})},'AUTO_PUSH').catch(e=>console.error('auto-push',e.code))));
  return true;
 }
 async function automaticReply(env,root,token,uid,sourceId,text){
@@ -134,15 +138,15 @@ async function automaticReply(env,root,token,uid,sourceId,text){
  if(!reply)return;
  const customer=fieldsOf(await readJSON(root+'users/'+uid,{headers:{Authorization:'Bearer '+token}},'CUSTOMER'));
  if(['blocked','archived'].includes(customer.status))return;
- await systemMessage(env,root,token,uid,'auto_'+sourceId,reply.answer);
+ await systemMessage(env,root,token,uid,'auto_'+sourceId,reply.answer,customer,config.name||'專屬空間');
 }
 async function scanCollection(root,path,token){let page='',rows=[];do{const result=await readJSON(root+path+'?pageSize=300'+(page?'&pageToken='+encodeURIComponent(page):''),{headers:{Authorization:'Bearer '+token}},'CARE_SCAN');rows.push(...(result.documents||[]).map(d=>({id:d.name.split('/').pop(),...fieldsOf(d)})));page=result.nextPageToken||'';if(rows.length>5000)throw fault('CARE_CUSTOMER_LIMIT',400);}while(page);return rows;}
 async function runCare(env){
  const token=await googleToken(env),root='https://firestore.googleapis.com/v1/projects/'+env.FIREBASE_PROJECT_ID+'/databases/(default)/documents/';
  const all=await scanCollection(root,'broadcasts',token),rules=all.filter(r=>r.type==='automation'&&r.enabled===true);
  let sent=0;
- if(rules.length){const [users,chats]=await Promise.all([scanCollection(root,'users',token),scanCollection(root,'chats',token)]),chatMap=new Map(chats.map(c=>[c.id,c]));const day=new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Taipei'}),[year,month,date]=day.split('-').map(Number);
-  outer: for(const rule of rules.slice(0,20))for(const user of users){if(user.id===ADMIN_UID||(user.status||'active')!=='active'||user.marketingOptIn===false||!user.name||!rule.text)continue;const last=Date.parse((rule.kind==='visit'?user.lastVisitAt:chatMap.get(user.id)?.lastCustomerMessageAt)||'')||0;const due=rule.kind==='birthday'?Number(user.birthMonth)===month&&Number(user.birthDay)===date:['inactive','visit'].includes(rule.kind)&&last>0&&Date.now()-last>=Number(rule.days||30)*86400000;if(!due)continue;const id='care_'+rule.id+'_'+user.id+'_'+(rule.kind==='birthday'?year:last);const text=rule.text.replaceAll('{姓名}',user.name);if(await systemMessage(env,root,token,user.id,id,text))sent++;if(sent>=300)break outer;}
+ if(rules.length){const [users,chats,config]=await Promise.all([scanCollection(root,'users',token),scanCollection(root,'chats',token),salonConfig(root,token)]),chatMap=new Map(chats.map(c=>[c.id,c]));const day=new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Taipei'}),[year,month,date]=day.split('-').map(Number);
+  outer: for(const rule of rules.slice(0,20))for(const user of users){if(user.id===ADMIN_UID||(user.status||'active')!=='active'||user.marketingOptIn===false||!user.name||!rule.text)continue;const last=Date.parse((rule.kind==='visit'?user.lastVisitAt:chatMap.get(user.id)?.lastCustomerMessageAt)||'')||0;const due=rule.kind==='birthday'?Number(user.birthMonth)===month&&Number(user.birthDay)===date:['inactive','visit'].includes(rule.kind)&&last>0&&Date.now()-last>=Number(rule.days||30)*86400000;if(!due)continue;const id='care_'+rule.id+'_'+user.id+'_'+(rule.kind==='birthday'?year:last);const text=rule.text.replaceAll('{姓名}',user.name);if(await systemMessage(env,root,token,user.id,id,text,user,config.name||'專屬空間'))sent++;if(sent>=300)break outer;}
  }
  await readJSON(root+'broadcasts/_runtime?updateMask.fieldPaths=lastRun&updateMask.fieldPaths=sent&updateMask.fieldPaths=type',{method:'PATCH',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({fields:{lastRun:{timestampValue:new Date().toISOString()},sent:{integerValue:String(sent)},type:{stringValue:'runtime'}}})},'CARE_HEARTBEAT');
 }
