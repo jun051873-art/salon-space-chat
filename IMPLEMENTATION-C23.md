@@ -15,5 +15,5 @@ Verification:
 - Production Worker GET reports version 6-care.
 
 Pending verification:
-- Firebase console is signed out. Deployed Firestore rules have NOT been read or compared in this session. No rules changes/deployment performed.
+- 2026-10-10 08:12 Asia/Taipei: Firebase sign-in succeeded after user verification. Current starred rules release (2026-10-09 22:33) inspected in console. Deployed owner/profile fields, active status, users create/update, chats create/update and message rules (lines 1–27) match the locally emulator-tested rules. No new rules deployment needed for this profile change. Remaining rules outside the selected scope were not re-audited.
 - No real customer messages sent; no physical Android/iOS/watch end-to-end notification verification. OS status bar icons can remain monochrome; existing iOS installed icon metadata may not refresh immediately.

@@ -2,7 +2,7 @@
 // approval/status from a potentially stale browser copy of the profile.
 export async function saveCustomerProfile({db,uid,changes,doc,runTransaction,serverTimestamp}) {
   if (!uid) throw new Error('登入狀態已失效，請重新開啟頁面；填寫內容會保留。');
-  const editable = new Set(['name','phone','birthMonth','birthDay','gender','avatar']);
+  const editable = new Set(['name','phone','birthMonth','birthDay','gender','avatar','profileCover']);
   if (Object.keys(changes).some(key => !editable.has(key))) throw new Error('這項資料需由店家修改。');
   try {
     return await runTransaction(db, async tx => {

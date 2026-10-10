@@ -16,7 +16,7 @@
     const brand=branding?.[role]||{};
     const icon=new URL(iconPath(role,brand.color),origin+'/salon-space-chat/').href;
     return {title:data.title||brand.name||'沙龍訊息',options:{
-      body:data.body||'您有一則新訊息',icon,
+      body:(role==='admin'&&data.title?data.title+'\n':'')+(data.body||'您有一則新訊息'),icon,
       badge:new URL('./icons/'+role+'-badge.png',origin+'/salon-space-chat/').href,
       tag:data.tag||('salon-message-'+Date.now()),renotify:true,requireInteraction:false,
       silent:false,timestamp:Date.now(),data:{url:url.href},

@@ -1,11 +1,12 @@
 // A preview is deliberately independent of the live chat/feed/read-receipt lifecycle.
 export function bindLongPress(element, openPreview, {delay=500, tolerance=12}={}) {
  let timer=null, start=null, consumed=false;
+ element.addEventListener('selectstart',e=>e.preventDefault());
  const cancel=()=>{clearTimeout(timer);timer=null;start=null;};
  element.addEventListener('pointerdown',e=>{
   if(e.button>0||e.isPrimary===false)return;
   cancel();consumed=false;start={x:e.clientX,y:e.clientY};
-  timer=setTimeout(()=>{timer=null;consumed=true;openPreview();},delay);
+  timer=setTimeout(()=>{timer=null;consumed=true;globalThis.getSelection?.()?.removeAllRanges();openPreview();},delay);
  });
  element.addEventListener('pointermove',e=>{if(start&&Math.hypot(e.clientX-start.x,e.clientY-start.y)>tolerance)cancel();});
  ['pointerup','pointercancel','lostpointercapture','pointerleave'].forEach(type=>element.addEventListener(type,cancel));
