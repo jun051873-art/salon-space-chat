@@ -1,4 +1,4 @@
-import{openProfileScene}from'./profile-scene.js?v=C27';
+import{openProfileScene}from'./profile-scene.js?v=C28';
 import{saveCustomerProfile}from'./customer-profile.js?v=C26';
 import{syncNotificationBrand,notificationColor,notificationIcon}from'./notification-brand.js?v=C23';
 import{bindLongPress,readPreview}from'./chat-preview.js?v=C24';
