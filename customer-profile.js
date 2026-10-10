@@ -2,8 +2,10 @@
 // approval/status from a potentially stale browser copy of the profile.
 export async function saveCustomerProfile({db,uid,changes,doc,runTransaction,serverTimestamp}) {
   if (!uid) throw new Error('登入狀態已失效，請重新開啟頁面；填寫內容會保留。');
-  const editable = new Set(['name','phone','birthMonth','birthDay','gender','avatar','profileCover']);
+  const editable = new Set(['name','phone','birthMonth','birthDay','gender','avatar','profileCover','statusText','profileEffect']);
   if (Object.keys(changes).some(key => !editable.has(key))) throw new Error('這項資料需由店家修改。');
+  if ('statusText' in changes && (typeof changes.statusText !== 'string' || changes.statusText.length > 120)) throw new Error('近況最多 120 字。');
+  if ('profileEffect' in changes && !['none','sakura','snow','stars'].includes(changes.profileEffect)) throw new Error('請選擇有效的個人頁特效。');
   try {
     return await runTransaction(db, async tx => {
       const userRef = doc(db,'users',uid);
