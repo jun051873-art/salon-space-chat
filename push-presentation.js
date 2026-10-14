@@ -15,12 +15,17 @@
     const url=destination(data.url,origin),role=url.pathname.endsWith('/admin.html')?'admin':'customer';
     const brand=branding?.[role]||{};
     const icon=new URL(iconPath(role,brand.color),origin+'/salon-space-chat/').href;
-    const title=data.title||brand.name||'沙龍訊息';
+    const originalTitle=String(data.title||brand.name||'沙龍訊息');
+    const parts=originalTitle.split(/[｜|]/);
+    const compactTitle=parts.length>1?(role==='admin'?parts[0]:parts.slice(1).join('｜')).trim():originalTitle.trim();
+    const title=compactTitle||brand.name||'沙龍訊息';
     let body=String(data.body||'您有一則新訊息').trim();
     // Older Worker builds included the notification title as the first line
     // of the body. Strip that line so existing deployments still look clean.
-    const firstLine=body.split(/\r?\n/,1)[0].trim();
-    if(firstLine===String(title).trim())body=body.slice(firstLine.length).replace(/^\s*[\r\n]+\s*/,'').trim();
+    for(const separator of ['\r\n','\n','\\r\\n','\\n']){
+      const prefix=originalTitle.trim()+separator;
+      if(body.startsWith(prefix)){body=body.slice(prefix.length).trim();break;}
+    }
     return {title,options:{
       // Keep sender/shop identity in the title. Repeating it in the body makes
       // iOS Lock Screen previews noisy and duplicates the same line.
@@ -32,3 +37,4 @@
   }
   root.SalonPush={palette,iconPath,destination,notification};
 })(globalThis);
+
