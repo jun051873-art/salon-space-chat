@@ -11,7 +11,8 @@ export function syncNotificationBrand(config,role){
     link.href=icon;link.type='image/png';
   }
   const title=document.querySelector('meta[name="apple-mobile-web-app-title"]');
-  if(title)title.content=name+(role==='admin'?'店家':'');
+  if(title)title.content=role==='admin'?'沙龍管理':'專屬空間';
   const send=registration=>registration.active?.postMessage({type:'SALON_NOTIFICATION_BRAND',branding});
   navigator.serviceWorker?.ready.then(send).catch(()=>{});
 }
+

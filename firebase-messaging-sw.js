@@ -1,8 +1,10 @@
-importScripts('./push-presentation.js?v=N1');
+importScripts('./push-presentation.js?v=N2');
+const NOTIFICATION_VERSION='N2';
 const BRAND_CACHE='salon-notification-brand-v1';
 const BRAND_URL='/salon-space-chat/__notification_brand__';
 async function readBrand(){try{const response=await (await caches.open(BRAND_CACHE)).match(BRAND_URL);return response?await response.json():{};}catch{return {};}}
 self.addEventListener('message',event=>{
+ if(event.data?.type==='SALON_NOTIFICATION_VERSION'){event.ports?.[0]?.postMessage({version:NOTIFICATION_VERSION});return;}
  if(event.data?.type!=='SALON_NOTIFICATION_BRAND')return;
  const input=event.data.branding||{},branding={};
  for(const role of ['admin','customer'])branding[role]={name:String(input[role]?.name||'專屬空間').slice(0,100),color:SalonPush.palette(input[role]?.color,role)};
@@ -33,9 +35,9 @@ const messaging=firebase.messaging();
 const DIAG_CACHE="salon-push-diag-v1";
 async function saveDiag(obj){
  const cache=await caches.open(DIAG_CACHE);
- await cache.put(new Request("/salon-space-chat/__push_diag__"),new Response(JSON.stringify({...obj,at:new Date().toISOString()}),{headers:{"Content-Type":"application/json"}}));
+ await cache.put(new Request("/salon-space-chat/__push_diag__"),new Response(JSON.stringify({...obj,version:NOTIFICATION_VERSION,at:new Date().toISOString()}),{headers:{"Content-Type":"application/json"}}));
 }
-self.addEventListener("install",()=>self.skipWaiting());
+self.addEventListener("install",event=>event.waitUntil(self.skipWaiting()));
 self.addEventListener("activate",event=>event.waitUntil(self.clients.claim()));
 messaging.onBackgroundMessage(async payload=>{
  const d=payload.data||{};

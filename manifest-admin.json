@@ -1,6 +1,6 @@
 {
-  "name": "專屬空間 SALON 店家",
-  "short_name": "專屬空間店家",
+  "name": "沙龍管理",
+  "short_name": "沙龍管理",
   "start_url": "./admin.html",
   "scope": "./",
   "display": "standalone",
@@ -25,3 +25,4 @@
     }
   ]
 }
+

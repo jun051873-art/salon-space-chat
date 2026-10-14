@@ -1,6 +1,6 @@
 {
   "id": "./customer.html",
-  "name": "專屬空間 SALON",
+  "name": "專屬空間",
   "short_name": "專屬空間",
   "start_url": "./customer.html",
   "scope": "./",
@@ -22,3 +22,4 @@
     }
   ]
 }
+

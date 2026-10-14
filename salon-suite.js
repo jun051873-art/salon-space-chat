@@ -1,7 +1,7 @@
 import{bindPhotoViewer}from'./photo-viewer.js?v=HD1';
 import{openProfileScene}from'./profile-scene.js?v=C28';
 import{saveCustomerProfile}from'./customer-profile.js?v=C26';
-import{syncNotificationBrand,notificationColor,notificationIcon}from'./notification-brand.js?v=C23';
+import{syncNotificationBrand,notificationColor,notificationIcon}from'./notification-brand.js?v=N2';
 import{bindLongPress,readPreview}from'./chat-preview.js?v=C24';
 import{setupGlassSwitches,resumeNotice}from'./salon-header.js?v=C16';
 import{inquiryTimes,inquiryText}from'./booking-inquiry.js?v=C11';
