@@ -91,7 +91,7 @@ export function installSuite(ctx){
  async function homeCards(c){
   if(admin||!c)return;
   let box=$('homeCards');if(!box){box=document.createElement('div');box.id='homeCards';$('inbox').append(box);}
-  const sections=c.homeSections||{},products=(sections.products!==false||c.homeFeatureProductId)?await listOnce('products'):[],feature=homeFeatureData(c,products);
+  const sections=c.homeSections||{},products=(sections.products===true||c.homeFeatureProductId)?await listOnce('products'):[],feature=homeFeatureData(c,products);
   const cards=await getBoard().catch(()=>[]),selected=cards.filter(x=>x.home&&visibleCard(x));
   const events=selected.filter(x=>x.category==='event').slice(0,2),notices=selected.filter(x=>x.category!=='event').slice(0,2);
   const listed=products.filter(x=>x.active!==false).slice(0,2);
