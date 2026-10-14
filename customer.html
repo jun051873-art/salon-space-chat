@@ -26,6 +26,19 @@ button{padding:14px 18px;border:0;border-radius:16px;background:#292722;color:#f
 .quickPills{display:flex;gap:8px;overflow-x:auto;padding:4px 0 10px}.quickPills button{flex:0 0 auto;background:#eee9e2;color:#292722;border-radius:999px;padding:8px 13px;font-size:13px;font-weight:650}.quickPills::-webkit-scrollbar{display:none}</style><link rel="stylesheet" href="./salon.css?v=S5.3"><link rel="stylesheet" href="./customer-chat.css?v=C14"><link rel="stylesheet" href="./salon-refine.css?v=C9"><link rel="stylesheet" href="./salon-theme.css?v=C14"><link rel="stylesheet" href="./salon-layout.css?v=C22"><link rel="stylesheet" href="./salon-upgrade.css?v=C28"></head>
 <body class="customerApp">
 <div id="splash"><div><div class="logo">專屬空間 SALON</div><div class="sub">連線中…</div></div></div>
+<script>
+// Keep recovery available even when an imported module fails before startup runs.
+setTimeout(()=>{
+ const splash=document.getElementById('splash');if(!splash)return;
+ const sub=splash.querySelector('.sub');if(!sub)return;
+ sub.textContent='連線尚未完成，請確認網路後重試。';sub.style.opacity='1';
+ if(splash.querySelector('[data-retry]'))return;
+ const retry=document.createElement('button');retry.type='button';retry.dataset.retry='';retry.textContent='重新連線';retry.style.marginTop='20px';
+ retry.onclick=()=>{const url=new URL(location.href);url.searchParams.set('retry',String(Date.now()));location.replace(url.href)};
+ sub.after(retry);
+ const help=document.createElement('p');help.textContent='若在 ChatGPT 內開啟，請點右下角指南針，改用 Safari。';help.style.cssText='font-size:14px;line-height:1.6;padding:0 24px;color:#716b63';retry.after(help);
+},12000);
+</script>
 <div class="app">
 <header id="customerHeader"><div class="glassPill headerSwitch profileSwitch"><button id="profileEntry" data-header-page="profile" aria-label="我的資料"><span class="miniAvatar">我</span><span>我的資料</span></button></div><div class="glassPill headerSwitch headerActions"><button data-header-page="info" aria-label="店家資訊">⌂</button><button data-header-page="preferences" aria-label="設定"><svg class="salonIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 3-.6 2.2-2 .9-2-.6-2 3.4 1.6 1.6v2.3L2.4 14l2 3.4 2-.6 2 .9L9 20h4l.6-2.3 2-.9 2 .6 2-3.4-1.6-1.2v-2.3l1.6-1.6-2-3.4-2 .6-2-.9L13 3Z"/><circle cx="11" cy="11.5" r="3"/></svg></button><button id="reportEntry" aria-label="回報與建議"><svg class="salonIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10v4h4l12 5V5L7 10ZM7 14l2 6h3l-2-5M22 9v6"/></svg></button></div></header><div id="globalNotice" class="noticeRibbon" hidden><span>公告</span><div><p></p></div></div>
 <section id="setup" class="card hidden">
@@ -50,7 +63,7 @@ button{padding:14px 18px;border:0;border-radius:16px;background:#292722;color:#f
 <section id="featureDetail" class="card hidden" aria-label="本月主打"></section>
 <nav id="customerNav" class="bottomNav hidden"><button class="navBtn active" data-customer-page="inbox"><span>◉</span>訊息</button><button class="navBtn" data-customer-page="booking"><span>▦</span>預約</button><button class="navBtn" data-customer-page="gallery"><span>▧</span>商品</button></nav>
 </div>
-<script type="module" src="./salon-layout.js?v=C17"></script><script type="module">import{ensureNotificationWorker}from"./notification-worker.js?v=N2";import{mountNotificationHelp}from"./notification-help.js?v=N2";import{installSuite,messageHTML}from"./salon-suite.js?v=N3";let suite;let profileReady=false;let accountStatus="new";import{createDelivery}from"./chat-delivery.js?v=C14";import{createPagedFeed}from"./chat-feed.js?v=D4";const CHAT_ROLE="customer";
+<script type="module" src="./salon-layout.js?v=C17"></script><script type="module">import{ensureNotificationWorker}from"./notification-worker.js?v=N2";import{mountNotificationHelp}from"./notification-help.js?v=N2";import{installSuite,messageHTML}from"./salon-suite.js?v=N4";let suite;let profileReady=false;let accountStatus="new";import{createDelivery}from"./chat-delivery.js?v=C14";import{createPagedFeed}from"./chat-feed.js?v=D4";const CHAT_ROLE="customer";
 import{initializeApp}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
 import{getAuth,signInAnonymously,onAuthStateChanged,signOut,setPersistence,browserLocalPersistence}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 import{getFirestore,doc,getDoc,collection,query,orderBy,onSnapshot,limit,startAfter,getDocsFromServer}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
