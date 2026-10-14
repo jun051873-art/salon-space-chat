@@ -250,7 +250,7 @@ function showAdminPage(id){
  document.querySelectorAll("#adminNav [data-admin-page]").forEach(b=>b.classList.toggle("active",b.dataset.adminPage===id));
 }
 $("adminNav")?.addEventListener("click",e=>{const b=e.target.closest("#adminNav [data-admin-page]");if(!b)return;e.preventDefault();e.stopPropagation();showAdminPage(b.dataset.adminPage)});
-const TOOL_NAMES={broadcast:"群發訊息",welcome:"新客歡迎",autoreply:"自動回覆",notice:"公告・休假",gallery:"商品管理",customers:"客戶管理",tags:"標籤分類",settings:"設定"};
+const TOOL_NAMES={broadcast:"群發訊息",welcome:"新客歡迎",autoreply:"自動回覆",notice:"公告・休假",gallery:"商品管理",customers:"客戶管理",tags:"標籤分類",settings:"設定",phrases:"快速用語設定"};
 function openTool(key){
  adminFeed?.pause();closeChatListener();
  show("adminTool");$("adminNav").classList.remove("hidden");$("toolTitle").textContent=TOOL_NAMES[key]||"功能";
