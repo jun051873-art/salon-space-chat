@@ -80,3 +80,34 @@ body.customerApp[data-page=setup] #customerHeader,body.customerApp[data-page=set
 /* C17 shared, compact surfaces */
 .customerGroups{display:grid;gap:10px;margin:18px 0}.customerGroup{display:flex;align-items:center;gap:12px;text-align:left;width:100%;padding:15px;border-radius:28px;background:var(--glass,rgba(255,255,255,.6));border:1.5px solid #bcb2c1;color:inherit;box-shadow:0 3px 8px #493b5610}.customerGroup>span:nth-child(2){flex:1;min-width:0}.customerGroup small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;margin-top:4px}.groupFaces{display:flex;min-width:52px}.groupFaces .avatar{width:32px;height:32px;margin-right:-10px;border:2px solid white}.customerGroup.active,[data-pick-tag][aria-pressed=true]{background:#e4ddec;border-color:#87729b}.tagLibraryRow{display:flex;gap:10px;margin:10px 0}.tagLibraryRow input{min-width:0;flex:1}.tagPicker{padding:16px;border-radius:26px;border:1px solid #bcb2c1;margin:14px 0}.inviteCard{display:flex;align-items:center;gap:12px;padding:20px;border:1.5px solid #bcb2c1;border-radius:32px;text-decoration:none;color:inherit!important;background:#ffffff80;box-shadow:0 4px 12px #493b5610}.inviteCard svg{width:28px;height:28px}.inviteCard span{flex:1}.inviteCard small{display:block}.infoFactGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.infoFactGrid>*,.amenityCard{padding:16px!important;border:1.5px solid #bcb2c1!important;border-radius:26px!important;background:#ffffff65}.infoFactGrid p{margin:6px 0}.simpleHelp,.sectionIntro,.inquiryHelp,.inquiryChoices{color:#403a39;font-weight:600}.settingsJump{display:flex;flex-wrap:wrap;gap:10px}.suiteRow,.noticeCard{border-color:#bcb2c1!important;box-shadow:0 3px 10px #47344d0d}.adminApp .app>h1{margin:10px 14px!important;padding:14px 20px!important;border-radius:999px!important;border:1.5px solid #bcb2c1!important;background:#ffffff80!important;backdrop-filter:blur(12px);font-size:19px!important}.adminApp #adminChat .conversationHeader{display:flex;align-items:center;gap:12px;flex:none;margin:8px 12px;padding:8px 12px;border-radius:999px;border:1.5px solid #bcb2c1;background:#ffffffa6;backdrop-filter:blur(12px)}.adminApp #adminChat .conversationHeader #back{margin:0!important;padding:8px 14px!important;border:0!important;background:transparent!important;font-size:28px}.adminApp #adminChat .conversationHeader #who{margin:0!important;padding:0!important;border:0!important;box-shadow:none!important;background:transparent!important;font-size:19px}.adminApp #adminChat .composer{border-radius:32px!important;border:1.5px solid #bcb2c1!important;background:#ffffffb3!important;margin:8px 12px!important;padding:10px!important}.photoEditor canvas{touch-action:none}.customerGroup,.inviteCard,button{ -webkit-tap-highlight-color:transparent }
 @media(max-width:380px){.infoFactGrid{grid-template-columns:1fr}}
+
+/* C22: keep the chat controls as individual pills without a second capsule. */
+body.customerApp #chat .conversationHeader,body.adminApp #adminChat .conversationHeader{background:transparent!important;border:0!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;padding-left:2px!important;padding-right:2px!important;margin-bottom:5px!important}
+body.customerApp #chat .chatCustomerPill,body.adminApp #adminChat .chatCustomerPill{border:1px solid #c7bcaa;border-radius:999px;background:#fffdf4;box-shadow:0 2px 8px #5143330a}
+body.customerApp #chat .chatSalonPill,body.adminApp #adminChat .chatSalonPill{box-shadow:0 2px 8px #5143330a!important}
+
+/* C22: make the inbox action read as the chat entrance. */
+body.customerApp #enterChat{min-height:92px;padding:16px 18px;gap:14px;text-align:left}
+body.customerApp #enterChat .conversationCopy{flex:1;min-width:0}
+body.customerApp #enterChat .conversationCopy strong{display:block;font-size:18px;line-height:1.35}
+body.customerApp #enterChat .conversationCopy small{display:block;margin-top:5px;font-size:13px;line-height:1.45;white-space:normal}
+body.customerApp #enterChat .conversationEnter{flex:none;padding:9px 12px;border-radius:999px;background:#527e83;color:white;font-size:12px;font-weight:800;white-space:nowrap}
+body.customerApp .inboxHint{margin:9px 0 0;font-size:12px;text-align:center}
+
+/* C22: keep the notification directions available in a compact card. */
+body .notificationHelp{margin:8px 0;padding:10px 14px;border-radius:17px}
+body .notificationHelp p{font-size:12px;line-height:1.5;margin:4px 0}
+body .notificationHelp>strong{font-size:14px;line-height:1.4}
+body .notificationHelp button{min-height:38px;padding:7px 12px;font-size:12px}
+
+/* C22: show the featured item like a small bulletin tile below the chat entry. */
+body.customerApp .homeFeature{grid-template-columns:minmax(105px,32%) minmax(0,1fr);min-height:150px;margin-top:16px;border-radius:23px}
+body.customerApp .homeFeatureImage{display:grid;min-width:0;min-height:150px;place-items:center;background:#f0ede7}
+body.customerApp .homeFeature .homeFeatureImage img{width:100%;height:100%;min-height:150px;max-height:240px;object-fit:cover}
+body.customerApp .homeFeatureImage .imageEmpty{display:grid;width:100%;height:100%;min-height:150px;place-items:center;font-size:32px;color:#8a7965;background:linear-gradient(135deg,#f6f1e9,#e6eeeb)}
+body.customerApp .homeFeature>span:last-child{padding:14px 16px;min-width:0}
+body.customerApp .homeFeature>span:last-child>small{font-size:11px;color:#8e7960}
+body.customerApp .homeFeature strong{font-size:19px;line-height:1.4;overflow-wrap:anywhere}
+body.customerApp .homeFeature p{font-size:13px;line-height:1.5;margin:5px 0;white-space:pre-wrap;-webkit-line-clamp:4}
+@media(max-width:380px){body.customerApp #enterChat{gap:9px;padding:13px}body.customerApp #enterChat .conversationCopy strong{font-size:16px}body.customerApp .homeFeature{grid-template-columns:minmax(95px,34%) minmax(0,1fr)}body.customerApp .homeFeature>span:last-child{padding:11px}}
+
