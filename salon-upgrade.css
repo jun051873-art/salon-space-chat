@@ -73,3 +73,5 @@ dialog.profileSceneDialog:focus{outline:none!important}
 .profileScene .sceneSheetHead h2{font-weight:500!important;letter-spacing:.07em}.profileScene .sceneSheet label{font-weight:400;letter-spacing:.04em}.profileScene .sceneSheet input,.profileScene .sceneSheet textarea{font-weight:400;line-height:1.65;border-color:#e2e5de}.profileScene .sceneSheet input:focus,.profileScene .sceneSheet textarea:focus{outline:1px solid #809787;outline-offset:1px}.profileScene .sceneSheetHead .sceneIcon{color:#2f4237!important}
 
 .profileScene .sceneBirthDate{font-family:'Songti TC','Noto Serif TC','PMingLiU',serif;font-size:12px;line-height:1.7;letter-spacing:.12em;color:#fff9;margin:5px 0 0;text-shadow:0 1px 8px #0007}.profileScene .sceneBirthDate[hidden]{display:none!important}.profileScene .sceneStatus{margin-top:8px}
+.adminApp .phraseEditRow{display:flex;flex-wrap:nowrap;gap:8px;align-items:center;padding:10px}.adminApp .phraseEditRow input{flex:1;min-width:0;width:auto;margin:0}.adminApp .phraseEditRow button{flex:none}
+
