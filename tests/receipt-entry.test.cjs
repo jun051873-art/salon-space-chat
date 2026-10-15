@@ -10,3 +10,9 @@ context.receiptWanted=0;visible=false;context.queueReceipt();assert.equal(writes
 visible=true;dialog=true;context.queueReceipt();assert.equal(writes,1,'preview/dialog does not read conversation behind it');
 dialog=false;context.document.visibilityState='hidden';context.queueReceipt();assert.equal(writes,1,'background does not read');
 console.log('PASS entry receipts: visible loaded conversation, no extra tap, duplicate, hidden, modal and background guards');
+const write=src.slice(src.indexOf('async function writeReceipt(){'),src.indexOf('async function chatFileURL('));
+let stored=200,updates=[],painted=0;
+Object.assign(context,{roomId:'room-a',receiptWanted:100,ownRead:0,receiptBusy:false,admin:true,db:{},doc:(_,c,id)=>id,navigator:{},renderChat:()=>painted++,toast(){},Date,runTransaction:async(_,f)=>f({get:async()=>({data:()=>({readAdminMs:stored})}),update:(room,data)=>{updates.push({room,data});stored=data.readAdminMs;}})});
+context.document.visibilityState='visible';context.getChat=()=>({room:'room-a',el:{getClientRects:()=>[{}]}});
+vm.runInContext(write,context);
+(async()=>{await context.writeReceipt();assert.equal(updates.length,0,'older device cannot move read watermark backward');context.receiptWanted=300;await context.writeReceipt();assert.equal(updates.length,1);assert.equal(updates[0].room,'room-a');assert.equal(stored,300);context.roomId='room-b';context.receiptWanted=400;await context.writeReceipt();assert.equal(updates.length,1,'navigated-away room cannot acknowledge another conversation');console.log('PASS atomic read acknowledgement: monotonic across devices and room isolation');})();
