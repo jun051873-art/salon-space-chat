@@ -192,7 +192,9 @@ async function getChatMessaging(){
   try{if(!await isSupported())return null;messaging=getMessaging(app);onMessage(messaging,payload=>window.dispatchEvent(new CustomEvent('salon:foreground-message',{detail:payload.data||{}})));return messaging;}
   catch(e){console.warn("通知功能無法啟用；聊天仍可使用",e);return null;}
  })();
- return messagingPromise;
+ const pending=messagingPromise,result=await pending;
+ if(!result&&messagingPromise===pending)messagingPromise=null;
+ return result;
 }
 
 function show(id){["setup","inbox","chat","info","gallery","featureDetail","booking","profile","preferences"].forEach(x=>$(x)?.classList.add("hidden"));$(id)?.classList.remove("hidden");$("splash")?.remove();if(id!=="setup")$("customerNav")?.classList.remove("hidden")}
@@ -204,7 +206,7 @@ const notificationHelp=mountNotificationHelp($("inbox"),()=>$("enableNotify").on
 function updateNotifyUI(){if(globalThis.Notification?.permission!=="granted")notificationHelp.update(false);const b=$("notifyBox");if(!b)return;if(!supportsPushAPIs()||Notification.permission==="granted")b.classList.add("hidden");else b.classList.remove("hidden")}async function syncPush(){
  try{
   if(!supportsPushAPIs()||Notification.permission!=="granted"){updateNotifyUI();return false;}
-  const messaging=await getChatMessaging();if(!messaging)throw Error("此裝置無法啟用背景通知");
+  const messaging=await getChatMessaging();if(!messaging)throw Error("通知服務暫時無法啟動，請確認網路後再按一次開啟通知");
   const reg=await ensureNotificationWorker();
   const token=await getToken(messaging,{vapidKey:VAPID,serviceWorkerRegistration:reg});
   if(!token)throw Error("未取得通知識別碼");

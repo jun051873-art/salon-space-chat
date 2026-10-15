@@ -224,7 +224,9 @@ async function getChatMessaging(){
   try{if(!await isSupported())return null;messaging=getMessaging(app);onMessage(messaging,payload=>window.dispatchEvent(new CustomEvent('salon:foreground-message',{detail:payload.data||{}})));return messaging;}
   catch(e){console.warn("通知功能無法啟用；聊天仍可使用",e);return null;}
  })();
- return messagingPromise;
+ const pending=messagingPromise,result=await pending;
+ if(!result&&messagingPromise===pending)messagingPromise=null;
+ return result;
 }
 
 const notificationHelp=mountNotificationHelp($("adminHome"),()=>enableAdminNotify(),"admin");
@@ -311,7 +313,7 @@ $("go").onclick=async()=>{
   $("err").textContent="";
   await openAdminHome();
  }catch(e){$("err").textContent="登入失敗："+e.message}
-};async function enableAdminNotify(){try{if(!auth.currentUser||auth.currentUser.uid!==ADMIN)throw Error("請先登入店家後台");if(!supportsPushAPIs()||Notification.permission==="denied"){notificationHelp.guide();return;}const perm=await Notification.requestPermission();if(perm!=="granted")throw Error("尚未允許通知");const messaging=await getChatMessaging();if(!messaging)throw Error("此瀏覽器無法啟用通知；聊天仍可使用");const reg=await ensureNotificationWorker();const token=await getToken(messaging,{vapidKey:VAPID,serviceWorkerRegistration:reg});if(!token)throw Error("未取得通知識別碼");await savePushToken("pushTokens/"+ADMIN+"/devices/"+deviceId(),{token,uid:ADMIN,role:"admin",deviceId:deviceId(),deviceType:deviceLabel(),userAgent:navigator.userAgent});$("adminNotifyStatus").textContent="✅ 這台裝置已開啟店家通知";updateAdminNotifyUI(true);}catch(e){notificationHelp.update(false,"通知設定失敗："+e.message);$("adminNotifyStatus").textContent="⚠️ 店家通知設定失敗："+e.message}}$("adminNotify").onclick=enableAdminNotify;$("replyBtn").onclick=()=>transmitChat(sel,$("reply").value,ADMIN,"admin",$("reply"),$("replyBtn"));$("back").onclick=()=>{
+};async function enableAdminNotify(){try{if(!auth.currentUser||auth.currentUser.uid!==ADMIN)throw Error("請先登入店家後台");if(!supportsPushAPIs()||Notification.permission==="denied"){notificationHelp.guide();return;}const perm=await Notification.requestPermission();if(perm!=="granted")throw Error("尚未允許通知");const messaging=await getChatMessaging();if(!messaging)throw Error("通知服務暫時無法啟動，請確認網路後重試");const reg=await ensureNotificationWorker();const token=await getToken(messaging,{vapidKey:VAPID,serviceWorkerRegistration:reg});if(!token)throw Error("未取得通知識別碼");await savePushToken("pushTokens/"+ADMIN+"/devices/"+deviceId(),{token,uid:ADMIN,role:"admin",deviceId:deviceId(),deviceType:deviceLabel(),userAgent:navigator.userAgent});$("adminNotifyStatus").textContent="✅ 這台裝置已開啟店家通知";updateAdminNotifyUI(true);}catch(e){notificationHelp.update(false,"通知設定失敗："+e.message);$("adminNotifyStatus").textContent="⚠️ 店家通知設定失敗："+e.message}}$("adminNotify").onclick=enableAdminNotify;$("replyBtn").onclick=()=>transmitChat(sel,$("reply").value,ADMIN,"admin",$("reply"),$("replyBtn"));$("back").onclick=()=>{
  const chat=$("adminChat");chat.classList.add("hidden");chat.style.display="none";
  ["admin","adminNav"].forEach(id=>{const el=$(id);if(el)el.style.display=""});
  showAdminPage("admin");
