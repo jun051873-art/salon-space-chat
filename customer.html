@@ -23,7 +23,7 @@ button{padding:14px 18px;border:0;border-radius:16px;background:#292722;color:#f
 #chat>.card{background:rgba(255,255,255,.78);box-shadow:0 14px 40px rgba(70,58,42,.06)}
 #msgs{padding:10px 2px 18px}.msg{max-width:76%;padding:11px 14px;margin:9px 0;border-radius:18px 18px 18px 6px;background:#fff;box-shadow:0 5px 18px rgba(70,58,42,.06);line-height:1.45}.msg.mine{margin-left:auto;border-radius:18px 18px 6px 18px;background:#292722;color:#fff}
 .bottomNav{border-radius:24px 24px 0 0;box-shadow:0 -8px 30px rgba(70,58,42,.08)}.navBtn span{width:30px;height:30px;margin:0 auto 4px;display:grid;place-items:center;border-radius:10px;font-size:17px;background:rgba(41,39,34,.06)}.navBtn.active span{background:rgba(255,255,255,.15)}
-.quickPills{display:flex;gap:8px;overflow-x:auto;padding:4px 0 10px}.quickPills button{flex:0 0 auto;background:#eee9e2;color:#292722;border-radius:999px;padding:8px 13px;font-size:13px;font-weight:650}.quickPills::-webkit-scrollbar{display:none}</style><link rel="stylesheet" href="./salon.css?v=S5.3"><link rel="stylesheet" href="./customer-chat.css?v=C14"><link rel="stylesheet" href="./salon-refine.css?v=C9"><link rel="stylesheet" href="./salon-theme.css?v=C14"><link rel="stylesheet" href="./salon-layout.css?v=C22"><link rel="stylesheet" href="./salon-upgrade.css?v=C38"></head>
+.quickPills{display:flex;gap:8px;overflow-x:auto;padding:4px 0 10px}.quickPills button{flex:0 0 auto;background:#eee9e2;color:#292722;border-radius:999px;padding:8px 13px;font-size:13px;font-weight:650}.quickPills::-webkit-scrollbar{display:none}</style><link rel="stylesheet" href="./salon.css?v=S5.3"><link rel="stylesheet" href="./customer-chat.css?v=C14"><link rel="stylesheet" href="./salon-refine.css?v=C9"><link rel="stylesheet" href="./salon-theme.css?v=C14"><link rel="stylesheet" href="./salon-layout.css?v=C22"><link rel="stylesheet" href="./salon-upgrade.css?v=C39"></head>
 <body class="customerApp">
 <div id="splash"><div><div class="logo">專屬空間 SALON</div><div class="sub">連線中…</div></div></div>
 <script>
@@ -63,7 +63,7 @@ setTimeout(()=>{
 <section id="featureDetail" class="card hidden" aria-label="本月主打"></section>
 <nav id="customerNav" class="bottomNav hidden"><button class="navBtn active" data-customer-page="inbox"><span>◉</span>訊息</button><button class="navBtn" data-customer-page="booking"><span>▦</span>預約</button><button class="navBtn" data-customer-page="gallery"><span>▧</span>商品</button></nav>
 </div>
-<script type="module" src="./salon-layout.js?v=C19"></script><script type="module">import{ensureNotificationWorker}from"./notification-worker.js?v=N3";import{mountNotificationHelp}from"./notification-help.js?v=N5";import{installSuite,messageHTML}from"./salon-suite.js?v=N18";let suite;let profileReady=false;let accountStatus="new";import{createDelivery}from"./chat-delivery.js?v=C14";import{createPagedFeed}from"./chat-feed.js?v=D4";const CHAT_ROLE="customer";
+<script type="module" src="./salon-layout.js?v=C19"></script><script type="module">import{ensureNotificationWorker}from"./notification-worker.js?v=N3";import{mountNotificationHelp}from"./notification-help.js?v=N6";import{installSuite,messageHTML}from"./salon-suite.js?v=N19";import{pinChatBottom}from'./chat-bottom.js?v=1';let suite;let profileReady=false;let accountStatus="new";import{createDelivery}from"./chat-delivery.js?v=C14";import{createPagedFeed}from"./chat-feed.js?v=D4";const CHAT_ROLE="customer";
 import{initializeApp}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
 import{getAuth,signInAnonymously,onAuthStateChanged,signOut,setPersistence,browserLocalPersistence}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 import{getFirestore,doc,getDoc,collection,query,orderBy,onSnapshot,limit,startAfter,getDocsFromServer}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
@@ -128,6 +128,7 @@ function renderChatView(reason="update"){
  const v=currentChatView;if(!v)return;
  const previousTop=v.el.scrollTop,previousHeight=v.el.scrollHeight;
  const followBottom=v.first||previousHeight-previousTop-v.el.clientHeight<100;
+ v.stopBottom?.();
  const own=delivery.entries().filter(e=>e.room===v.room);
  const ids=new Set(v.docs.map(d=>d.id));
  const rows=v.docs.map(d=>({id:d.id,...d.data(),pending:d.metadata.hasPendingWrites||own.some(e=>e.id===d.id&&e.stage==="queued")}));
@@ -138,6 +139,7 @@ function renderChatView(reason="update"){
  if(reason==="older")v.el.scrollTop=previousTop+(v.el.scrollHeight-previousHeight);
  else if(followBottom)v.el.scrollTop=v.el.scrollHeight;
  else v.el.scrollTop=previousTop;
+ if(reason!=="older"&&followBottom)pinChatBottom(v);
  if(v.docs.length)v.first=false;
  suite?.bindChat();
  const waiting=own.filter(e=>e.stage==="queued"),push=own.filter(e=>e.stage==="stored"||e.stage==="notify-error");
@@ -146,8 +148,9 @@ function renderChatView(reason="update"){
  let hint=document.getElementById('deliveryHint');if(!hint){hint=document.createElement('button');hint.id='deliveryHint';hint.type='button';hint.setAttribute('role','status');document.querySelector('.composer').before(hint);}const failed=push.some(e=>e.stage==='notify-error');hint.hidden=!failed;hint.textContent='訊息已送出，手機提醒尚未完成。點此重試通知';hint.onclick=()=>delivery.retryFailed();
 }
 function watchChat(room,el,viewer){
- if(currentChatView?.room===room){currentChatView.feed.start();suite?.attachChat(currentChatView);return;}
- activeChatUnsubscribe?.();clearTimeout(activeReadTimer);
+ document.activeElement?.blur?.();
+ if(currentChatView?.room===room){currentChatView.first=true;pinChatBottom(currentChatView);currentChatView.feed.start();suite?.attachChat(currentChatView);return;}
+ currentChatView?.stopBottom?.();activeChatUnsubscribe?.();clearTimeout(activeReadTimer);
  ensureChatStatus(room);$("chatRead").textContent="正在連接雲端訊息…";
  const v={room,el,viewer,docs:[],more:false,loading:false,first:true};currentChatView=v;
  const ref=collection(db,"chats",room,"messages");

@@ -11,7 +11,7 @@ export default {
  async fetch(request, env, ctx) {
   const cors = {"Access-Control-Allow-Origin":SITE,"Access-Control-Allow-Methods":"GET, POST, OPTIONS","Access-Control-Allow-Headers":"Content-Type, Authorization","Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store","Vary":"Origin"};
   if(request.method === "OPTIONS") return new Response(null,{status:204,headers:cors});
-  if(request.method === "GET") return json({ok:true,service:"salon-space-notify",version:"6-care",authenticated:true,features:{keywordReplies:true,keywordContains:true,scheduledCare:true,visitCare:true}},200,cors);
+  if(request.method === "GET") return json({ok:true,service:"salon-space-notify",version:"7-time-replies",authenticated:true,features:{timeReplies:true,keywordReplies:true,keywordContains:true,scheduledCare:true,visitCare:true}},200,cors);
   if(request.method !== "POST") return json({ok:false,error:"METHOD_NOT_ALLOWED"},405,cors);
   try {
    if(request.headers.get("Origin") && request.headers.get("Origin") !== SITE) throw fault("ORIGIN_NOT_ALLOWED",403);
@@ -39,7 +39,7 @@ export default {
    if(typeof message !== "string") throw fault("MESSAGE_NOT_READY",409);
    const customer=fieldsOf(await readJSON(docRoot+'users/'+encodeURIComponent(room),{headers:{Authorization:'Bearer '+accessToken}},'CUSTOMER'));
    if((customer.status||'active')!=='active')throw fault('CUSTOMER_INACTIVE',403);
-   if(toAdmin){const job=automaticReply(env,docRoot,accessToken,room,body.messageId,message).catch(e=>console.error("auto-reply",e.code||e.message));if(ctx?.waitUntil)ctx.waitUntil(job);else await job;}
+   if(toAdmin){const job=automaticReply(env,docRoot,accessToken,room,body.messageId,message,msg.fields?.createdAt?.timestampValue).catch(e=>console.error("auto-reply",e.code||e.message));if(ctx?.waitUntil)ctx.waitUntil(job);else await job;}
    const tokens = await recipientTokens(docRoot,recipient,accessToken);
    if(!tokens.length) return json({ok:false,error:"NO_DEVICE_TOKENS",target:toAdmin?"admin":"customer",devices:0,success:0,failed:0},404,cors);
    const url = SITE+"/salon-space-chat/"+(toAdmin?"admin.html?chat="+encodeURIComponent(room):"customer.html");
@@ -120,7 +120,7 @@ function json(data,status,headers){return new Response(JSON.stringify(data),{sta
 let salonConfigCache=null;
 function unpack(v){if(v==null)return null;if('stringValue'in v)return v.stringValue;if('integerValue'in v)return Number(v.integerValue);if('doubleValue'in v)return v.doubleValue;if('booleanValue'in v)return v.booleanValue;if('timestampValue'in v)return v.timestampValue;if(v.arrayValue)return(v.arrayValue.values||[]).map(unpack);if(v.mapValue)return Object.fromEntries(Object.entries(v.mapValue.fields||{}).map(([k,x])=>[k,unpack(x)]));return null;}
 function fieldsOf(d){return Object.fromEntries(Object.entries(d.fields||{}).map(([k,v])=>[k,unpack(v)]));}
-async function salonConfig(root,token){if(salonConfigCache?.until>Date.now())return salonConfigCache.data;let data={};try{data=fieldsOf(await readJSON(root+'announcements/settings',{headers:{Authorization:'Bearer '+token}},'SETTINGS'));}catch(e){if(e.status!==404)throw e;}salonConfigCache={until:Date.now()+300000,data};return data;}
+async function salonConfig(root,token,fresh=false){if(!fresh&&salonConfigCache?.until>Date.now())return salonConfigCache.data;let data={};try{data=fieldsOf(await readJSON(root+'announcements/settings',{headers:{Authorization:'Bearer '+token}},'SETTINGS'));}catch(e){if(e.status!==404)throw e;}salonConfigCache={until:Date.now()+300000,data};return data;}
 async function systemMessage(env,root,token,uid,id,text,customer={},shopName='專屬空間'){
  const name='projects/'+env.FIREBASE_PROJECT_ID+'/databases/(default)/documents/';
  const s=v=>({stringValue:v});
@@ -131,10 +131,28 @@ async function systemMessage(env,root,token,uid,id,text,customer={},shopName='�
  for(let i=0;i<tokens.length;i+=5)await Promise.all(tokens.slice(i,i+5).map(device=>readJSON('https://fcm.googleapis.com/v1/projects/'+env.FIREBASE_PROJECT_ID+'/messages:send',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({message:{token:device,data:{title:customerName+'｜'+shopName,body:text.slice(0,500),messageId:id,tag:'salon-'+uid+'-'+id,url:SITE+'/salon-space-chat/customer.html'},webpush:{headers:{Urgency:'high',TTL:'86400'}}}})},'AUTO_PUSH').catch(e=>console.error('auto-push',e.code))));
  return true;
 }
-async function automaticReply(env,root,token,uid,sourceId,text){
- const config=await salonConfig(root,token);
- if(config.keywordRepliesEnabled!==true)return;
- const reply=findReply(config.quickReplies,text);
+// Exactly one applicable time category. A disabled category never falls through to another.
+function timeReply(config,instant,holiday=false){
+ const parts=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date(instant)).map(p=>[p.type,p.value]));
+ const date=parts.year+'-'+parts.month+'-'+parts.day;
+ const weekday=new Date(date+'T12:00:00+08:00').getUTCDay(),hours=config.weeklyHours?.[weekday];
+ let kind;
+ if(holiday||hours?.closed===true)kind='holiday';
+ else if(hours&&/^([01]\d|2[0-3]):[0-5]\d$/.test(hours.open)&&/^([01]\d|2[0-3]):[0-5]\d$/.test(hours.close)&&hours.open<hours.close){const clock=parts.hour+':'+parts.minute;kind=clock>=hours.open&&clock<hours.close?'business':'outside';}
+ else return null; // Never guess structured opening hours from free text.
+ const rule=config.timeReplies?.[kind];
+ return rule?.enabled===true&&typeof rule.text==='string'&&rule.text.trim()?{kind,answer:rule.text.trim().slice(0,2000)}:null;
+}
+async function automaticReply(env,root,token,uid,sourceId,text,sourceTime){
+ const config=await salonConfig(root,token,true);
+ let reply=null;
+ if(Object.values(config.timeReplies||{}).some(r=>r?.enabled===true)){
+  const instant=sourceTime&&Number.isFinite(Date.parse(sourceTime))?sourceTime:new Date().toISOString();
+  const date=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(instant));
+  let holiday=false;try{const h=fieldsOf(await readJSON(root+'holidays/'+date,{headers:{Authorization:'Bearer '+token}},'HOLIDAY'));holiday=h.closed!==false;}catch(e){if(e.status!==404)throw e;}
+  reply=timeReply(config,instant,holiday);
+ }
+ if(!reply&&config.keywordRepliesEnabled===true)reply=findReply(config.quickReplies,text);
  if(!reply)return;
  const customer=fieldsOf(await readJSON(root+'users/'+uid,{headers:{Authorization:'Bearer '+token}},'CUSTOMER'));
  if(['blocked','archived'].includes(customer.status))return;

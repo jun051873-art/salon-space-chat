@@ -43,3 +43,6 @@ assert.ok(panel.children.some(x=>x.textContent==='通知設定教學'),'keep hel
 Notification.permission='denied';help.update(false);
 assert.ok(panel.children.some(x=>x.textContent?.includes('通知已關閉')));
 console.log('PASS reminders: install/denied/unsupported states, saved-token readiness, numeric badge, unread/read clearing');
+assert.ok(!panel.children.some(x=>x.textContent==='測試手機提示'),'customer has no test button in DOM');
+Notification.permission='granted';const ownerHost=new Element('main');const ownerHelp=mountNotificationHelp(ownerHost,async()=>{},'admin');ownerHelp.update(true);
+assert.ok(ownerHost.children[0].children.some(x=>x.textContent==='測試手機提示'&&!x.hidden),'admin retains testing');

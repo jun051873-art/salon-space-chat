@@ -6,7 +6,7 @@ const admin='HcFJGmzHw6MYoWbFmtq9IyFSjvL2';
 const env={FIREBASE_PROJECT_ID:'test',FIREBASE_CLIENT_EMAIL:'test',FIREBASE_PRIVATE_KEY:'test'};
 const root='https://firestore.googleapis.com/v1/projects/test/databases/(default)/documents/';
 const pack=x=>typeof x==='string'?{stringValue:x}:typeof x==='boolean'?{booleanValue:x}:typeof x==='number'?{integerValue:String(x)}:Array.isArray(x)?{arrayValue:{values:x.map(pack)}}:{mapValue:{fields:Object.fromEntries(Object.entries(x).map(([k,v])=>[k,pack(v)]))}};
-function harness({users=[],chats=[],rules=[],settings={},caller="c1",sourceMessage={senderId:"c1",text:"預約"}}={}){
+function harness({users=[],chats=[],rules=[],settings={},holiday=false,caller="c1",sourceMessage={senderId:"c1",text:"預約"}}={}){
  const calls=[],payloads=[],messages=new Map();let writes=0,pushes=0;
  const doc=(id,x)=>({name:root+id,fields:pack(x).mapValue.fields});
  const context=vm.createContext({Response,Request,URLSearchParams,AbortController,TextEncoder,Uint8Array,atob,btoa,setTimeout,clearTimeout,console,fetch:async(url,opt={})=>{
@@ -14,6 +14,7 @@ function harness({users=[],chats=[],rules=[],settings={},caller="c1",sourceMessa
   const ok=x=>Response.json(x);
   if(u.includes('accounts:lookup'))return ok({users:[{localId:caller}]});
   if(u===root+'announcements/settings')return ok(doc('settings',settings));
+  if(u.startsWith(root+'holidays/'))return holiday?ok(doc('holiday',{closed:true})):Response.json({error:{status:'NOT_FOUND'}},{status:404});
   if(u===root+'users/c1')return ok(doc('c1',users.find(x=>x.id==='c1')||{}));
   if(u.includes('/messages/source'))return ok(doc('source',sourceMessage));
   if(u.includes('/devices?'))return ok({documents:[doc('device',{token:'device-token'})]});
@@ -55,3 +56,25 @@ const adminNotice=await sendNotification(named,'admin');assert.equal(adminNotice
 const renamed=harness({caller:admin,users:[{id:'c1',name:'小刀'}],settings:{name:'改名髮藝'},sourceMessage:{senderId:admin,text:'raw-id',sticker:{id:'raw-id'}}});
 const notice=await sendNotification(renamed,'customer');assert.equal(notice.title,'小刀｜改名髮藝');assert.equal(notice.body,'傳來一張貼圖');
 console.log('PASS notification payload: customer identity, shop rename, readable attachment preview');
+
+const timeContext=vm.createContext({Intl,Date});
+vm.runInContext(source.slice(source.indexOf('function timeReply('),source.indexOf('async function automaticReply('))+';globalThis.choose=timeReply;',timeContext);
+const timed={weeklyHours:Object.fromEntries(Array.from({length:7},(_,i)=>[i,{closed:i===1,open:'11:30',close:'19:00'}])),timeReplies:Object.fromEntries(['business','outside','holiday'].map(k=>[k,{enabled:true,text:k}]))};
+assert.equal(timeContext.choose(timed,'2026-10-15T03:29:59Z').answer,'outside');
+assert.equal(timeContext.choose(timed,'2026-10-15T03:30:00Z').answer,'business');
+assert.equal(timeContext.choose(timed,'2026-10-15T11:00:00Z').answer,'outside');
+assert.equal(timeContext.choose(timed,'2026-10-15T04:00:00Z',true).answer,'holiday');
+assert.equal(timeContext.choose(timed,'2026-10-18T16:00:00Z').answer,'holiday','Taipei Monday begins at UTC Sunday 16:00');
+const disabled=structuredClone(timed);disabled.timeReplies.holiday.enabled=false;
+assert.equal(timeContext.choose(disabled,'2026-10-15T04:00:00Z',true),null,'disabled holiday does not fall through to busy reply');
+assert.equal(timeContext.choose({...timed,weeklyHours:null},'2026-10-15T04:00:00Z'),null,'do not guess hours');
+console.log('PASS time replies: Taipei boundaries, holiday precedence, disabled category and missing hours');
+
+const timedHarness=harness({settings:timed});
+await timedHarness.api.automaticReply(env,root,'test','c1','photo','[照片]','2026-10-15T04:00:00Z');
+await timedHarness.api.automaticReply(env,root,'test','c1','photo','[照片]','2026-10-15T04:00:00Z');
+assert.equal(timedHarness.messages.size,1);assert.equal(timedHarness.payloads[0].data.body,'business');
+const holidayHarness=harness({settings:{...timed,keywordRepliesEnabled:true,quickReplies:[{title:'預約',answer:'keyword'}]},holiday:true});
+await holidayHarness.api.automaticReply(env,root,'test','c1','source','預約','2026-10-15T04:00:00Z');
+assert.equal(holidayHarness.messages.size,1);assert.equal(holidayHarness.payloads[0].data.body,'holiday');
+console.log('PASS time reply integration: attachment trigger, duplicate prevention, holiday over keyword');

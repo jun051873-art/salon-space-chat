@@ -15,11 +15,11 @@ export function mountNotificationHelp(host,enable,role){
  p.setAttribute('role','status');enableButton.type=test.type=help.type='button';help.className='softBtn';help.textContent='通知設定教學';help.onclick=guide;
  test.textContent='測試手機提示';test.onclick=async()=>{if(test.disabled)return;test.disabled=true;try{const reg=await navigator.serviceWorker.getRegistration();if(!reg)throw Error('通知服務尚未就緒');await reg.showNotification('訊息提醒測試',{body:'此為手機提示測試。',tag:'salon-notification-test',data:{url:location.pathname}});p.textContent='已送出手機提示。若沒有橫幅，請先查看通知中心；睡眠／專注模式可能將提示靜音。這項測試不代表店家與客人的雙向傳送已驗證。';}catch(e){p.textContent='測試未完成：'+e.message;}finally{test.disabled=false;}};
  enableButton.onclick=async()=>{if(busy)return;busy=true;error='';render();try{await enable();}catch(e){error=e.message;}finally{busy=false;if(!ready&&!error)error='通知尚未完成，請確認已允許通知後再試。';render();}};
- box.append(title,p,enableButton,test,help);let lastState='';
+ box.append(title,p,enableButton);if(role==='admin')box.append(test);box.append(help);let lastState='';
  function render(){const s=state(),key=JSON.stringify([s,busy,error]);if(key===lastState)return;lastState=key;const ok=s==='ready';if(document.body?.dataset)document.body.dataset.notificationReady=String(ok);box.dataset.ready=String(ok);box.setAttribute('aria-busy',String(busy));
  title.textContent=ok?'✓ 通知已開啟':busy?'正在設定通知…':'開啟通知，不漏看新訊息';
  p.textContent=error||({install:'請從桌面 App 圖示開啟，再允許通知。',unsupported:'目前瀏覽器未支援背景通知，請查看教學。',denied:'通知已關閉，請到手機設定允許通知後再回來。',enable:'點一下開啟，完成後會顯示綠色勾勾。',ready:'此裝置已完成設定；鎖定畫面與聲音可查看教學。'})[s];
- enableButton.hidden=s!=='enable';enableButton.disabled=busy;enableButton.textContent=busy?'正在設定…':'開啟訊息通知';test.hidden=!ok;
+ enableButton.hidden=s!=='enable';enableButton.disabled=busy;enableButton.textContent=busy?'正在設定…':'開啟訊息通知';test.hidden=role!=='admin'||!ok;
  if(typeof window.dispatchEvent==='function'&&typeof CustomEvent==='function')window.dispatchEvent(new CustomEvent('salon:notification-state',{detail:{ready:ok,busy,error}}));
  }
  render();return {update(ok=false,message=''){ready=ok;error=message;render();},guide};

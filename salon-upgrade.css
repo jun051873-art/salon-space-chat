@@ -225,3 +225,12 @@ body #inquirySend{width:100%;min-height:48px;border-radius:999px!important}
 body .countBadge{font-variant-numeric:tabular-nums;line-height:1!important;display:inline-flex;align-items:center;justify-content:center}body .countBadge[hidden]{display:none!important}
 
 body #calNext svg{transform:rotate(180deg)!important}
+
+/* C39: distinct fixed header and readable announcement, with reserved content space. */
+body.customerApp #customerHeader{top:calc(4px + env(safe-area-inset-top))!important;min-height:82px!important;height:82px!important;padding:29px 8px 4px!important;border-radius:28px!important}
+body.customerApp #customerHeader .homeBrand{top:7px!important;font-size:16px!important}
+body.customerApp #globalNotice:not([hidden]){position:fixed!important;top:calc(94px + env(safe-area-inset-top))!important;left:12px!important;right:12px!important;max-width:876px!important;margin:0 auto!important;width:auto!important;height:38px!important;min-height:38px!important;box-sizing:border-box!important;z-index:89!important;font-size:14px!important;background:rgba(255,253,247,.96)!important}
+body.customerApp #globalNotice p,body.customerApp #globalNotice>span{font-size:14px!important;line-height:1.4!important}
+body.customerApp .app{padding-top:calc(148px + env(safe-area-inset-top))!important}
+body.customerApp #msgs,body.adminApp #adminMsgs{padding-bottom:52px!important;scroll-padding-bottom:52px!important}
+.timeReplySettings textarea{min-height:84px;resize:vertical}.timeReplySettings .toggleLine{display:flex;align-items:center;gap:10px;font-weight:750}.timeReplySettings input[type=checkbox]{width:20px;height:20px;flex:0 0 20px}
