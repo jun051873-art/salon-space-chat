@@ -98,3 +98,37 @@ body.adminApp #toolBody .settingsGroup[hidden]{display:none!important}body.admin
 .paymentEditor{margin:16px 0}.paymentChoices{display:flex;flex-wrap:wrap;gap:7px;margin:9px 0}.paymentChoices label{display:inline-flex;align-items:center;gap:5px;width:auto!important;min-height:35px;margin:0;padding:6px 9px;border:1px solid #d4c9bb;border-radius:999px;background:#fffdf9;font-size:12px}.paymentChoices input{width:auto!important;margin:0!important}#settingsSaveTop{display:block;width:100%;min-height:44px;margin:8px 0 18px;border-radius:17px;background:#4f7880;color:#fff;font-weight:700}
 .homeProductRail,.homeEventRail{display:flex;gap:12px;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;padding:3px 2px 12px;-webkit-overflow-scrolling:touch;scrollbar-width:thin}.homeProductRail .homeProduct{flex:0 0 min(43vw,178px);scroll-snap-align:start}.homeCategory{margin:16px 0}.homeCategory>h4{margin:5px 0 8px;color:#826c57;font-size:14px}.homeEventCard{flex:0 0 min(78vw,310px);scroll-snap-align:start;display:flex;flex-direction:column;min-width:0;overflow:hidden;border:1px solid #d2c5b6;border-radius:20px;background:#fffdf8}.homeEventCard>img{width:100%;height:150px;object-fit:cover}.homeEventCard>strong{padding:14px 14px 4px;font-size:17px}.homeEventCard>p{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;padding:0 14px;margin:4px 0 12px;min-height:35px;font-size:13px;white-space:pre-wrap}.homeEventCard>div{display:flex;gap:7px;padding:0 12px 13px;margin-top:auto}.homeEventCard button{flex:1;min-height:38px;margin:0;padding:7px;font-size:12px;border-radius:999px;background:#e5efed;color:#365b5e}.homeEventCard button:first-child{background:#f0ebe3;color:#685a4b}.productCategoryOrder{margin:17px 0;padding:14px;border-radius:20px;background:#f7f5ee}.productCategoryOrder h3,.productCategorySection h3{font-size:17px}.productCategorySection{margin:22px 0}.productCategorySection>.suiteGrid{margin-top:10px}
 @media(max-width:380px){.amenityEditorRow{grid-template-columns:1fr 1fr}.amenityEditorRow button{grid-column:2;justify-self:end}.settingsJump button[data-settings-jump]{font-size:12px}}
+
+/* C32: inline sharp chat photos, calm image zoom, smooth rails, and image-first feature cards. */
+.chatImageAttachment{display:grid;gap:7px;max-width:min(76vw,560px);margin-top:8px}
+.chatImageAttachment img{display:block;width:auto;max-width:100%;height:auto;max-height:62vh;object-fit:contain;object-position:left center;border-radius:14px;background:#ece8e0}
+.chatImageDownload{justify-self:start;display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:6px 12px;border-radius:999px;background:#e9f0ed;color:#365b5e;text-decoration:none;font-size:13px;font-weight:750}
+.chatImageDownload[hidden]{display:none!important}
+.productDetailDialog{display:flex;flex-direction:column;gap:8px;overscroll-behavior:contain}
+.productDetailDialog>.dialogHead{position:sticky;top:-20px;z-index:5;flex:none;margin:-8px -8px 0;padding:8px;background:#fcf9f3ed;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.productDetailDialog .productGallery{flex:none;min-height:0;max-height:50dvh;gap:10px;overscroll-behavior-x:contain;scroll-snap-type:x proximity;scroll-padding:8px;-webkit-overflow-scrolling:touch;scroll-behavior:smooth;touch-action:pan-x pan-y}
+.productDetailDialog .productGallery figure{display:grid;grid-template-rows:minmax(0,1fr) auto;max-height:50dvh}
+.productDetailDialog .productGallery img{display:block;width:100%;height:min(43dvh,420px);max-height:43dvh;object-fit:contain;background:#f1eee8;border-radius:18px}
+.productDetailDialog .productGallery figcaption{padding:6px;color:#857761;font-size:12px}
+.productDetailDialog .productPrice,.productDetailDialog .productDescription{flex:none;margin:4px 0}
+.boardDetailDialog>.dialogHead{position:sticky;top:-20px;z-index:4;padding:8px 0;background:#fcf9f3ed;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.boardDetailDialog .boardDetailImage{display:block;width:100%;height:auto;max-height:68dvh;object-fit:contain;object-position:center;background:#f2efe9;border-radius:18px}
+.homeProductRail,.homeEventRail{scroll-snap-type:x proximity;scroll-padding-inline:14px;scroll-behavior:smooth;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y}
+.homeProductRail .homeProduct,.homeEventRail .homeEventCard{scroll-snap-stop:normal}
+.homeSpotlightList .homeNoticeLink{display:flex;align-items:center;gap:14px;min-height:112px;padding:12px;text-align:left}
+.homeSpotlightList .homeNoticeLink>img{display:block;flex:0 0 96px;width:96px;height:96px;object-fit:cover;border-radius:15px;background:#f0ece5}
+.homeNoticeIcon{display:grid;place-items:center;flex:0 0 64px;width:64px;height:64px;border-radius:18px;background:#eee8dc;color:#82725c;font-size:27px}
+.homeNoticeCopy{display:grid;gap:5px;min-width:0}
+.homeNoticeCopy strong{font-size:15px}
+.homeNoticeCopy small{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;color:#827968;font-size:12px;line-height:1.55;white-space:pre-wrap}
+.homeNoticeCopy b{font-size:12px;color:#52777a}
+body.customerApp #homeCards .homeFeature{display:flex;flex-direction:column;align-items:stretch;min-height:0;text-align:left}
+body.customerApp #homeCards .homeFeatureImage{display:block;width:100%;height:auto;min-height:0;max-height:none;background:#eee9e1;overflow:hidden}
+body.customerApp #homeCards .homeFeatureImage img{display:block;width:100%;height:auto;min-height:0;max-height:min(58vh,560px);object-fit:contain;object-position:center;background:#eee9e1}
+body.customerApp #homeCards .homeFeatureCopy{display:flex;gap:0;width:100%;padding:18px 20px 20px!important}
+body.customerApp #homeCards .homeFeatureCopy>small{font-size:10px!important}
+body.customerApp #homeCards .homeFeatureCopy strong{margin:7px 0 5px;font-size:20px}
+body.customerApp #homeCards .homeFeatureCopy p{margin:0 0 9px;font-size:13px;-webkit-line-clamp:2}
+body.customerApp #homeCards .homeFeatureCopy em{margin-top:2px}
+body[data-input-modality="pointer"] button:focus-visible,body[data-input-modality="pointer"] a:focus-visible{outline:none!important;box-shadow:none!important}
+@media(max-width:420px){.productDetailDialog{padding:18px!important}.productDetailDialog>.dialogHead{top:-14px}.productDetailDialog .productGallery,.productDetailDialog .productGallery figure{max-height:46dvh}.productDetailDialog .productGallery img{height:min(39dvh,360px);max-height:39dvh}.homeSpotlightList .homeNoticeLink>img{flex-basis:82px;width:82px;height:88px}body.customerApp #homeCards .homeFeatureCopy{padding:15px 16px 17px!important}}

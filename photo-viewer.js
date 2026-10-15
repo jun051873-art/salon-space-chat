@@ -6,7 +6,7 @@ export function openPhotoViewer(src,alt='照片'){
  const bar=document.createElement('div');
  bar.style.cssText='position:absolute;top:0;left:0;right:0;z-index:2;display:flex;gap:10px;justify-content:flex-end;padding:calc(12px + env(safe-area-inset-top)) 16px 12px;background:linear-gradient(#111,transparent);';
  const stage=document.createElement('div');
- stage.style.cssText='position:absolute;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden;touch-action:none;';
+ stage.style.cssText='position:absolute;inset:calc(66px + env(safe-area-inset-top)) 0 calc(38px + env(safe-area-inset-bottom));display:flex;align-items:center;justify-content:center;overflow:hidden;touch-action:none;';
  const img=new Image();img.src=src;img.alt=alt;img.draggable=false;
  img.style.cssText='display:block;width:auto;height:auto;max-width:100%;max-height:100%;object-fit:contain;transform-origin:center;user-select:none;-webkit-user-select:none;';
  const status=document.createElement('p');status.setAttribute('role','status');status.textContent='正在載入照片…';status.style.cssText='position:absolute;bottom:calc(20px + env(safe-area-inset-bottom));left:12px;right:12px;text-align:center;pointer-events:none;';
@@ -15,7 +15,7 @@ export function openPhotoViewer(src,alt='照片'){
  const paint=()=>{const w=img.offsetWidth,h=img.offsetHeight;const boundX=Math.max(0,(w*scale-stage.clientWidth)/2),boundY=Math.max(0,(h*scale-stage.clientHeight)/2);x=Math.max(-boundX,Math.min(boundX,x));y=Math.max(-boundY,Math.min(boundY,y));img.style.transform=`translate(${x}px,${y}px) scale(${scale})`;};
  const zoom=value=>{scale=Math.max(1,Math.min(4,value));if(scale===1)x=y=0;paint();};
  const button=(label,action)=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.setAttribute('aria-label',label);b.style.cssText='font:inherit;font-weight:700;min-width:44px;min-height:44px;margin:0;padding:8px 14px;border:1px solid #777;border-radius:24px;background:#222;color:white;';b.onclick=action;bar.append(b);return b;};
- button('縮小',()=>zoom(scale/1.5));button('放大',()=>zoom(scale*1.5));button('重設',()=>zoom(1));const close=button('關閉',()=>dialog.close());
+ const close=button('關閉',()=>dialog.close());
  stage.addEventListener('dblclick',()=>zoom(scale===1?2:1));
  const gesture=()=>{const p=[...pointers.values()];if(p.length===2)return{x:(p[0].x+p[1].x)/2,y:(p[0].y+p[1].y)/2,d:Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y)};return p[0]||null;};
  stage.addEventListener('pointerdown',e=>{if(e.button>0||pointers.size>=2)return;pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});stage.setPointerCapture(e.pointerId);previous=gesture();});
