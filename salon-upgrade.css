@@ -132,3 +132,14 @@ body.customerApp #homeCards .homeFeatureCopy p{margin:0 0 9px;font-size:13px;-we
 body.customerApp #homeCards .homeFeatureCopy em{margin-top:2px}
 body[data-input-modality="pointer"] button:focus-visible,body[data-input-modality="pointer"] a:focus-visible{outline:none!important;box-shadow:none!important}
 @media(max-width:420px){.productDetailDialog{padding:18px!important}.productDetailDialog>.dialogHead{top:-14px}.productDetailDialog .productGallery,.productDetailDialog .productGallery figure{max-height:46dvh}.productDetailDialog .productGallery img{height:min(39dvh,360px);max-height:39dvh}.homeSpotlightList .homeNoticeLink>img{flex-basis:82px;width:82px;height:88px}body.customerApp #homeCards .homeFeatureCopy{padding:15px 16px 17px!important}}
+
+
+/* C33: clear photo zoom and multi-photo affordances. */
+.chatImageAttachment img{cursor:zoom-in;touch-action:manipulation}
+.productCover{position:relative}
+.productZoomHint{position:absolute;right:8px;bottom:8px;z-index:1;padding:5px 9px;border:1px solid #ffffffb8;border-radius:999px;background:#fffc;color:#5e5142;font-size:11px;font-weight:750;box-shadow:0 3px 12px #392d221c;pointer-events:none}
+.productPhotoHint{margin:0 0 4px;text-align:center;color:#786f62;font-size:13px;font-weight:650}
+.productDetailDialog .productGallery figure{display:flex;flex-direction:column;align-items:center;gap:8px}
+.productDetailDialog .productGallery figure>[data-photo-viewer]{width:100%;flex:1;min-height:0}
+.productDetailDialog .productGallery img{cursor:zoom-in}
+.productDetailDialog .productGallery figcaption{padding:7px 12px;border-radius:999px;background:#eeeae3;color:#766c5e;font-size:12px;font-weight:700}
