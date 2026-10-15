@@ -1,0 +1,12 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert/strict');
+const src=fs.readFileSync('salon-suite.js','utf8');
+const queue=src.slice(src.indexOf('function queueReceipt(){'),src.indexOf('async function writeReceipt(){'));
+let visible=true,dialog=false,writes=0;
+const context={getChat:()=>({el:{getClientRects:()=>visible?[{}]:[],scrollHeight:9999,scrollTop:0,clientHeight:400},docs:[],viewer:'me'}),receiptFailed:false,roomUnsub:()=>{},document:{visibilityState:'visible',querySelector:()=>dialog?{}:null},receiptCandidate:()=>100,ownRead:0,receiptWanted:0,receiptTimer:null,clearTimeout(){},setTimeout(fn){writes++;return 1},writeReceipt(){}};
+vm.createContext(context);vm.runInContext(queue,context);
+context.queueReceipt();assert.equal(writes,1,'opening loaded conversation acknowledges without scroll/tap');
+context.queueReceipt();assert.equal(writes,1,'same watermark does not enqueue again');
+context.receiptWanted=0;visible=false;context.queueReceipt();assert.equal(writes,1,'hidden conversation is not read');
+visible=true;dialog=true;context.queueReceipt();assert.equal(writes,1,'preview/dialog does not read conversation behind it');
+dialog=false;context.document.visibilityState='hidden';context.queueReceipt();assert.equal(writes,1,'background does not read');
+console.log('PASS entry receipts: visible loaded conversation, no extra tap, duplicate, hidden, modal and background guards');
