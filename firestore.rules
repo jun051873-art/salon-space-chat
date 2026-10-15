@@ -30,7 +30,7 @@ service cloud.firestore {
    }
    match /files/{fileId} {
     allow read: if admin() || (owner(uid) && active(uid));
-    allow create: if (admin() || (owner(uid) && active(uid))) && request.resource.data.senderId == request.auth.uid && request.resource.data.data is string && request.resource.data.data.size() <= 850000 && request.resource.data.type in ['image/jpeg','image/png','image/webp','application/pdf','text/plain'];
+    allow create: if (admin() || (owner(uid) && active(uid))) && request.resource.data.senderId == request.auth.uid && request.resource.data.data is string && request.resource.data.data.size() <= 420000 && request.resource.data.type in ['image/jpeg','image/png','image/webp','application/pdf','text/plain'];
     allow update: if false;
     allow delete: if admin();
    }
