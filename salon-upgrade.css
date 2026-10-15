@@ -170,3 +170,6 @@ body .notificationHelp button{font-size:13px!important;min-height:40px!important
 body #deliveryHint{flex:none;margin:4px 0;padding:8px 12px;border-radius:14px;background:#fff0d5;color:#714b19;font-size:12px;line-height:1.5;text-align:center}body #deliveryHint[hidden]{display:none!important}
 
 body #enterChat,body #enterChat *{-webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none!important}
+
+body.adminApp .app>h1{transform:none!important}
+body .bottomNav .navBtn>.countBadge[hidden],body #enterChat>.countBadge[hidden]{display:none!important}
