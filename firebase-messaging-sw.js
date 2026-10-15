@@ -1,5 +1,5 @@
 importScripts('./push-presentation.js?v=N2');
-const NOTIFICATION_VERSION='N2';
+const NOTIFICATION_VERSION='N3';
 const BRAND_CACHE='salon-notification-brand-v1';
 const BRAND_URL='/salon-space-chat/__notification_brand__';
 async function readBrand(){try{const response=await (await caches.open(BRAND_CACHE)).match(BRAND_URL);return response?await response.json():{};}catch{return {};}}
@@ -43,6 +43,6 @@ messaging.onBackgroundMessage(async payload=>{
  const d=payload.data||{};
  try{await self.navigator.setAppBadge?.(1);}catch{}
  const {title,options}=SalonPush.notification(d,await readBrand(),self.location.origin);
- return saveDiag({stage:"received",data:d}).then(()=>self.registration.showNotification(title,options)).then(()=>saveDiag({stage:"shown",data:d})).catch(e=>saveDiag({stage:"show-error",error:String(e),data:d}));
+ try{await self.registration.showNotification(title,options);await saveDiag({stage:"shown",data:d}).catch(()=>{});}catch(e){await saveDiag({stage:"show-error",error:String(e),data:d}).catch(()=>{});}
 });
 

@@ -143,3 +143,28 @@ body[data-input-modality="pointer"] button:focus-visible,body[data-input-modalit
 .productDetailDialog .productGallery figure>[data-photo-viewer]{width:100%;flex:1;min-height:0}
 .productDetailDialog .productGallery img{cursor:zoom-in}
 .productDetailDialog .productGallery figcaption{padding:7px 12px;border-radius:999px;background:#eeeae3;color:#766c5e;font-size:12px;font-weight:700}
+
+/* C34: shared touch controls, legible unread state and a fixed frosted header. */
+body .salonClose,body .dialogHead [data-close],body .salonClose:focus,body .salonClose:focus-visible{display:inline-grid!important;place-items:center!important;width:46px!important;height:46px!important;min-width:46px!important;min-height:46px!important;padding:10px!important;margin:0!important;border:0!important;outline:0!important;border-radius:0!important;box-shadow:none!important;background:transparent!important;transform:none!important;flex:none;line-height:1!important;color:inherit}
+body .salonClose svg,body .dialogHead [data-close] svg{display:block;width:26px!important;height:26px!important;fill:none;stroke:currentColor;stroke-width:2.8;stroke-linecap:round}
+body[data-input-modality=keyboard] .salonClose:focus-visible{color:var(--salon-accent,#8c5b37)!important;filter:drop-shadow(0 0 3px currentColor)}
+body .photoViewerDialog{outline:none!important;border:0!important;border-radius:0!important}
+body .photoViewerDialog img{border:0!important;outline:none!important;box-shadow:none!important;border-radius:0!important}
+body button[data-photo-viewer],body button[data-photo-viewer]:active,body button[data-photo-viewer]:focus,body .productCover:active{transform:none!important;border:0!important;outline:none!important;box-shadow:none!important;background:transparent!important;-webkit-tap-highlight-color:transparent}
+body[data-input-modality=pointer] .productCover:focus,body[data-input-modality=pointer] [data-image-preview]:focus,body[data-input-modality=pointer] dialog:focus{outline:none!important;box-shadow:none!important}
+body[data-input-modality=keyboard] button[data-photo-viewer]:focus-visible{outline:2px solid var(--salon-accent)!important;outline-offset:2px}
+body .photoViewerDialog .salonClose{color:white!important}
+body .chatImageAttachment img{-webkit-touch-callout:none;user-select:none;-webkit-user-select:none}
+body .bottomNav .navBtn{position:relative;overflow:visible!important}
+body .bottomNav .navBtn>.countBadge,body #enterChat>.countBadge{position:absolute!important;top:0!important;right:calc(50% - 32px)!important;z-index:5!important;display:grid!important;place-items:center!important;min-width:24px!important;width:auto!important;height:24px!important;padding:0 6px!important;margin:0!important;border:2px solid #fff!important;border-radius:999px!important;background:#c63935!important;color:#fff!important;font-size:13px!important;font-weight:800!important;line-height:20px!important;box-shadow:0 2px 8px #6f1d2440!important}
+body #enterChat{position:relative}body #enterChat>.countBadge{top:9px!important;right:10px!important}
+body .countBadge[hidden],body #foregroundMessage[hidden]{display:none!important}
+body .unreadDot{width:12px!important;height:12px!important;background:#c63935!important;box-shadow:0 0 0 3px #c6393520}
+body #foregroundMessage{position:fixed;z-index:25000;left:50%;top:calc(10px + env(safe-area-inset-top));transform:translateX(-50%)!important;width:min(440px,calc(100% - 28px));padding:16px 20px;background:#315760f2;color:white;border:1px solid #ffffff99;border-radius:24px;box-shadow:0 8px 30px #0003;font-size:15px;font-weight:700;text-align:left;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+body.adminApp .app>h1{position:fixed!important;inset:calc(8px + env(safe-area-inset-top)) 14px auto!important;z-index:90!important;display:flex!important;align-items:center!important;justify-content:center!important;min-height:62px!important;width:auto!important;max-width:872px!important;margin:0 auto!important;padding:14px 22px!important;border:1px solid #ffffffbb!important;border-radius:26px!important;background:linear-gradient(125deg,#ffffffa8,#eef3f17a)!important;backdrop-filter:blur(22px) saturate(140%)!important;-webkit-backdrop-filter:blur(22px) saturate(140%)!important;box-shadow:inset 0 1px 1px #fff,0 5px 22px #443b3014!important;font-size:21px!important;letter-spacing:.1em!important}
+body.adminApp .app{padding-top:calc(88px + env(safe-area-inset-top))!important}
+body .chatCard,body .chatCard *,body .chatPreview,body .chatPreview *{-webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none!important}
+body .notificationHelp[data-ready=true]{padding:12px 15px!important}
+body .notificationHelp[data-ready=true] p{font-size:13px!important;line-height:1.5;margin:6px 0!important}
+body .notificationHelp button{font-size:13px!important;min-height:40px!important;padding:8px 12px!important;margin:4px 6px 0 0!important}
+body #deliveryHint{flex:none;margin:4px 0;padding:8px 12px;border-radius:14px;background:#fff0d5;color:#714b19;font-size:12px;line-height:1.5;text-align:center}body #deliveryHint[hidden]{display:none!important}
