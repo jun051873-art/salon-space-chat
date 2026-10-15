@@ -168,3 +168,5 @@ body .notificationHelp[data-ready=true]{padding:12px 15px!important}
 body .notificationHelp[data-ready=true] p{font-size:13px!important;line-height:1.5;margin:6px 0!important}
 body .notificationHelp button{font-size:13px!important;min-height:40px!important;padding:8px 12px!important;margin:4px 6px 0 0!important}
 body #deliveryHint{flex:none;margin:4px 0;padding:8px 12px;border-radius:14px;background:#fff0d5;color:#714b19;font-size:12px;line-height:1.5;text-align:center}body #deliveryHint[hidden]{display:none!important}
+
+body #enterChat,body #enterChat *{-webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none!important}

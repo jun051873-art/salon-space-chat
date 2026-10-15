@@ -1,4 +1,4 @@
-import{installInteractions}from'./salon-interactions.js?v=R1';
+import{installInteractions}from'./salon-interactions.js?v=R2';
 installInteractions();
 // Keep one scroll surface; visualViewport is used only while a keyboard is open.
 let frame=0;

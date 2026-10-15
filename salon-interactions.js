@@ -50,7 +50,7 @@ export function installInteractions(){
  window.addEventListener('salon:foreground-message',event=>{
   const data=event.detail||{};if(document.hidden)return;
   let url;try{url=new URL(data.url,location.href);}catch{return;}
-  if(url.origin!==location.origin||!['/salon-space-chat/customer.html','/salon-space-chat/admin.html'].includes(url.pathname))return;
+  if(url.pathname!==location.pathname||url.origin!==location.origin||!['/salon-space-chat/customer.html','/salon-space-chat/admin.html'].includes(url.pathname))return;
   let banner=document.getElementById('foregroundMessage');
   if(!banner){banner=document.createElement('button');banner.id='foregroundMessage';banner.setAttribute('role','status');banner.setAttribute('aria-live','polite');document.body.append(banner);}
   banner.textContent='● 新訊息：'+String(data.body||'點此查看').slice(0,100);banner.hidden=false;
