@@ -202,3 +202,26 @@ body .productGallery button[data-photo-viewer]{display:block;width:100%;border-r
 @media(prefers-reduced-motion:reduce){body dialog,body .productGallery{scroll-behavior:auto!important;animation:none!important}}
 body.customerApp #msgs,body.adminApp #adminMsgs{margin-top:-24px!important;margin-bottom:-24px!important;padding-top:38px!important;padding-bottom:38px!important;scroll-padding-block:38px;position:relative;z-index:1}
 body.customerApp #chat .composer{background:transparent!important;box-shadow:none!important;border:0!important}
+/* C38: compact notification status and a prominent conversation entry. */
+body .notificationHelp,body .notificationHelp[data-ready=true]{padding:10px 13px!important;margin:10px 0 18px!important;border-radius:24px!important}
+body .notificationHelp p{font-size:12px!important;line-height:1.45!important;margin:5px 0!important}
+body .notificationHelp button{min-height:36px!important;padding:6px 11px!important;font-size:12px!important;margin-top:3px!important}
+body .notificationHelp button[hidden]{display:none!important}
+body .notificationHelp[data-ready=true] strong{color:#246f4c!important}
+body.customerApp #enterChat{position:relative!important;display:flex!important;align-items:center!important;gap:14px!important;min-height:106px!important;padding:20px 16px!important;border-radius:30px!important;border:1.5px solid #ffffffed!important;background:linear-gradient(120deg,#ffffffd4,#e4f4f299)!important;box-shadow:inset 0 2px 2px #fff,0 8px 22px #335b6326!important;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);margin-bottom:24px!important}
+body.customerApp #enterChat .conversationCopy{flex:1;min-width:0}body.customerApp #enterChat .conversationCopy small{line-height:1.55;display:block;margin-top:5px}
+body.customerApp .homeFeature{margin-top:28px!important}body.customerApp #enterChat~.homeFeature{border-top:1px solid #ffffffa8}
+body .pageBack{display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:5px!important;min-height:42px!important;line-height:1!important;border-radius:999px!important}
+body .pageBack svg,body .pageBack .salonIcon{display:block!important;width:20px!important;height:20px!important;margin:0!important;flex:0 0 20px;transform:none!important}
+body #leaveChat,body #back,body #calPrev,body #calNext{display:inline-flex!important;align-items:center!important;justify-content:center!important;line-height:1!important;text-indent:0!important;padding:0!important;min-width:42px!important;height:42px!important;border-radius:999px!important}
+body #calPrev svg,body #calNext svg,body #leaveChat svg,body #back svg{display:block;width:22px;height:22px;flex:none}
+body .calHeader{display:grid!important;grid-template-columns:44px minmax(0,1fr) 44px;align-items:center;gap:8px;padding:10px;border:1px solid #ffffffcf;border-radius:999px;background:#ffffff70;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+body .calHeader h3{text-align:center;margin:0!important;line-height:1.4}
+body #booking .bookingGuide,body #slotArea:not(:empty),body #myBookings:not(:empty){padding:16px!important;margin:16px 0!important;border:1px solid #ffffffd9!important;border-radius:26px!important;background:linear-gradient(125deg,#ffffffad,#ffffff66)!important;box-shadow:inset 0 1px 2px white;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+body .calendar{gap:6px!important;padding:10px 0!important}body .calendar button{min-width:0!important;border-radius:16px!important;padding:6px 2px!important;min-height:44px!important}
+body .inquiryChoices{display:flex;flex-wrap:wrap;gap:9px!important}body .inquiryChoices button{min-height:44px!important;border-radius:999px!important;margin:0!important}
+body .inquiryChoices button[aria-pressed=true],body .calendar button.chosen{background:#486e73!important;color:white!important;border-color:#486e73!important;box-shadow:inset 0 0 0 1px white!important}
+body #inquirySend{width:100%;min-height:48px;border-radius:999px!important}
+body .countBadge{font-variant-numeric:tabular-nums;line-height:1!important;display:inline-flex;align-items:center;justify-content:center}body .countBadge[hidden]{display:none!important}
+
+body #calNext svg{transform:rotate(180deg)!important}
