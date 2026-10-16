@@ -75,9 +75,3 @@ body.customerApp #customerHeader .headerActions{height:42px!important;padding:3p
 body.customerApp #customerHeader .headerActions button{width:clamp(34px,9vw,39px)!important;height:34px!important;padding:6px!important;margin:0!important}
 body.customerApp #chat #chatCustomerName{cursor:pointer;max-width:37vw!important;min-height:40px!important;font-size:12px!important;padding:8px 12px!important}
 
-/* C25 rotating guide and lateral chat introduction */
-.customerApp .guideRibbonTrack{animation:none!important;text-overflow:clip!important}
-.customerApp .guideRibbonTrack.guideChanging{animation:salonTipSide .55s cubic-bezier(.2,.8,.2,1) both!important}
-@keyframes salonTipSide{from{opacity:0;transform:translateX(22px)}to{opacity:1;transform:translateX(0)}}
-.customerApp .salonChatSideHint{position:fixed;z-index:140;bottom:calc(94px + env(safe-area-inset-bottom));left:max(14px,env(safe-area-inset-left));max-width:min(320px,calc(100vw - 28px));padding:13px 17px;border:1px solid #fff;border-radius:20px;background:#fffaf1f5;color:#756046;box-shadow:0 9px 25px #63503720;font-size:13px;line-height:1.5;pointer-events:none;animation:salonTipSide .45s ease both}
-@media(prefers-reduced-motion:reduce){.customerApp .guideRibbonTrack.guideChanging,.customerApp .salonChatSideHint{animation:none!important}}
