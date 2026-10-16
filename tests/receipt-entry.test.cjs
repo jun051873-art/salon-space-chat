@@ -1,8 +1,8 @@
 const fs=require('fs'),vm=require('vm'),assert=require('assert/strict');
 const src=fs.readFileSync('salon-suite.js','utf8');
-const queue=src.slice(src.indexOf('function queueReceipt(){'),src.indexOf('async function writeReceipt(){'));
+const queue=src.slice(src.indexOf('function queueReceipt(){'),src.indexOf('async function writeReceipt(force=false){'));
 let visible=true,dialog=false,writes=0;
-const context={getChat:()=>({el:{getClientRects:()=>visible?[{}]:[],scrollHeight:9999,scrollTop:0,clientHeight:400},docs:[],viewer:'me'}),receiptFailed:false,roomUnsub:()=>{},document:{visibilityState:'visible',querySelector:()=>dialog?{}:null},receiptCandidate:()=>100,ownRead:0,receiptWanted:0,receiptTimer:null,clearTimeout(){},setTimeout(fn){writes++;return 1},writeReceipt(){}};
+const context={manualReadMode:()=>false,updateReadControls:()=>{},getChat:()=>({el:{getClientRects:()=>visible?[{}]:[],scrollHeight:9999,scrollTop:0,clientHeight:400},docs:[],viewer:'me'}),receiptFailed:false,roomUnsub:()=>{},document:{visibilityState:'visible',querySelector:()=>dialog?{}:null},receiptCandidate:()=>100,ownRead:0,receiptWanted:0,receiptTimer:null,clearTimeout(){},setTimeout(fn){writes++;return 1},writeReceipt(){}};
 vm.createContext(context);vm.runInContext(queue,context);
 context.queueReceipt();assert.equal(writes,1,'opening loaded conversation acknowledges without scroll/tap');
 context.queueReceipt();assert.equal(writes,1,'same watermark does not enqueue again');
@@ -10,7 +10,7 @@ context.receiptWanted=0;visible=false;context.queueReceipt();assert.equal(writes
 visible=true;dialog=true;context.queueReceipt();assert.equal(writes,1,'preview/dialog does not read conversation behind it');
 dialog=false;context.document.visibilityState='hidden';context.queueReceipt();assert.equal(writes,1,'background does not read');
 console.log('PASS entry receipts: visible loaded conversation, no extra tap, duplicate, hidden, modal and background guards');
-const write=src.slice(src.indexOf('async function writeReceipt(){'),src.indexOf('async function chatFileURL('));
+const write=src.slice(src.indexOf('async function writeReceipt(force=false){'),src.indexOf('async function reviseMessage('));
 let stored=200,updates=[],painted=0;
 Object.assign(context,{roomId:'room-a',receiptWanted:100,ownRead:0,receiptBusy:false,admin:true,db:{},doc:(_,c,id)=>id,navigator:{},renderChat:()=>painted++,toast(){},Date,runTransaction:async(_,f)=>f({get:async()=>({data:()=>({readAdminMs:stored})}),update:(room,data)=>{updates.push({room,data});stored=data.readAdminMs;}})});
 context.document.visibilityState='visible';context.getChat=()=>({room:'room-a',el:{getClientRects:()=>[{}]}});

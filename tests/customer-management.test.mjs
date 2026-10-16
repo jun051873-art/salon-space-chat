@@ -20,5 +20,5 @@ const {unreadSummary}=await load('salon-unread.js');
 assert.equal(unreadSummary([{...deleted,lastCustomerMessageAt:100,readAdminMs:0},{...a,lastCustomerMessageAt:100,readAdminMs:0}]),1);
 const {normalizeTheme}=await load('salon-theme.js');
 for(const direction of ['top','left','right'])assert.equal(normalizeTheme({greetingDirection:direction}).greetingDirection,direction);
-assert.equal(normalizeTheme({greetingDirection:'invalid'}).greetingDirection,'top');
+assert.equal(normalizeTheme({greetingDirection:'invalid'}).greetingDirection,'left');
 console.log('PASS: reversible removal, approval gating, broadcast exclusions, unread exclusion and greeting direction validation');

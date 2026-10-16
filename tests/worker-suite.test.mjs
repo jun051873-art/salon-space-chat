@@ -6,7 +6,7 @@ const admin='HcFJGmzHw6MYoWbFmtq9IyFSjvL2';
 const env={FIREBASE_PROJECT_ID:'test',FIREBASE_CLIENT_EMAIL:'test',FIREBASE_PRIVATE_KEY:'test'};
 const root='https://firestore.googleapis.com/v1/projects/test/databases/(default)/documents/';
 const pack=x=>typeof x==='string'?{stringValue:x}:typeof x==='boolean'?{booleanValue:x}:typeof x==='number'?{integerValue:String(x)}:Array.isArray(x)?{arrayValue:{values:x.map(pack)}}:{mapValue:{fields:Object.fromEntries(Object.entries(x).map(([k,v])=>[k,pack(v)]))}};
-function harness({users=[],chats=[],rules=[],settings={},holiday=false,caller="c1",sourceMessage={senderId:"c1",text:"預約"}}={}){
+function harness({users=[],chats=[],rules=[],settings={},holiday=false,caller="c1",sourceMessage={senderId:"c1",text:"預約"},sharedDevice=false}={}){
  const calls=[],payloads=[],messages=new Map();let writes=0,pushes=0;
  const doc=(id,x)=>({name:root+id,fields:pack(x).mapValue.fields});
  const context=vm.createContext({Response,Request,URLSearchParams,AbortController,TextEncoder,Uint8Array,atob,btoa,setTimeout,clearTimeout,console,fetch:async(url,opt={})=>{
@@ -17,7 +17,7 @@ function harness({users=[],chats=[],rules=[],settings={},holiday=false,caller="c
   if(u.startsWith(root+'holidays/'))return holiday?ok(doc('holiday',{closed:true})):Response.json({error:{status:'NOT_FOUND'}},{status:404});
   if(u===root+'users/c1')return ok(doc('c1',users.find(x=>x.id==='c1')||{}));
   if(u.includes('/messages/source'))return ok(doc('source',sourceMessage));
-  if(u.includes('/devices?'))return ok({documents:[doc('device',{token:'device-token'})]});
+  if(u.includes('/devices?'))return ok({documents:[doc('device',{token:sharedDevice?'shared-device':u.includes('/'+admin+'/')?'owner-device':'customer-device'})]});
   if(u.includes('/pushTokens/'))return Response.json({error:{status:'NOT_FOUND'}},{status:404});
   if(u.endsWith(':commit')){const name=body.writes[0].update.name;if(messages.has(name))return Response.json({error:{status:'ALREADY_EXISTS'}},{status:409});messages.set(name,body.writes[0]);writes+=body.writes.length;return ok({});}
   if(u.includes('messages:send')){pushes++;payloads.push(body.message);return ok({name:'accepted'});}
@@ -78,3 +78,8 @@ const holidayHarness=harness({settings:{...timed,keywordRepliesEnabled:true,quic
 await holidayHarness.api.automaticReply(env,root,'test','c1','source','預約','2026-10-15T04:00:00Z');
 assert.equal(holidayHarness.messages.size,1);assert.equal(holidayHarness.payloads[0].data.body,'holiday');
 console.log('PASS time reply integration: attachment trigger, duplicate prevention, holiday over keyword');
+
+const shared=harness({sharedDevice:true,settings:{keywordRepliesEnabled:true,quickReplies:[{title:'預約',answer:'收到'}]}});
+await shared.api.automaticReply(env,root,'test','c1','source','預約');
+assert.equal(shared.messages.size,1);assert.equal(shared.pushes,0,'automatic reply never alerts a device registered to the owner');
+console.log('PASS automatic reply persists while owner/shared devices are excluded');
