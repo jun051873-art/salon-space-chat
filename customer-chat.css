@@ -83,3 +83,13 @@ body.customerApp #chat #chatCustomerName{display:inline-flex!important;align-ite
 body.customerApp #chat .chatSalonPill{grid-column:1!important;grid-row:2!important;justify-self:start!important;max-width:100%!important;margin-left:43px!important}
 body.customerApp #chat #chatOptions{grid-column:2!important;grid-row:2!important;justify-self:end!important}
 body.customerApp #chat .chatHeaderBalance{display:none!important}
+
+/* C28 single-row, full-name customer pill */
+body.customerApp #chat .conversationHeader{display:flex!important;flex-wrap:nowrap!important;gap:8px!important;align-items:center!important}
+body.customerApp #chat .chatIdentity{display:flex!important;flex:1 1 auto!important;min-width:0!important;max-width:none!important;gap:7px!important}
+body.customerApp #chat #chatCustomerName{display:inline-flex!important;align-items:center!important;justify-content:flex-start!important;gap:7px!important;flex:0 1 auto!important;max-width:100%!important;width:auto!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important;padding:8px 12px!important;border-radius:999px!important}
+body.customerApp #chat #chatCustomerNameText{display:block;min-width:0;white-space:normal;overflow-wrap:anywhere;line-height:1.4}
+body.customerApp #chat .chatPersonIcon{display:inline-grid;place-items:center;flex:0 0 18px;width:18px;height:18px;font-size:19px;line-height:1}
+body.customerApp #chat .chatSalonPill{flex:0 0 auto!important;max-width:38%!important;margin:0!important}
+body.customerApp #chat #chatOptions{flex:0 0 auto!important}
+body.customerApp #chat .chatHeaderBalance{display:none!important}
