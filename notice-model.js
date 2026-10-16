@@ -1,0 +1,2 @@
+export const DEFAULT_NOTICE='歡迎 👋 來到專屬於您的空間　✦　預約請點下方「預約」，選日期、服務與設計師，再傳給店家確認　✦　聊天室點「＋」可使用快速用語　✦　請開啟通知，才不會錯過店家回覆';
+export function noticeView(c={},day=''){const text=c.noticeConfigured===true?String(c.notice??''):String(c.notice||DEFAULT_NOTICE);const scheduled=c.noticeScheduled===true;const active=!scheduled||(!c.noticeStart||day>=c.noticeStart)&&(!c.noticeEnd||day<=c.noticeEnd);return {text,visible:!!text.trim()&&active,duration:Math.min(120,Math.max(10,Number(c.noticeDuration)||26))};}

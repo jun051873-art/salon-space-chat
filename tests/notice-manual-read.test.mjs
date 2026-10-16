@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';import fs from 'node:fs';import vm from 'node:vm';
+const notice=await import('data:text/javascript;base64,'+Buffer.from(fs.readFileSync('notice-model.js','utf8')).toString('base64'));
+assert(notice.noticeView({},'2026-10-16').text.includes('歡迎'));
+assert.equal(notice.noticeView({notice:'我的公告',noticeEnd:'2020-01-01'},'2026-10-16').visible,true);
+assert.equal(notice.noticeView({notice:'我的公告',noticeScheduled:true,noticeEnd:'2020-01-01'},'2026-10-16').visible,false);
+assert.equal(notice.noticeView({notice:'',noticeConfigured:true},'2026-10-16').visible,false);
+const source=fs.readFileSync('salon-suite.js','utf8');const lines=source.split('\n').filter(l=>/ function queueReceipt\(| async function writeReceipt\(/.test(l)).join('\n');
+let scheduled=0,writes=0;const v={room:'customer1',el:{getClientRects:()=>[1]},docs:[],viewer:'owner'};
+const context=vm.createContext({getChat:()=>v,manual:true,updateReadControls:()=>{},manualReadMode:()=>context.manual,document:{visibilityState:'visible',querySelector:()=>null},receiptFailed:false,roomUnsub:true,ownRead:0,receiptWanted:0,receiptTimer:null,roomId:'customer1',receiptBusy:false,admin:true,receiptCandidate:()=>100,clearTimeout:()=>{},setTimeout:()=>scheduled++,db:{},doc:()=>({}),runTransaction:async(db,cb)=>cb({get:async()=>({data:()=>({readAdminMs:0})}),update:()=>writes++}),renderChat:()=>{},navigator:{},Date,URL,toast:()=>{}});
+vm.runInContext(lines,context);context.queueReceipt();assert.equal(scheduled,0);context.receiptWanted=100;await context.writeReceipt();assert.equal(writes,0);await context.writeReceipt(true);assert.equal(writes,1);assert.equal(context.ownRead,100);
+context.receiptWanted=200;context.roomId='different';await context.writeReceipt(true);assert.equal(writes,1);
+context.roomId='customer1';context.manual=false;context.ownRead=0;context.receiptWanted=0;context.queueReceipt();assert.equal(scheduled,1);
+console.log('PASS notice defaults/custom text/date restrictions; manual read suppresses background writes, explicit mark writes, changed room ignored, automatic mode works.');
