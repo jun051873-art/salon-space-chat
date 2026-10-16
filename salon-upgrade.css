@@ -234,3 +234,17 @@ body.customerApp #globalNotice p,body.customerApp #globalNotice>span{font-size:1
 body.customerApp .app{padding-top:calc(148px + env(safe-area-inset-top))!important}
 body.customerApp #msgs,body.adminApp #adminMsgs{padding-bottom:52px!important;scroll-padding-bottom:52px!important}
 .timeReplySettings textarea{min-height:84px;resize:vertical}.timeReplySettings .toggleLine{display:flex;align-items:center;gap:10px;font-weight:750}.timeReplySettings input[type=checkbox]{width:20px;height:20px;flex:0 0 20px}
+/* C40: compact customer and broadcast controls. */
+.customerFilters{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}
+.customerFilters>button,.customerFilters>span{width:auto;min-height:44px;padding:10px 15px;border-radius:999px;font-size:14px;line-height:1.3}
+.customerFilters .active,.broadcastModes [aria-pressed=true]{background:var(--salon-accent);color:var(--salon-accent-ink)}
+.customerFilters small{font-size:12px;opacity:.8;margin-left:4px}
+#bPeople details{margin:12px 0;font-size:14px}#bPeople details p{margin:8px 0;padding:8px;border-bottom:1px solid #b9b1a52b}
+#bTags{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}#bTags[hidden]{display:none}
+#bTags button{width:auto;border-radius:999px;padding:10px 14px}
+#bTags [aria-pressed=true]{background:var(--salon-accent);color:var(--salon-accent-ink)}
+#bBlocks .settingsGroup{padding:16px}#bBlocks textarea{min-height:110px;width:100%;box-sizing:border-box;margin:12px 0}
+#bSend{width:100%;border-radius:999px;min-height:48px;margin:16px 0}
+body .inboxTools{flex-wrap:wrap;gap:8px}body .inboxTools>p{flex-basis:100%;margin:0}
+body .inboxTools button{min-height:44px}
+body .card,body .settingsGroup{background:var(--salon-glass);backdrop-filter:blur(var(--salon-blur));-webkit-backdrop-filter:blur(var(--salon-blur))}
