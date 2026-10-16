@@ -334,3 +334,10 @@ body.customerApp #chat .conversationFooter::after{content:none!important}
 
 /* N29: compact, explicit owner read receipts */
 body.adminApp #adminChat .readControls{flex:0 0 auto;display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;padding:8px 12px;position:relative;z-index:3;border:1px solid #fff;border-radius:22px;background:rgba(255,255,255,.68);backdrop-filter:blur(9px);margin:4px 0;color:var(--salon-ink,#403a39);font-size:12px}.readControls label{display:flex;align-items:center;gap:6px;margin:0}.readControls button{margin:0;padding:8px 14px;font-size:12px}.readControls small{flex:1 0 100%;font-size:11px}.readControls [hidden]{display:none!important}
+
+/* Natural image proportions; reserve geometry before decoding new photos. */
+body .chatImageAttachment{--photo-ratio:1;width:min(62vw,290px,calc(62svh * var(--photo-ratio)))!important;height:auto!important;min-height:0!important;aspect-ratio:var(--photo-ratio);background:transparent;margin-top:0;display:block}
+body .chatImageAttachment img{width:100%!important;height:100%!important;object-position:center;object-fit:contain!important;background:transparent}
+.broadcastSuccess{color:#246d50;font-weight:750;padding:18px 20px;border-radius:24px;background:#e7f4ec}
+.broadcastResult{scroll-margin-top:170px}.broadcastResult h3{margin:0 0 10px}.broadcastResult p{margin:8px 0}
+#bComposer[hidden],#bNew[hidden]{display:none!important}

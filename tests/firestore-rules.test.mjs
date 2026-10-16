@@ -21,4 +21,11 @@ await assertSucceeds(reserve(a,'alice'));await assertFails(reserve(b,'bob'));awa
 await assertFails(updateDoc(doc(b,'availability',date),{slots:{[time]:false},changedTime:time,bookingId:slotId}));
 const cancel=writeBatch(a);cancel.update(doc(a,'bookings',slotId),{status:'cancelled',updatedAt:serverTimestamp()});cancel.set(doc(a,'availability',date),{slots:{[time]:false},changedTime:time,bookingId:slotId},{merge:true});await assertSucceeds(cancel.commit());await assertSucceeds(reserve(b,'bob'));
 await setDoc(doc(admin,'holidays',date),{closed:true});const blocked=booking('alice');blocked.slotId=date+'_11:00';blocked.time='11:00';await assertFails(setDoc(doc(a,'bookings',blocked.slotId),blocked));
+// Reproduce the production photo-budget mismatch, using the actual security rules.
+const sendPhoto=async(id,length)=>{const w=writeBatch(admin);w.set(doc(admin,'chats','alice','messages',id),{senderId:'HcFJGmzHw6MYoWbFmtq9IyFSjvL2',senderRole:'admin',text:'photo',createdAt:serverTimestamp()});w.set(doc(admin,'chats','alice','files',id),{senderId:'HcFJGmzHw6MYoWbFmtq9IyFSjvL2',type:'image/jpeg',name:id+'.jpg',data:'data:image/jpeg;base64,'+'A'.repeat(length-23)});return w.commit()};
+await assertFails(sendPhoto('legacy-large',600000));
+assert.equal((await getDoc(doc(a,'chats','alice','messages','legacy-large'))).exists(),false,'rejected image must not leave a phantom message');
+await assertSucceeds(sendPhoto('photo-one',400000));await assertSucceeds(sendPhoto('photo-two',399000));
+for(const id of ['photo-one','photo-two']){assert((await getDoc(doc(a,'chats','alice','messages',id))).exists());assert((await getDoc(doc(a,'chats','alice','files',id))).data().data.length<=420000)}
+console.log('PASS actual Firestore rules: legacy 600k photo rejected atomically; two 400k photos accepted and readable by customer');
 await env.cleanup();console.log('PASS rules: owner isolation, private notes, own edits, legacy readAt denied, monotonic receipts, blocked sends, attachment isolation, atomic reservation, double booking denied, cancel/rebook, holiday denial.');

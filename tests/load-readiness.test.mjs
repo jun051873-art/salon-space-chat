@@ -5,9 +5,9 @@ class Storage{m=new Map();peak=0;budget=5*1024*1024;get length(){return this.m.s
 const response=(status,body={})=>({status,ok:status<300,json:async()=>body});const auth={currentUser:{uid:'owner',getIdToken:async()=> 'test'}};
 for(const people of [100,200,300,400]){
  const storage=new Storage(),server=new Map();let online=false,lost=true,commits=0,pushes=0,renderTicks=0;
- const request=async(url,opt)=>{if(!online)throw Error('offline');if(url.endsWith(':commit')){const writes=JSON.parse(opt.body).writes,doc=writes[0].update;assert(!server.has(doc.name),'duplicate write');server.set(doc.name,doc);commits++;if(writes.length===3)assert.equal(writes[2].update.fields.data.stringValue.length,650023);if(lost){lost=false;throw Error('response lost');}return response(200);}const doc=server.get(url.replace('https://firestore.googleapis.com/v1/',''));return doc?response(200,doc):response(404,{error:{status:'NOT_FOUND'}});};
+ const request=async(url,opt)=>{if(!online)throw Error('offline');if(url.endsWith(':commit')){const writes=JSON.parse(opt.body).writes,doc=writes[0].update;assert(!server.has(doc.name),'duplicate write');server.set(doc.name,doc);commits++;if(writes.length===3)assert.equal(writes[2].update.fields.data.stringValue.length,400023);if(lost){lost=false;throw Error('response lost');}return response(200);}const doc=server.get(url.replace('https://firestore.googleapis.com/v1/',''));return doc?response(200,doc):response(404,{error:{status:'NOT_FOUND'}});};
  const make=()=>createDelivery({auth,projectId:'load',role:'admin',storage,request,notify:async()=>{pushes++;},onChange:()=>renderTicks++});
- let d=make();const photo={name:'photo.jpg',type:'image/jpeg',size:487500,data:'data:image/jpeg;base64,'+'A'.repeat(650000)+'='};
+ let d=make();const photo={name:'photo.jpg',type:'image/jpeg',size:300000,data:'data:image/jpeg;base64,'+'A'.repeat(400000)+'='};
  const blocks=[{...photo,type:'photo'},{...photo,type:'photo',data:photo.data.replaceAll('A','B')},{type:'text',text:'campaign text'}],draftKey='salon-broadcast-draft:owner';
  storage.setItem(draftKey,JSON.stringify(blocks)); // Existing legacy draft, including both full photos.
  d.saveDraft(draftKey,blocks);assert.equal(d.readDraft(draftKey)[1].data,blocks[1].data);

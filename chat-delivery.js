@@ -1,5 +1,5 @@
 // Durable per-message outbox. Firebase ID tokens preserve Firestore rules.
-export function createDelivery({auth,projectId,role,notify,onChange,storage=localStorage,request=fetch}) {
+export function createDelivery({auth,projectId,role,notify,onChange,storage=localStorage,request=fetch,prepareImage=null}) {
  const prefix=`salon-outbox-v3:${projectId}:${role}:`;
  const root=`projects/${projectId}/databases/(default)/documents`;
  const base=`https://firestore.googleapis.com/v1/${root}`;
@@ -44,6 +44,19 @@ export function createDelivery({auth,projectId,role,notify,onChange,storage=loca
    return body;
   }finally{clearTimeout(t);}
  }
+ async function fitAttachment(e){
+  const a=e.attachment;if(!a)return;
+  const data=a.data;
+  if(typeof data!=='string'||!data)throw Error('照片資料遺失，請重新選取照片；尚未送出');
+  if(data.length<=420000)return;
+  if(!a.type?.startsWith('image/'))throw Error('檔案超過傳送大小限制，請重新選取');
+  const fit=prepareImage|| (async data=>{const {compressCanvas}=await import('./salon-ui.js?v=HD2');const img=new Image();img.src=data;await img.decode();return compressCanvas(img,2400,400000,{minQuality:.74});});
+  const resized=await fit(data);
+  if(typeof resized!=='string'||!resized.startsWith('data:image/jpeg;base64,')||resized.length>420000)throw Error('照片調整失敗，原圖仍保留');
+  if(a.assetKey){storage.setItem(a.assetKey,resized);a.size=Math.floor(resized.split(',')[1].length*.75);a.type='image/jpeg';}
+  else e.attachment={...a,data:resized,type:'image/jpeg',size:Math.floor(resized.split(',')[1].length*.75)};
+  save(e);
+ }
  async function commit(e){
   if(auth.currentUser?.uid!==e.senderId)throw Error("登入身分已改變，保留訊息待原帳號恢復");
   const path=`/chats/${encodeURIComponent(e.room)}/messages/${e.id}`;
@@ -53,10 +66,11 @@ export function createDelivery({auth,projectId,role,notify,onChange,storage=loca
    if(existing.fields?.senderId?.stringValue!==e.senderId||existing.fields?.text?.stringValue!==e.text)throw Error("訊息識別碼衝突，已保留原文");
    return;
   }catch(err){if(err.status!==404)throw err;}
+  await fitAttachment(e);
   e.commitStarted=true;save(e);
   const s=v=>({stringValue:v});
   await api(":commit",{method:"POST",body:JSON.stringify({writes:[
-   {update:{name:root+`/chats/${e.room}/messages/${e.id}`,fields:{text:s(e.text),senderId:s(e.senderId),senderRole:s(e.role),clientMessageId:s(e.id),...(e.sticker?{sticker:{mapValue:{fields:{id:s(e.sticker.id),name:s(e.sticker.name),data:s(e.sticker.data)}}}}:{}),...(e.attachment?{attachment:{mapValue:{fields:{name:s(e.attachment.name),type:s(e.attachment.type),size:{integerValue:String(e.attachment.size)}}}}}:{})}},currentDocument:{exists:false},updateTransforms:[{fieldPath:"createdAt",setToServerValue:"REQUEST_TIME"}]},
+   {update:{name:root+`/chats/${e.room}/messages/${e.id}`,fields:{text:s(e.text),senderId:s(e.senderId),senderRole:s(e.role),clientMessageId:s(e.id),...(e.sticker?{sticker:{mapValue:{fields:{id:s(e.sticker.id),name:s(e.sticker.name),data:s(e.sticker.data)}}}}:{}),...(e.attachment?{attachment:{mapValue:{fields:{name:s(e.attachment.name),type:s(e.attachment.type),size:{integerValue:String(Math.floor((e.attachment.data?.split(',')[1]?.length||0)*.75))},...(e.attachment.width>0&&e.attachment.height>0?{width:{integerValue:String(Math.round(e.attachment.width))},height:{integerValue:String(Math.round(e.attachment.height))}}:{})}}}}:{})}},currentDocument:{exists:false},updateTransforms:[{fieldPath:"createdAt",setToServerValue:"REQUEST_TIME"}]},
    {update:{name:root+`/chats/${e.room}`,fields:{lastMessage:s(e.text)}},updateMask:{fieldPaths:["lastMessage"]},updateTransforms:[{fieldPath:"updatedAt",setToServerValue:"REQUEST_TIME"},...(e.role==="customer"?[{fieldPath:"lastCustomerMessageAt",setToServerValue:"REQUEST_TIME"}]:[{fieldPath:"lastAdminMessageAt",setToServerValue:"REQUEST_TIME"}])]},
    ...(e.attachment?[{update:{name:root+`/chats/${e.room}/files/${e.id}`,fields:{data:s(e.attachment.data),name:s(e.attachment.name),type:s(e.attachment.type),senderId:s(e.senderId)}},currentDocument:{exists:false}}]:[])
   ]})});
@@ -71,6 +85,7 @@ export function createDelivery({auth,projectId,role,notify,onChange,storage=loca
     if(stopped||auth.currentUser?.uid!==e.senderId)break;
     if(e.stage==="done"){cleanup(e);continue;}
     if(e.stage==="notify-error")continue;
+    if(e.stage==='queued'&&e.attachment?.data?.length>420000)e.nextAt=0;
     if(blockedRooms.has(e.room))continue;if(e.nextAt>Date.now()){if(e.stage==="queued")blockedRooms.add(e.room);continue;}
     try{
      if(e.stage==="queued"){
