@@ -2,7 +2,7 @@ const fs=require('fs'),vm=require('vm'),assert=require('assert/strict');
 const src=fs.readFileSync('salon-suite.js','utf8');
 const queue=src.slice(src.indexOf('function queueReceipt(){'),src.indexOf('async function writeReceipt(force=false){'));
 let visible=true,dialog=false,writes=0;
-const context={manualReadMode:()=>false,updateReadControls:()=>{},getChat:()=>({el:{getClientRects:()=>visible?[{}]:[],scrollHeight:9999,scrollTop:0,clientHeight:400},docs:[],viewer:'me'}),receiptFailed:false,roomUnsub:()=>{},document:{visibilityState:'visible',querySelector:()=>dialog?{}:null},receiptCandidate:()=>100,ownRead:0,receiptWanted:0,receiptTimer:null,clearTimeout(){},setTimeout(fn){writes++;return 1},writeReceipt(){}};
+const context={manualReadMode:()=>false,updateReadControls:()=>{},$:()=>null,receiptIssue:()=>{},getChat:()=>({el:{getClientRects:()=>visible?[{}]:[],scrollHeight:9999,scrollTop:0,clientHeight:400},docs:[],viewer:'me'}),receiptFailed:false,roomUnsub:()=>{},document:{visibilityState:'visible',querySelector:()=>dialog?{}:null},receiptCandidate:()=>100,ownRead:0,receiptWanted:0,receiptTimer:null,clearTimeout(){},setTimeout(fn){writes++;return 1},writeReceipt(){}};
 vm.createContext(context);vm.runInContext(queue,context);
 context.queueReceipt();assert.equal(writes,1,'opening loaded conversation acknowledges without scroll/tap');
 context.queueReceipt();assert.equal(writes,1,'same watermark does not enqueue again');
