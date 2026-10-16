@@ -11,7 +11,7 @@ export default {
  async fetch(request, env, ctx) {
   const cors = {"Access-Control-Allow-Origin":SITE,"Access-Control-Allow-Methods":"GET, POST, OPTIONS","Access-Control-Allow-Headers":"Content-Type, Authorization","Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store","Vary":"Origin"};
   if(request.method === "OPTIONS") return new Response(null,{status:204,headers:cors});
-  if(request.method === "GET") return json({ok:true,service:"salon-space-notify",version:"8-join-alerts",authenticated:true,features:{newCustomerNotifications:true,timeReplies:true,keywordReplies:true,keywordContains:true,scheduledCare:true,visitCare:true}},200,cors);
+  if(request.method === "GET") return json({ok:true,service:"salon-space-notify",version:"9-auto-customer-only",authenticated:true,features:{newCustomerNotifications:true,timeReplies:true,keywordReplies:true,keywordContains:true,scheduledCare:true,visitCare:true}},200,cors);
   if(request.method !== "POST") return json({ok:false,error:"METHOD_NOT_ALLOWED"},405,cors);
   try {
    if(request.headers.get("Origin") && request.headers.get("Origin") !== SITE) throw fault("ORIGIN_NOT_ALLOWED",403);
@@ -130,9 +130,13 @@ async function systemMessage(env,root,token,uid,id,text,customer={},shopName='�
  const s=v=>({stringValue:v});
  try{await readJSON(root.slice(0,-1)+':commit',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({writes:[{update:{name:name+'chats/'+uid+'/messages/'+id,fields:{text:s(text.slice(0,4000)),senderId:s(ADMIN_UID),senderRole:s('admin'),clientMessageId:s(id),automatic:{booleanValue:true}}},currentDocument:{exists:false},updateTransforms:[{fieldPath:'createdAt',setToServerValue:'REQUEST_TIME'}]},{update:{name:name+'chats/'+uid,fields:{lastMessage:s(text.slice(0,4000))}},updateMask:{fieldPaths:['lastMessage']},updateTransforms:[{fieldPath:'updatedAt',setToServerValue:'REQUEST_TIME'},{fieldPath:'lastAdminMessageAt',setToServerValue:'REQUEST_TIME'}]}]})},'AUTO_WRITE');}
  catch(e){if(e.code?.includes('ALREADY_EXISTS')||e.code?.includes('FAILED_PRECONDITION'))return false;throw e;}
- const tokens=await recipientTokens(root,uid,token);
+ // Shared browser tokens may be registered under both customer and owner accounts.
+ // Automatic messages remain in the conversation, but never alert an owner device.
+ const [customerTokens,ownerTokens]=await Promise.all([recipientTokens(root,uid,token),recipientTokens(root,ADMIN_UID,token)]);
+ const ownerDevices=new Set(ownerTokens);
+ const tokens=customerTokens.filter(device=>!ownerDevices.has(device));
  const customerName=customer.name||'客人';
- for(let i=0;i<tokens.length;i+=5)await Promise.all(tokens.slice(i,i+5).map(device=>readJSON('https://fcm.googleapis.com/v1/projects/'+env.FIREBASE_PROJECT_ID+'/messages:send',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({message:{token:device,data:{title:customerName+'｜'+shopName,body:text.slice(0,500),messageId:id,tag:'salon-'+uid+'-'+id,url:SITE+'/salon-space-chat/customer.html'},webpush:{headers:{Urgency:'high',TTL:'86400'}}}})},'AUTO_PUSH').catch(e=>console.error('auto-push',e.code))));
+ for(let i=0;i<tokens.length;i+=5)await Promise.all(tokens.slice(i,i+5).map(device=>readJSON('https://fcm.googleapis.com/v1/projects/'+env.FIREBASE_PROJECT_ID+'/messages:send',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({message:{token:device,data:{title:customerName+'｜'+shopName,body:text.slice(0,500),messageId:id,automatic:'true',recipientRole:'customer',tag:'salon-'+uid+'-'+id,url:SITE+'/salon-space-chat/customer.html'},webpush:{headers:{Urgency:'high',TTL:'86400'}}}})},'AUTO_PUSH').catch(e=>console.error('auto-push',e.code))));
  return true;
 }
 // Exactly one applicable time category. A disabled category never falls through to another.
