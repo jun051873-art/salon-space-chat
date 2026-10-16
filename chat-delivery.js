@@ -6,13 +6,16 @@ export function createDelivery({auth,projectId,role,notify,onChange,storage=loca
  let busy=false,timer=null,stopped=false;
  const seen=new Set();
  const key=e=>prefix+e.senderId+":"+e.id;
- const emit=()=>onChange?.();
+ let emitPending=false;const emit=()=>{if(emitPending)return;emitPending=true;Promise.resolve().then(()=>{emitPending=false;onChange?.();});};
+ const assetPrefix=prefix+'asset:';
+ const hydrate=e=>{if(e.attachment?.assetKey&&!e.attachment.data)Object.defineProperty(e.attachment,'data',{enumerable:false,get:()=>storage.getItem(e.attachment.assetKey)||''});return e;};
+ function collectAssets(){const live=new Set(all().map(e=>e.attachment?.assetKey).filter(Boolean));const start=assetPrefix+auth.currentUser?.uid+':';for(let i=storage.length-1;i>=0;i--){const k=storage.key(i);if(k?.startsWith(start)&&!live.has(k))storage.removeItem(k);}}
  function all(){
   const uid=auth.currentUser?.uid;if(!uid)return [];
   const start=prefix+uid+":";const entries=[];
   for(let i=0;i<storage.length;i++){
    const k=storage.key(i);if(!k?.startsWith(start))continue;
-   try{const e=JSON.parse(storage.getItem(k));if(e.senderId===uid&&e.role===role)entries.push(e);}catch{}
+   try{const e=JSON.parse(storage.getItem(k));if(e.senderId===uid&&e.role===role)entries.push(hydrate(e));}catch{}
   }
   return entries.sort((a,b)=>a.at-b.at||a.id.localeCompare(b.id));
  }
@@ -46,20 +49,20 @@ export function createDelivery({auth,projectId,role,notify,onChange,storage=loca
    ...(e.attachment?[{update:{name:root+`/chats/${e.room}/files/${e.id}`,fields:{data:s(e.attachment.data),name:s(e.attachment.name),type:s(e.attachment.type),senderId:s(e.senderId)}},currentDocument:{exists:false}}]:[])
   ]})});
  }
- function cleanup(e){if(e.stage==="done"&&seen.has(e.id)){storage.removeItem(key(e));emit();}}
+ function cleanup(e){if(e.stage==="done"&&seen.has(e.id)&&!e.id.startsWith("b_")){storage.removeItem(key(e));emit();}}
  function schedule(ms){if(stopped)return;clearTimeout(timer);timer=setTimeout(()=>void flush(),ms);}
  async function flush(){
   if(busy||stopped||!auth.currentUser)return;
   busy=true;clearTimeout(timer);
   try{
-   for(let e of all()){
+   const blockedRooms=new Set();for(let e of all()){
     if(stopped||auth.currentUser?.uid!==e.senderId)break;
     if(e.stage==="done"){cleanup(e);continue;}
     if(e.stage==="notify-error")continue;
-    if(e.nextAt>Date.now()){if(e.stage==="queued")break;continue;}
+    if(blockedRooms.has(e.room))continue;if(e.nextAt>Date.now()){if(e.stage==="queued")blockedRooms.add(e.room);continue;}
     try{
      if(e.stage==="queued"){
-      await commit(e);e.stage="stored";e.error="";e.attempts=0;e.nextAt=0;save(e);
+      await commit(e);e.stage="stored";if(e.attachment?.assetKey){e.attachment={...e.attachment};delete e.attachment.assetKey;}e.error="";e.attempts=0;e.nextAt=0;save(e);
      }
      // The notification job survives closing/reopening the page as well.
      await notify(e,api);
@@ -72,10 +75,10 @@ export function createDelivery({auth,projectId,role,notify,onChange,storage=loca
      e.nextAt=Date.now()+((e.quotaBlocked||err.code==="PERMISSION_DENIED"||err.status===403)?15*60*1000:Math.min(60000,5000*2**Math.min(e.attempts-1,4)));
      save(e);
      // Preserve order for messages still waiting to reach the server.
-     if(e.stage==="queued")break;
+     if(e.stage==="queued")blockedRooms.add(e.room);
     }
    }
-  }finally{busy=false;if(all().some(e=>e.stage==="queued"||e.stage==="stored"))schedule(5000);}
+  }finally{busy=false;collectAssets();if(all().some(e=>e.stage==="queued"||e.stage==="stored"))schedule(5000);}
  }
  function retryFailed(ids=[]){
   const wanted=new Set(ids);
@@ -90,7 +93,7 @@ export function createDelivery({auth,projectId,role,notify,onChange,storage=loca
   if(count){stopped=false;void flush();}
   return count;
  }
- function enqueue({room,text,senderId,attachment=null,sticker=null,id:providedId=null}){
+ function enqueue({room,text,senderId,attachment=null,sticker=null,id:providedId=null,assetId=null,defer=false}){
   if(auth.currentUser?.uid!==senderId)throw Error("登入身分已改變，文字仍保留在輸入框");
   if(sticker&&(!/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(sticker.data||'')||sticker.data.length>30000||typeof sticker.name!=='string'||sticker.name.length>30))throw Error('貼圖格式或大小不正確');
   if(text.trim().length>4000)throw Error("訊息請控制在 4000 字以內，原文仍留在輸入框");
@@ -100,10 +103,14 @@ export function createDelivery({auth,projectId,role,notify,onChange,storage=loca
   const previous=storage.getItem(prefix+senderId+":"+id);if(previous)return JSON.parse(previous);
   const e={id,room,text:text.trim(),senderId,role,attachment,sticker,at:Date.now(),stage:"queued",attempts:0,nextAt:0,error:""};
   // A storage error must leave the composer's original text untouched.
-  save(e);void flush();return e;
+  let createdAsset=null;
+  if(attachment?.data){const akey=assetPrefix+senderId+':'+(assetId||id);if(!/^[A-Za-z0-9_-]{1,160}$/.test(assetId||id))throw Error('照片識別碼無效');const existing=storage.getItem(akey);if(existing&&existing!==attachment.data)throw Error('照片識別碼衝突');if(!existing){storage.setItem(akey,attachment.data);createdAsset=akey;}e.attachment={...attachment,assetKey:akey};delete e.attachment.data;}
+  try{save(e);}catch(error){if(createdAsset)storage.removeItem(createdAsset);throw error;}
+  if(!defer)void flush();return hydrate(e);
  }
+ function enqueueMany(jobs){const added=[];try{for(const job of jobs){const existed=job.id&&storage.getItem(prefix+job.senderId+':'+job.id);const e=enqueue({...job,defer:true});if(!existed)added.push(e);}}catch(error){for(const e of added)storage.removeItem(key(e));collectAssets();throw error;}void flush();return added;}
  function acknowledge(ids){for(const id of ids)seen.add(id);for(const e of all())cleanup(e);}
- return {enqueue,flush,entries:all,acknowledge,api,retryFailed,
+ return {enqueue,enqueueMany,flush,entries:all,acknowledge,api,retryFailed,
   resume(){void flush();},
   stop(){stopped=true;clearTimeout(timer);}
  };

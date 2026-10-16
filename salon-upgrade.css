@@ -248,3 +248,25 @@ body.customerApp #msgs,body.adminApp #adminMsgs{padding-bottom:52px!important;sc
 body .inboxTools{flex-wrap:wrap;gap:8px}body .inboxTools>p{flex-basis:100%;margin:0}
 body .inboxTools button{min-height:44px}
 body .card,body .settingsGroup{background:var(--salon-glass);backdrop-filter:blur(var(--salon-blur));-webkit-backdrop-filter:blur(var(--salon-blur))}
+/* C41: stable media geometry and native two-axis scroll on iOS/Android. */
+body .chatImageAttachment{position:relative;width:min(62vw,290px)!important;height:clamp(180px,43svh,390px);max-width:100%;min-height:180px;overflow:hidden;border-radius:18px;background:#e9e8e380}
+body .chatImageAttachment img{display:block!important;width:100%!important;height:100%!important;min-height:0!important;max-height:none!important;object-fit:contain!important;border-radius:18px}
+body .chatImageAttachment [data-image-status]{position:absolute;inset:auto 10px 10px;text-align:center;font-size:12px;pointer-events:none}
+body #msgs .bubbleRow,body #adminMsgs .bubbleRow{animation:none!important;transition:none!important;overflow-anchor:none}
+body #homeCards,body #homeCards>*,body .homeCategory{min-width:0!important;max-width:100%;box-sizing:border-box}
+body .homeProductRail,body .homeEventRail,body .productGallery{width:100%;min-width:0;max-width:100%;overflow-x:auto!important;overflow-y:hidden!important;touch-action:auto!important;scroll-behavior:auto!important;scroll-snap-type:x proximity!important;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
+body .homeProductRail *,body .homeEventRail *,body .productGallery *{touch-action:auto!important}
+body .homeProductRail .homeProduct{flex:0 0 clamp(140px,42vw,210px);min-width:0;max-width:none}
+body .homeProductRail img,body .homeEventRail img{pointer-events:none;-webkit-user-drag:none}
+body .homeProduct:active,body .homeEventCard:active{transform:none!important}
+body .homeProductRail:after,body .homeEventRail:after{content:'';flex:0 0 4px}
+body .card,body .settingsGroup{backdrop-filter:none;-webkit-backdrop-filter:none}
+body .salonDialog{width:min(560px,calc(100vw - 24px));max-width:calc(100vw - 24px);max-height:calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom));box-sizing:border-box;overscroll-behavior:contain}
+body input,body textarea,body select{max-width:100%;box-sizing:border-box}
+body .toolItem{position:relative}
+body .toolItem .countBadge{position:absolute;right:8px;top:2px;width:auto;min-width:22px;height:22px;padding:2px 6px;background:#b34335!important;color:white!important;border-radius:999px;font-size:13px;display:grid;place-items:center}
+body #newCustomerAlert{display:block;width:100%;padding:13px 18px;margin:10px 0 18px;border-radius:22px;background:#fcf2df;color:#6f4424;text-align:left;font-weight:750}
+body #newCustomerAlert[hidden]{display:none}
+@media(max-width:360px){body .app{padding-left:10px!important;padding-right:10px!important}body .composer{gap:4px!important}body .composer button{padding:0 10px!important}body .customerFilters{gap:6px}body .stats{grid-template-columns:repeat(2,minmax(0,1fr))}body .dialogHead h2{font-size:20px}}
+@media(min-width:768px){body .homeProductRail .homeProduct{flex-basis:210px}body .salonDialog{padding:24px!important}body .chatImageAttachment{width:310px!important}}
+@media(orientation:landscape) and (max-height:500px){body .conversationHeader{min-height:42px!important;margin-bottom:4px!important}body .conversationFooter,body #adminChat .composer{margin-top:4px!important}body .chatImageAttachment{height:180px;min-height:180px}body .bottomNav{bottom:4px!important}}

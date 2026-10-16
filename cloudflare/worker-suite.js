@@ -11,7 +11,7 @@ export default {
  async fetch(request, env, ctx) {
   const cors = {"Access-Control-Allow-Origin":SITE,"Access-Control-Allow-Methods":"GET, POST, OPTIONS","Access-Control-Allow-Headers":"Content-Type, Authorization","Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store","Vary":"Origin"};
   if(request.method === "OPTIONS") return new Response(null,{status:204,headers:cors});
-  if(request.method === "GET") return json({ok:true,service:"salon-space-notify",version:"7-time-replies",authenticated:true,features:{timeReplies:true,keywordReplies:true,keywordContains:true,scheduledCare:true,visitCare:true}},200,cors);
+  if(request.method === "GET") return json({ok:true,service:"salon-space-notify",version:"8-join-alerts",authenticated:true,features:{newCustomerNotifications:true,timeReplies:true,keywordReplies:true,keywordContains:true,scheduledCare:true,visitCare:true}},200,cors);
   if(request.method !== "POST") return json({ok:false,error:"METHOD_NOT_ALLOWED"},405,cors);
   try {
    if(request.headers.get("Origin") && request.headers.get("Origin") !== SITE) throw fault("ORIGIN_NOT_ALLOWED",403);
@@ -24,6 +24,10 @@ export default {
    const who = await readJSON("https://identitytoolkit.googleapis.com/v1/accounts:lookup?key="+WEB_API_KEY,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({idToken})},"AUTH");
    const user = who.users?.[0];
    if(!user?.localId || user.disabled) throw fault("LOGIN_INVALID",401);
+   if(body.action==='customer-joined'){
+    if(user.localId===ADMIN_UID||body.customerUid!==user.localId)throw fault('NOT_AUTHORIZED',403);
+    return json(await notifyNewCustomer(env,user.localId),200,cors);
+   }
    const toAdmin = body.target === "admin";
    if(toAdmin ? user.localId === ADMIN_UID || body.customerUid !== user.localId : user.localId !== ADMIN_UID) throw fault("NOT_AUTHORIZED",403);
    const recipient = toAdmin ? ADMIN_UID : body.customerUid;
@@ -155,7 +159,7 @@ async function automaticReply(env,root,token,uid,sourceId,text,sourceTime){
  if(!reply&&config.keywordRepliesEnabled===true)reply=findReply(config.quickReplies,text);
  if(!reply)return;
  const customer=fieldsOf(await readJSON(root+'users/'+uid,{headers:{Authorization:'Bearer '+token}},'CUSTOMER'));
- if(['blocked','archived'].includes(customer.status))return;
+ if((customer.status||'active')!=='active')return;
  await systemMessage(env,root,token,uid,'auto_'+sourceId,reply.answer,customer,config.name||'專屬空間');
 }
 async function scanCollection(root,path,token){let page='',rows=[];do{const result=await readJSON(root+path+'?pageSize=300'+(page?'&pageToken='+encodeURIComponent(page):''),{headers:{Authorization:'Bearer '+token}},'CARE_SCAN');rows.push(...(result.documents||[]).map(d=>({id:d.name.split('/').pop(),...fieldsOf(d)})));page=result.nextPageToken||'';if(rows.length>5000)throw fault('CARE_CUSTOMER_LIMIT',400);}while(page);return rows;}
@@ -171,3 +175,26 @@ async function runCare(env){
 
 // Literal matching only: customer text never becomes a regular expression.
 function findReply(rules,text){const input=String(text||'').normalize('NFKC').toLocaleLowerCase().trim();return (Array.isArray(rules)?rules:[]).slice(0,12).find(r=>{if(r.enabled===false||!r.title||!r.answer)return false;const keys=Array.isArray(r.keywords)?r.keywords.filter(k=>typeof k==='string'&&k.trim()).slice(0,8):[];return input===String(r.title).normalize('NFKC').toLocaleLowerCase().trim()||keys.some(k=>input.includes(k.normalize('NFKC').toLocaleLowerCase().trim()));});}
+
+// A pending applicant can request only their own review alert. A durable lease
+// prevents repeated taps/concurrent requests from broadcasting the same alert.
+async function notifyNewCustomer(env,uid){
+ if(!/^[A-Za-z0-9_-]{1,128}$/.test(uid))throw fault('INVALID_RECIPIENT',400);
+ const token=await googleToken(env),root='https://firestore.googleapis.com/v1/projects/'+encodeURIComponent(env.FIREBASE_PROJECT_ID)+'/databases/(default)/documents/',headers={Authorization:'Bearer '+token,'Content-Type':'application/json'};
+ const customer=fieldsOf(await readJSON(root+'users/'+uid,{headers},'CUSTOMER'));
+ if(customer.status!=='pending')return {ok:true,skipped:'not-pending'};
+ const path='notificationJobs/join_'+uid;let previous=null;
+ try{previous=await readJSON(root+path,{headers},'JOIN_JOB');}catch(e){if(e.status!==404)throw e;}
+ const state=fieldsOf(previous||{});
+ if(state.status==='sent')return {ok:true,alreadySent:true};
+ if(state.status==='sending'&&Number(state.leaseUntil)>Date.now())return {ok:true,inProgress:true};
+ const precondition=previous?'currentDocument.updateTime='+encodeURIComponent(previous.updateTime):'currentDocument.exists=false';
+ try{await readJSON(root+path+'?'+precondition,{method:'PATCH',headers,body:JSON.stringify({fields:{status:{stringValue:'sending'},leaseUntil:{integerValue:String(Date.now()+120000)}}})},'JOIN_LEASE');}catch(e){if(/ALREADY_EXISTS|FAILED_PRECONDITION/.test(e.code||''))return {ok:true,inProgress:true};throw e;}
+ try{
+  const tokens=await recipientTokens(root,ADMIN_UID,token);if(!tokens.length)throw fault('NO_DEVICE_TOKENS',404);
+  const results=[];for(let i=0;i<tokens.length;i+=5)results.push(...await Promise.all(tokens.slice(i,i+5).map(async device=>{try{await readJSON('https://fcm.googleapis.com/v1/projects/'+encodeURIComponent(env.FIREBASE_PROJECT_ID)+'/messages:send',{method:'POST',headers,body:JSON.stringify({message:{token:device,data:{title:'新客加入・待核准',body:String(customer.name||'新客人').slice(0,60)+' 已送出加入申請，點此核對。',tag:'salon-join-'+uid,url:SITE+'/salon-space-chat/admin.html?view=approvals'},webpush:{headers:{Urgency:'high',TTL:'86400'}}}})},'FCM');return true;}catch{return false;}})));
+  const success=results.filter(Boolean).length;if(!success)throw fault('FCM_FAILED');
+  await readJSON(root+path,{method:'PATCH',headers,body:JSON.stringify({fields:{status:{stringValue:'sent'},leaseUntil:{integerValue:'0'}}})},'JOIN_RESULT');
+  return {ok:true,success,devices:tokens.length,acceptedBy:'FCM'};
+ }catch(e){try{await readJSON(root+path,{method:'PATCH',headers,body:JSON.stringify({fields:{status:{stringValue:'retry'},leaseUntil:{integerValue:'0'}}})},'JOIN_RETRY');}catch{}throw e;}
+}

@@ -24,6 +24,11 @@ export function installInteractions(){
  const scan=node=>{if(node.nodeType!==1)return;if(node.matches('dialog'))enhanceDialog(node);node.querySelectorAll('dialog').forEach(enhanceDialog);};
  scan(document.body);
  new MutationObserver(records=>records.forEach(r=>r.addedNodes.forEach(scan))).observe(document.body,{childList:true,subtree:true});
+ // Keep native horizontal scrolling; suppress only the click after a drag.
+ let railStart=null,railDragged=null;
+ document.addEventListener('pointerdown',e=>{const rail=e.target.closest?.('.homeProductRail,.homeEventRail,.productGallery');railStart=rail?{rail,x:e.clientX,y:e.clientY}:null;railDragged=null;},{passive:true});
+ document.addEventListener('pointermove',e=>{if(railStart&&Math.abs(e.clientX-railStart.x)>12)railDragged=railStart.rail;},{passive:true});
+ document.addEventListener('click',e=>{if(railDragged?.contains(e.target)){e.preventDefault();e.stopImmediatePropagation();}railDragged=null;railStart=null;},true);
  let scheduled=0,lastResume=0;
  function recover(){
   if(document.hidden)return;
@@ -54,7 +59,7 @@ export function installInteractions(){
   let banner=document.getElementById('foregroundMessage');
   if(!banner){banner=document.createElement('button');banner.id='foregroundMessage';banner.setAttribute('role','status');banner.setAttribute('aria-live','polite');document.body.append(banner);}
   banner.textContent='● 新訊息：'+String(data.body||'點此查看').slice(0,100);banner.hidden=false;
-  banner.onclick=()=>{banner.hidden=true;location.href=url.href;};
+  banner.onclick=()=>{banner.hidden=true;window.dispatchEvent(new CustomEvent('salon:open-notification',{detail:{url:url.href}}));};
   clearTimeout(banner._hideTimer);banner._hideTimer=setTimeout(()=>banner.hidden=true,8000);
  });
  recover();
