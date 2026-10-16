@@ -38,3 +38,13 @@ html.conversationOpen,body.conversationOpen{height:100%;overflow:hidden;overscro
 .noticeRibbon[hidden]{display:none!important}.noticeRibbon{position:fixed;left:50%;transform:translateX(-50%);top:calc(67px + env(safe-area-inset-top));width:calc(100% - 32px);max-width:850px;height:28px;z-index:65;display:flex;align-items:center;gap:10px;padding:3px 12px;background:#fffdfabf;border:1px solid white;border-radius:999px;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);color:#8a7152;font-size:11px}.noticeRibbon>span{flex:none;border-right:1px solid #d7cbb9;padding-right:9px}.noticeRibbon>div{overflow:hidden;flex:1}.noticeRibbon p{margin:0;width:max-content;max-width:none;white-space:nowrap;animation:salonMarquee 22s linear infinite;padding-left:20px}@media(hover:hover) and (pointer:fine){.noticeRibbon:hover p{animation-play-state:paused}}.customerApp.hasNotice:not(.conversationOpen) .app{padding-top:calc(112px + env(safe-area-inset-top))}
 .customerApp.conversationOpen #customerHeader{display:none}.customerApp.conversationOpen .noticeRibbon{top:calc(var(--chat-top,0px) + 58px + env(safe-area-inset-top));z-index:110}.customerApp.conversationOpen.hasNotice .conversationHeader{margin-bottom:35px}.customerApp.conversationOpen .app{padding:0}.customerApp #chat>.card{border:0;box-shadow:none}
 @keyframes salonMarquee{0%,15%{transform:translateX(0)}100%{transform:translateX(-100%)}}@media(prefers-reduced-motion:reduce){.noticeRibbon p{animation:none}.noticeRibbon>div{overflow:auto}}
+
+/* C15: comfortable scrolling and keyboard-safe chat on mobile Safari/Android. */
+.customerApp #chat:not(.hidden){min-height:0!important;max-height:100dvh;isolation:isolate}
+.customerApp #chat>.card{min-height:0!important;max-height:100%;overflow:hidden!important}
+.customerApp #msgs{min-height:0!important;flex:1 1 auto!important;overflow-y:auto!important;overflow-x:hidden!important;touch-action:pan-y;-webkit-overflow-scrolling:touch;scroll-padding-top:28px;scroll-padding-bottom:32px;padding:26px 16px 32px!important;overflow-wrap:anywhere}
+.customerApp #msgs .bubbleRow,.customerApp #msgs .bubbleStack,.customerApp #msgs .msg{min-width:0;overflow-wrap:anywhere;word-break:break-word}
+.customerApp .conversationFooter{flex-shrink:0!important;position:relative;min-width:0}
+.customerApp #chatDetails #pushStatus,.customerApp #chatDetails #pushDiag{display:none!important}
+.customerApp #chat .conversationHeader{min-width:0}.customerApp #chat .chatSalonPill{min-width:0;max-width:50vw;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:380px){.customerApp #msgs{padding-left:10px!important;padding-right:10px!important}.customerApp #chat .conversationHeader{gap:4px}}
