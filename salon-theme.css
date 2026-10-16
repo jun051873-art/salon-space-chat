@@ -53,3 +53,13 @@ body .bottomNav .navBtn span{display:grid;place-items:center;margin:0 auto}
 body .bottomNav::before{background:var(--salon-bottom-droplet,linear-gradient(130deg,#ffffffbd,color-mix(in srgb,var(--salon-secondary) 32%,transparent)))!important}
 body #customerHeader .headerSwitch::before{background:var(--salon-top-droplet,linear-gradient(135deg,#ffffffec,#e9e9db7a))!important}
 @media(max-width:350px){body .productGrid{gap:9px}body .productGrid .product{padding:10px!important}body .productGrid .productCover .productZoomHint{font-size:10px}}
+
+/* C24 theme editor live settings and final geometry */
+body #customerHeader .headerSwitch::before{background:linear-gradient(135deg,#ffffffed,var(--salon-top-droplet,#f1eadf))!important}
+body .bottomNav::before{background:linear-gradient(135deg,#ffffffd9,var(--salon-bottom-droplet,#e9e5f0))!important}
+body.customerApp .bottomNav .navBtn{font-size:var(--salon-nav-font-size,12px)!important;color:var(--salon-nav-text,#786951)!important}
+body .productCategorySection .productGrid .product{box-sizing:border-box!important;text-align:center!important;align-items:stretch!important}
+body .productCategorySection .productGrid .productCover{box-sizing:border-box!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important}
+body .productCategorySection .productGrid .productCover img{position:static!important;transform:none!important;object-fit:contain!important;object-position:50% 50%!important;max-width:100%!important;max-height:100%!important}
+body .productCategorySection .productGrid .product h3,body .productCategorySection .productGrid .product p{text-align:center!important}
+body .pageBack,body .dialogHead button{align-items:center!important;justify-content:center!important}
