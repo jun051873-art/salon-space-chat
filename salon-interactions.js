@@ -4,7 +4,7 @@ export function enhanceDialog(dialog){
  dialog.dataset.salonEnhanced='true';
  dialog.querySelectorAll('button').forEach(button=>{
   const label=button.getAttribute('aria-label')||button.textContent.trim();
-  if(button.hasAttribute('data-close')||/^(關閉|[×✕✖]$)/.test(label)){
+  if(/^(關閉|[×✕✖])$/.test(label)){
    button.classList.add('salonClose');button.setAttribute('aria-label',label.startsWith('關閉')?label:'關閉');
    button.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>';
   }
