@@ -93,3 +93,8 @@ body.customerApp #chat .chatPersonIcon{display:inline-grid;place-items:center;fl
 body.customerApp #chat .chatSalonPill{flex:0 0 auto!important;max-width:38%!important;margin:0!important}
 body.customerApp #chat #chatOptions{flex:0 0 auto!important}
 body.customerApp #chat .chatHeaderBalance{display:none!important}
+
+/* C29 avatar and name share one balanced glass pill */
+body.customerApp #chat .chatPersonIcon{width:28px!important;height:28px!important;flex:0 0 28px!important;border-radius:50%!important;overflow:hidden!important;display:grid!important;place-items:center!important;background:#e8e2d8!important;font-size:21px!important;color:#796c59!important}
+body.customerApp #chat .chatPersonIcon img{display:block!important;width:100%!important;height:100%!important;object-fit:cover!important;border-radius:50%!important}
+body.customerApp #chat #chatCustomerName{gap:8px!important;padding:5px 12px 5px 5px!important;min-height:42px!important}
