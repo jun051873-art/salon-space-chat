@@ -36,3 +36,20 @@ body .suiteRow{border:1px solid #ffffffc9;border-radius:28px;padding:18px;margin
 .salonGreeting[data-direction=right]:not(.still){animation-name:salonHelloRight}
 @keyframes salonHelloLeft{0%,100%{opacity:0;transform:translateX(-110vw)}18%,78%{opacity:1;transform:translateX(0)}}
 @keyframes salonHelloRight{0%,100%{opacity:0;transform:translateX(110vw)}18%,78%{opacity:1;transform:translateX(0)}}
+
+/* C23 consistent product geometry and control alignment */
+body .productGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch;gap:clamp(12px,3vw,20px)}
+body .productGrid .product{min-width:0;display:flex;flex-direction:column;align-items:stretch;padding:clamp(12px,3vw,20px)!important;text-align:center;border-radius:26px}
+body .productGrid .productCover{display:grid!important;place-items:center!important;position:relative;width:100%!important;aspect-ratio:1/1!important;min-height:0!important;padding:0!important;margin:0 auto 14px!important;overflow:hidden;border-radius:22px;background:#f1eee9}
+body .productGrid .productCover img{display:block!important;width:100%!important;height:100%!important;object-fit:contain!important;object-position:center center!important;margin:auto!important}
+body .productGrid .productCover .productZoomHint{position:absolute;bottom:9px;right:9px;left:auto;max-width:calc(100% - 18px);font-size:11px;text-align:center}
+body .productGrid .product>h3{width:100%;margin:0 0 9px!important;font-size:clamp(15px,3.7vw,20px);line-height:1.4;min-height:2.8em;display:grid;place-items:center;overflow-wrap:anywhere}
+body .productGrid .product>p{margin:0 0 14px!important;min-height:2.8em;display:flex;flex-wrap:wrap;justify-content:center;align-content:center;align-items:center;gap:4px 7px;line-height:1.45}
+body .productGrid .product>button[data-product]{width:100%;min-height:44px;margin:auto 0 0!important;display:flex;align-items:center;justify-content:center;border-radius:999px}
+body .productGrid .product del{opacity:.65}
+body .pageBack,body .backBtn,body .dialogHead button,body .photoActions button{display:inline-flex;align-items:center;justify-content:center;gap:7px;text-align:center;vertical-align:middle}
+body .bottomNav .navBtn{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:3px}
+body .bottomNav .navBtn span{display:grid;place-items:center;margin:0 auto}
+body .bottomNav::before{background:var(--salon-bottom-droplet,linear-gradient(130deg,#ffffffbd,color-mix(in srgb,var(--salon-secondary) 32%,transparent)))!important}
+body #customerHeader .headerSwitch::before{background:var(--salon-top-droplet,linear-gradient(135deg,#ffffffec,#e9e9db7a))!important}
+@media(max-width:350px){body .productGrid{gap:9px}body .productGrid .product{padding:10px!important}body .productGrid .productCover .productZoomHint{font-size:10px}}
