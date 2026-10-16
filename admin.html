@@ -64,6 +64,12 @@ body.chatMode #adminNav{display:none!important}body.chatMode .app{padding-bottom
 @media (orientation:landscape){
  #adminChat:not(.hidden){padding-left:max(16px,env(safe-area-inset-left))!important;padding-right:max(16px,env(safe-area-inset-right))!important}
 }
+
+/* Chat viewport: keep message pane scrollable, avoid overlays and leaking diagnostics. */
+#adminChat{height:100dvh!important;max-height:100dvh!important;min-height:0!important}
+#adminChat #adminMsgs{min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important;touch-action:pan-y;-webkit-overflow-scrolling:touch;scroll-padding-top:24px;scroll-padding-bottom:28px;padding-top:24px!important;padding-bottom:28px!important;overflow-wrap:anywhere}
+#adminChat .composer{flex-shrink:0!important}#adminChat #pushStatus{display:none!important}
+@media(max-width:600px){#adminChat .conversationHeader{min-width:0}#adminChat .chatSalonPill{min-width:0;max-width:48vw;overflow:hidden;text-overflow:ellipsis}}
 </style><link rel="stylesheet" href="./salon.css?v=S5.3"><link rel="stylesheet" href="./salon-refine.css?v=C9"><link rel="stylesheet" href="./salon-theme.css?v=C20"><link rel="stylesheet" href="./salon-layout.css?v=C22"><link rel="stylesheet" href="./salon-upgrade.css?v=C42"></head><body class="adminApp"><div id="bootSplash" style="position:fixed;inset:0;z-index:9999;background:#f5f1ea;display:flex;align-items:center;justify-content:center;font-family:system-ui;color:#292722"><div style="text-align:center"><div style="font-size:30px;font-weight:800">專屬空間 SALON</div><div style="margin-top:12px;font-size:15px;opacity:.55">店家管理</div></div></div><script>
 // Runs before the modules so a stalled login or module import has a way out.
 setTimeout(()=>{
@@ -176,7 +182,7 @@ function renderChatView(reason="update"){
  suite?.bindChat();
  const waiting=own.filter(e=>e.stage==="queued"),push=own.filter(e=>e.stage==="stored"||e.stage==="notify-error");
  $("chatWrite").textContent=waiting.length?waiting.length+" 則待傳，已保存在此裝置；重新開啟後會接續傳送。"+(waiting.find(e=>e.error)?.error?"\n原因："+waiting.find(e=>e.error).error:""):"";
- $("pushStatus").textContent=push.length?"訊息已存入雲端；通知尚未完成。"+(push.find(e=>e.error)?.error?"\n"+push.find(e=>e.error).error:""):"";
+ $("pushStatus").textContent=push.length?"訊息已送出；對方手機提醒尚未確認。":"";
  let hint=document.getElementById('deliveryHint');if(!hint){hint=document.createElement('button');hint.id='deliveryHint';hint.type='button';hint.setAttribute('role','status');document.querySelector('.composer').before(hint);}const failed=push.some(e=>e.stage==='notify-error');hint.hidden=!failed;hint.textContent='訊息已送出，手機提醒尚未完成。點此重試通知';hint.onclick=()=>delivery.retryFailed();
 }
 function watchChat(room,el,viewer){
