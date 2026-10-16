@@ -270,3 +270,8 @@ body #newCustomerAlert[hidden]{display:none}
 @media(max-width:360px){body .app{padding-left:10px!important;padding-right:10px!important}body .composer{gap:4px!important}body .composer button{padding:0 10px!important}body .customerFilters{gap:6px}body .stats{grid-template-columns:repeat(2,minmax(0,1fr))}body .dialogHead h2{font-size:20px}}
 @media(min-width:768px){body .homeProductRail .homeProduct{flex-basis:210px}body .salonDialog{padding:24px!important}body .chatImageAttachment{width:310px!important}}
 @media(orientation:landscape) and (max-height:500px){body .conversationHeader{min-height:42px!important;margin-bottom:4px!important}body .conversationFooter,body #adminChat .composer{margin-top:4px!important}body .chatImageAttachment{height:180px;min-height:180px}body .bottomNav{bottom:4px!important}}
+
+/* N22.2: keep the review count separate from the tool icon's square layout. */
+body.adminApp .toolItem{position:relative}
+body.adminApp .toolItem>span.countBadge{position:absolute!important;top:0!important;right:calc(50% - 29px)!important;left:auto!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;width:auto!important;min-width:22px!important;height:22px!important;padding:0 5px!important;margin:0!important;border:2px solid #fff!important;border-radius:999px!important;background:#b84e46!important;color:#fff!important;box-shadow:0 2px 5px #643c3226!important;font-size:11px!important;font-weight:750!important;line-height:1!important;z-index:2;pointer-events:none}
+body.adminApp .toolItem>span.countBadge[hidden]{display:none!important}
