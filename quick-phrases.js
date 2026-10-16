@@ -39,7 +39,7 @@ export function configuredPhrases(config = {}, role = 'customer') {
   const defaults = role === 'admin' ? DEFAULT_ADMIN_PHRASES : DEFAULT_CUSTOMER_PHRASES;
   const saved = config[key];
   const legacy = role === 'admin' ? LEGACY_ADMIN : LEGACY_CUSTOMER;
-  const unchangedLegacy = config.phrasePresetVersion !== 2 && Array.isArray(saved) && JSON.stringify(saved) === JSON.stringify(legacy);
+  const unchangedLegacy = config.phrasePresetVersion !== 2 && Array.isArray(saved) && (saved.length === 0 || JSON.stringify(saved) === JSON.stringify(legacy));
   const values = unchangedLegacy || !Array.isArray(saved) ? defaults : saved;
   return values.map(value => String(value ?? '').trim()).filter(Boolean).slice(0, 12);
 }

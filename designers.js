@@ -1,0 +1,4 @@
+export const DEFAULT_DESIGNERS=[{id:'xiaodao',name:'小刀',active:true},{id:'nana',name:'Nana',active:true}];
+export function designerList(config={}){return (Array.isArray(config.designers)?config.designers:DEFAULT_DESIGNERS).filter(x=>x&&typeof x.name==='string').map(x=>({...x,name:x.name.trim()})).filter(x=>x.name);}
+export function designerChoices(config={}){return [{id:'',name:'不指定'},...designerList(config).filter(x=>x.active!==false)];}
+export function validateDesigners(rows){const names=new Set();if(rows.length>20)throw Error('最多 20 位設計師');return rows.map(x=>{const name=String(x.name||'').trim();if(!name||name.length>30)throw Error('請填寫 1～30 字的設計師姓名');if(name==='不指定'||names.has(name.toLowerCase()))throw Error('設計師姓名不可重複或使用「不指定」');names.add(name.toLowerCase());return {id:x.id,name,active:x.active!==false};});}
