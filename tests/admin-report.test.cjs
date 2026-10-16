@@ -1,0 +1,27 @@
+const assert=require('node:assert/strict');
+const vm=require('node:vm');
+const fs=require('node:fs');
+const source=fs.readFileSync('salon-suite.js','utf8');
+const start=source.indexOf('const monitorReport=async');
+const end=source.indexOf('\n  try{const id=localStorage.getItem(reportKey)',start);
+const code=source.slice(start,end)+';globalThis.monitor=monitorReport';
+(async()=>{
+ const status={isConnected:true,textContent:''},writes=[],reports=[],timers=[];
+ let entries=[{id:'b_campaign_1',stage:'stored'}], visible=true;
+ const ctx={body:{querySelector:()=>status,getClientRects:()=>visible?[{}]:[]},delivery:{entries:()=>entries},stamp:()=>42,store:async(p,v)=>writes.push({...v}),attachReport:(id,r)=>reports.push(r),setTimeout:f=>timers.push(f)};
+ vm.createContext(ctx);vm.runInContext(code,ctx);
+ await ctx.monitor('campaign',{count:1,blockCount:1,sentCount:0});
+ await new Promise(setImmediate);
+ assert.equal(writes[0].deliveredCount,1);
+ assert.equal(writes[0].notificationPendingCount,1);
+ assert.equal(writes[0].sentCount,0);
+ await timers.shift()();await new Promise(setImmediate);
+ assert.equal(writes.length,1,'unchanged progress must not repeatedly write Firestore');
+ entries=[{id:'b_campaign_1',stage:'done'}];
+ await timers.shift()();await new Promise(setImmediate);
+ assert.equal(writes.at(-1).status,'complete');assert.equal(writes.at(-1).notificationPendingCount,0);
+ visible=false;const before=reports.length;
+ await ctx.monitor('campaign',{count:1,blockCount:1});await new Promise(setImmediate);
+ assert.equal(reports.length,before,'hidden old page must not update a new page');
+ console.log('PASS admin report: message/push separation, no idle cloud writes, hidden-page cancellation');
+})().catch(e=>{console.error(e);process.exitCode=1});
