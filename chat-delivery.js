@@ -9,7 +9,19 @@ export function createDelivery({auth,projectId,role,notify,onChange,storage=loca
  let emitPending=false;const emit=()=>{if(emitPending)return;emitPending=true;Promise.resolve().then(()=>{emitPending=false;onChange?.();});};
  const assetPrefix=prefix+'asset:';
  const hydrate=e=>{if(e.attachment?.assetKey&&!e.attachment.data)Object.defineProperty(e.attachment,'data',{enumerable:false,get:()=>storage.getItem(e.attachment.assetKey)||''});return e;};
- function collectAssets(){const live=new Set(all().map(e=>e.attachment?.assetKey).filter(Boolean));const start=assetPrefix+auth.currentUser?.uid+':';for(let i=storage.length-1;i>=0;i--){const k=storage.key(i);if(k?.startsWith(start)&&!live.has(k))storage.removeItem(k);}}
+ function collectAssets(){const live=new Set(all().map(e=>e.attachment?.assetKey).filter(Boolean));try{for(const b of JSON.parse(storage.getItem('salon-broadcast-draft:'+auth.currentUser?.uid)||'[]'))if(b.assetKey)live.add(b.assetKey);}catch{}const start=assetPrefix+auth.currentUser?.uid+':';for(let i=storage.length-1;i>=0;i--){const k=storage.key(i);if(k?.startsWith(start)&&!live.has(k))storage.removeItem(k);}}
+ function readDraft(draftKey){return JSON.parse(storage.getItem(draftKey)||'[]').map(b=>b.assetKey?{...b,data:storage.getItem(b.assetKey)||''}:b);}
+ function saveDraft(draftKey,blocks){
+  if(draftKey!=='salon-broadcast-draft:'+auth.currentUser?.uid)throw Error('草稿帳號不符');
+  const rows=blocks.map(b=>({...b}));
+  const write=()=>storage.setItem(draftKey,JSON.stringify(rows.map(b=>{const v={...b};if(v.assetKey)delete v.data;return v;})));
+  for(let i=0;i<rows.length;i++){const b=rows[i];if(b.type!=='photo'||!b.data)continue;
+   if(b.assetKey&&b.assetKey.startsWith(assetPrefix+auth.currentUser.uid+':')&&storage.getItem(b.assetKey)===b.data)continue;
+   const akey=assetPrefix+auth.currentUser.uid+':draft_'+crypto.randomUUID();storage.setItem(akey,b.data);b.assetKey=akey;
+   try{write();blocks[i].assetKey=akey;}catch(error){storage.removeItem(akey);throw error;}
+  }
+  write();collectAssets();
+ }
  function all(){
   const uid=auth.currentUser?.uid;if(!uid)return [];
   const start=prefix+uid+":";const entries=[];
@@ -104,13 +116,13 @@ export function createDelivery({auth,projectId,role,notify,onChange,storage=loca
   const e={id,room,text:text.trim(),senderId,role,attachment,sticker,at:Date.now(),stage:"queued",attempts:0,nextAt:0,error:""};
   // A storage error must leave the composer's original text untouched.
   let createdAsset=null;
-  if(attachment?.data){const akey=assetPrefix+senderId+':'+(assetId||id);if(!/^[A-Za-z0-9_-]{1,160}$/.test(assetId||id))throw Error('照片識別碼無效');const existing=storage.getItem(akey);if(existing&&existing!==attachment.data)throw Error('照片識別碼衝突');if(!existing){storage.setItem(akey,attachment.data);createdAsset=akey;}e.attachment={...attachment,assetKey:akey};delete e.attachment.data;}
+  if(attachment?.assetKey&&attachment.assetKey.startsWith(assetPrefix+senderId+':')&&storage.getItem(attachment.assetKey)){e.attachment={...attachment};delete e.attachment.data;}else if(attachment?.data){const akey=assetPrefix+senderId+':'+(assetId||id);if(!/^[A-Za-z0-9_-]{1,160}$/.test(assetId||id))throw Error('照片識別碼無效');const existing=storage.getItem(akey);if(existing&&existing!==attachment.data)throw Error('照片識別碼衝突');if(!existing){storage.setItem(akey,attachment.data);createdAsset=akey;}e.attachment={...attachment,assetKey:akey};delete e.attachment.data;}
   try{save(e);}catch(error){if(createdAsset)storage.removeItem(createdAsset);throw error;}
   if(!defer)void flush();return hydrate(e);
  }
  function enqueueMany(jobs){const added=[];try{for(const job of jobs){const existed=job.id&&storage.getItem(prefix+job.senderId+':'+job.id);const e=enqueue({...job,defer:true});if(!existed)added.push(e);}}catch(error){for(const e of added)storage.removeItem(key(e));collectAssets();throw error;}void flush();return added;}
  function acknowledge(ids){for(const id of ids)seen.add(id);for(const e of all())cleanup(e);}
- return {enqueue,enqueueMany,flush,entries:all,acknowledge,api,retryFailed,
+ return {saveDraft,readDraft,enqueue,enqueueMany,flush,entries:all,acknowledge,api,retryFailed,
   resume(){void flush();},
   stop(){stopped=true;clearTimeout(timer);}
  };
