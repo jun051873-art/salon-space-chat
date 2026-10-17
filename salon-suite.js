@@ -8,7 +8,7 @@ import{syncNotificationBrand,notificationColor,notificationIcon}from'./notificat
 import{bindLongPress,readPreview}from'./chat-preview.js?v=C24';
 import{setupGlassSwitches,resumeNotice}from'./salon-header.js?v=C16';
 import{inquiryTimes,inquiryText}from'./booking-inquiry.js?v=C12';
-import{applyTheme,mountThemeEditor,showGreeting,hideGreeting}from'./salon-theme.js?v=N40';
+import{applyTheme,mountThemeEditor,showGreeting,hideGreeting}from'./salon-theme.js?v=N41';
 import{createCustomerPages}from'./customer-pages.js?v=C9.1';
 import{badge,appDot,appPending,refreshAppBadge,unreadSummary,unreadAlert}from'./salon-unread.js?v=N4';
 import{accountDialog,installGuide,setupOnboarding}from'./salon-onboarding.js?v=N39';

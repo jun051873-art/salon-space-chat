@@ -87,3 +87,60 @@ body .pageBack,body .dialogHead button{align-items:center!important;justify-cont
 .themePreview .salonGreeting[data-position^="top-"]{top:65px}
 .themePreview .salonGreeting[data-position^="bottom-"]{bottom:70px}
 @keyframes greetingSpeechIn{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:scale(1)}}
+
+/* N41 scoped decorative layers: no pointer interception or layout shifts. */
+.ambientScene{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:58;contain:layout paint;animation:ambientEnvelope var(--ambient-time,12s) both}
+.themePreview>.ambientScene,.sceneEffects>.ambientScene{position:absolute;z-index:1}
+.ambientScene i{position:absolute;left:var(--ax);top:var(--ay);font-size:30px;font-style:normal;opacity:.38;animation:ambientFall 7s linear infinite;animation-delay:var(--ad);filter:drop-shadow(0 2px 5px #fff8)}
+.ambientScene[data-motion=rise] i{animation-name:ambientRise}
+.ambientScene[data-motion=float] i{animation-name:ambientFloat}
+.ambientScene[data-motion=pulse] i{animation-name:ambientPulse}
+.ambientScene[data-motion=cross] i{animation-name:ambientCross;font-size:48px}
+.ambientScene[data-motion=stay] i{left:65%;top:20%;font-size:100px;animation-name:ambientFloat}
+.ambientScene[data-effect=rain] i{font-size:16px;opacity:.25}
+.ambientScene[data-effect=wind] i,.ambientScene[data-effect=mist] i{font-size:100px;color:#adcad8;opacity:.25}
+.ambientScene[data-effect=suncloud] i{font-size:95px}
+.ambientScene[data-direction=right] i{animation-direction:reverse}
+.ambientScene[data-direction=stay] i{animation-name:ambientFloat}
+.ambientCaption{position:absolute;top:calc(env(safe-area-inset-top) + 120px);left:20px;right:20px;width:fit-content;max-width:calc(100% - 40px);margin:auto;padding:8px 14px;border:1px solid #fff9;border-radius:18px;background:#ffffffe8;color:#425865;font-size:13px;line-height:1.5;box-shadow:0 3px 14px #0001}
+.sceneEffects .ambientCaption{top:100px}.themePreview .ambientCaption{top:70px}
+.sceneEffects:has(.ambientScene){display:block!important;pointer-events:none}
+.effectSample{display:grid;place-items:center;font-size:30px}
+@keyframes ambientFall{from{transform:translate(0,-45vh) rotate(0)}to{transform:translate(45px,85vh) rotate(var(--ar))}}
+@keyframes ambientRise{from{transform:translateY(70vh)}to{transform:translate(30px,-70vh)}}
+@keyframes ambientCross{from{transform:translateX(-100vw)}to{transform:translateX(100vw)}}
+@keyframes ambientFloat{0%,100%{transform:translateY(0) rotate(-8deg)}50%{transform:translateY(-22px) rotate(8deg)}}
+@keyframes ambientPulse{0%,100%{opacity:.08;transform:scale(.4)}50%{opacity:.48;transform:scale(1.4)}}
+@keyframes ambientEnvelope{0%,100%{opacity:0}8%,88%{opacity:1}}
+@media(prefers-reduced-motion:reduce){.ambientScene,.ambientScene i{animation:none!important}.ambientScene i{display:none}}
+/* 12 skins combine different card arrangements, spacing, shape and palette. */
+[data-salon-layout=editorial] :is(.toolCells,.previewCards){grid-template-columns:1.5fr 1fr}
+[data-salon-layout=editorial] :is(.toolCells,.previewCards)>:first-child{grid-column:1/-1}
+[data-salon-layout=mosaic] :is(.toolCells,.previewCards){grid-template-columns:1fr 1fr}
+[data-salon-layout=mosaic] :is(.toolCells,.previewCards)>:nth-child(3n){grid-column:1/-1}
+[data-salon-layout=compact] :is(.toolCells,.previewCards){grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+[data-salon-layout=compact] .toolItem{padding:12px 4px!important;font-size:12px}
+[data-salon-layout=gallery] :is(.toolCells,.previewCards){grid-template-columns:1fr 1fr;gap:22px}
+[data-salon-layout=gallery] .toolItem{min-height:120px}
+[data-salon-layout=ribbon] :is(.toolCells,.previewCards){grid-template-columns:1fr}
+[data-salon-layout=ribbon] .toolItem{display:flex;align-items:center;gap:18px;text-align:left}
+[data-salon-layout=offset] :is(.toolCells,.previewCards){grid-template-columns:1fr 1.25fr;gap:18px}
+[data-salon-layout=offset] :is(.toolCells,.previewCards)>:nth-child(even){margin-top:18px}
+[data-salon-layout=outline] :is(.toolCells,.previewCards){grid-template-columns:1fr;gap:12px}
+[data-salon-layout=outline] .toolItem{border:1px solid var(--salon-accent)!important;background:transparent!important;box-shadow:none!important}
+[data-salon-layout=soft] :is(.toolCells,.previewCards){grid-template-columns:1fr 1fr;gap:20px}
+[data-salon-layout=soft] .toolItem{border-radius:40px 16px 40px 16px!important;min-height:105px}
+[data-salon-layout=wide] :is(.toolCells,.previewCards){grid-template-columns:1fr 1fr}
+[data-salon-layout=wide] :is(.toolCells,.previewCards)>:nth-child(4n+1){grid-column:1/-1;min-height:110px}
+[data-salon-layout=airy] :is(.toolCells,.previewCards){grid-template-columns:1fr;gap:26px;padding:10px}
+[data-salon-layout=airy] .toolItem{min-height:90px}
+.effectSwatch{display:grid;place-items:center;font-size:26px}
+[data-salon-layout] #homeCards{display:grid;grid-template-columns:1fr;gap:14px}
+[data-salon-layout=gallery] #homeCards,[data-salon-layout=mosaic] #homeCards,[data-salon-layout=compact] #homeCards{grid-template-columns:repeat(2,minmax(0,1fr))}
+[data-salon-layout=mosaic] #homeCards>:nth-child(3n),[data-salon-layout=gallery] #homeCards>:first-child{grid-column:1/-1}
+[data-salon-layout=airy] #homeCards{gap:28px;padding:12px}
+[data-salon-layout=offset] #homeCards>:nth-child(even){margin-left:20px}
+[data-salon-layout=outline] #homeCards>*{border:1px solid var(--salon-accent);background:transparent}
+[data-salon-layout=soft] #homeCards>*{border-radius:40px 16px 40px 16px}
+[data-salon-layout=editorial] #homeCards>:first-child,[data-salon-layout=wide] #homeCards>:first-child{padding-block:30px}
+[data-salon-layout=ribbon] #homeCards>*{border-radius:999px}
