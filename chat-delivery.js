@@ -3,7 +3,8 @@ export function createDelivery({auth,projectId,role,notify,onChange,storage=loca
  const prefix=`salon-outbox-v3:${projectId}:${role}:`;
  const root=`projects/${projectId}/databases/(default)/documents`;
  const base=`https://firestore.googleapis.com/v1/${root}`;
- let busy=false,timer=null,stopped=false;
+ let busy=false,timer=null,stopped=false,flushAgain=false;
+ const notifying=new Set();let lastEnqueuedAt=0;
  const seen=new Set();
  const key=e=>prefix+e.senderId+":"+e.id;
  let emitPending=false;const emit=()=>{if(emitPending)return;emitPending=true;Promise.resolve().then(()=>{emitPending=false;onChange?.();});};
@@ -77,35 +78,50 @@ export function createDelivery({auth,projectId,role,notify,onChange,storage=loca
  }
  function cleanup(e){if(e.stage==="done"&&seen.has(e.id)&&!e.id.startsWith("b_")){storage.removeItem(key(e));emit();}}
  function schedule(ms){if(stopped)return;clearTimeout(timer);timer=setTimeout(()=>void flush(),ms);}
+ function failEntry(e,err){
+  e.attempts=(e.attempts||0)+1;e.error=err.name==='AbortError'?'連線逾時':err.message||String(err);
+  e.quotaBlocked=err.code==='RESOURCE_EXHAUSTED';
+  if(e.stage==='stored'&&e.attempts>=3)e.stage='notify-error';
+  e.nextAt=Date.now()+((e.quotaBlocked||err.code==='PERMISSION_DENIED'||err.status===403)?15*60*1000:Math.min(60000,5000*2**Math.min(e.attempts-1,4)));
+  save(e);
+ }
+ // Push has its own bounded lane. A slow device/worker never holds the next photo.
+ function pumpNotifications(){
+  if(stopped||!auth.currentUser)return;
+  for(const e of all()){
+   if(notifying.size>=4)break;
+   if(e.stage!=='stored'||e.nextAt>Date.now()||notifying.has(e.id))continue;
+   notifying.add(e.id);
+   void (async()=>{
+    try{await timeout(Promise.resolve().then(()=>notify(e,api)),15000);e.stage='done';e.error='';save(e);cleanup(e);}
+    catch(err){failEntry(e,err);}
+    finally{notifying.delete(e.id);if(!stopped){pumpNotifications();if(!busy)schedule(0);}}
+   })();
+  }
+ }
  async function flush(){
-  if(busy||stopped||!auth.currentUser)return;
-  busy=true;clearTimeout(timer);
+  if(stopped||!auth.currentUser)return;
+  if(busy){flushAgain=true;return;}
+  flushAgain=false;busy=true;clearTimeout(timer);pumpNotifications();
   try{
-   const blockedRooms=new Set();for(let e of all()){
+   const blockedRooms=new Set();
+   for(const e of all()){
     if(stopped||auth.currentUser?.uid!==e.senderId)break;
-    if(e.stage==="done"){cleanup(e);continue;}
-    if(e.stage==="notify-error")continue;
-    if(e.stage==='queued'&&e.attachment?.data?.length>420000)e.nextAt=0;
-    if(blockedRooms.has(e.room))continue;if(e.nextAt>Date.now()){if(e.stage==="queued")blockedRooms.add(e.room);continue;}
+    if(e.stage==='done'){cleanup(e);continue;}
+    if(e.stage!=='queued')continue;
+    if(e.attachment?.data?.length>420000)e.nextAt=0;
+    if(blockedRooms.has(e.room))continue;
+    if(e.nextAt>Date.now()){blockedRooms.add(e.room);continue;}
     try{
-     if(e.stage==="queued"){
-      await commit(e);e.stage="stored";if(e.attachment?.assetKey){e.attachment={...e.attachment};delete e.attachment.assetKey;}e.error="";e.attempts=0;e.nextAt=0;save(e);
-     }
-     // The notification job survives closing/reopening the page as well.
-     await notify(e,api);
-     e.stage="done";e.error="";save(e);cleanup(e);
-    }catch(err){
-     e.attempts=(e.attempts||0)+1;
-     e.error=(err.name==="AbortError"?"連線逾時":err.message||String(err));
-     e.quotaBlocked=err.code==="RESOURCE_EXHAUSTED";
-     if(e.stage==="stored"&&e.attempts>=3)e.stage="notify-error";
-     e.nextAt=Date.now()+((e.quotaBlocked||err.code==="PERMISSION_DENIED"||err.status===403)?15*60*1000:Math.min(60000,5000*2**Math.min(e.attempts-1,4)));
-     save(e);
-     // Preserve order for messages still waiting to reach the server.
-     if(e.stage==="queued")blockedRooms.add(e.room);
-    }
+     await commit(e);e.stage='stored';
+     if(e.attachment?.assetKey){e.attachment={...e.attachment};delete e.attachment.assetKey;}
+     e.error='';e.attempts=0;e.nextAt=0;save(e);pumpNotifications();
+    }catch(err){failEntry(e,err);blockedRooms.add(e.room);}
    }
-  }finally{busy=false;collectAssets();if(all().some(e=>e.stage==="queued"||e.stage==="stored"))schedule(5000);}
+  }finally{
+   busy=false;collectAssets();pumpNotifications();
+   if(all().some(e=>e.stage==='queued'||e.stage==='stored'))schedule(flushAgain?0:5000);
+  }
  }
  function retryFailed(ids=[]){
   const wanted=new Set(ids);
@@ -128,7 +144,7 @@ export function createDelivery({auth,projectId,role,notify,onChange,storage=loca
   const id=providedId||"c3_"+(crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+"_"+Array.from(crypto.getRandomValues(new Uint32Array(4))).map(x=>x.toString(36)).join(""));
   if(!/^[A-Za-z0-9_-]{1,160}$/.test(id))throw Error("訊息識別碼無效");
   const previous=storage.getItem(prefix+senderId+":"+id);if(previous)return JSON.parse(previous);
-  const e={id,room,text:text.trim(),senderId,role,attachment,sticker,at:Date.now(),stage:"queued",attempts:0,nextAt:0,error:""};
+  const e={id,room,text:text.trim(),senderId,role,attachment,sticker,at:(lastEnqueuedAt=Math.max(Date.now(),lastEnqueuedAt+1)),stage:"queued",attempts:0,nextAt:0,error:""};
   // A storage error must leave the composer's original text untouched.
   let createdAsset=null;
   if(attachment?.assetKey&&attachment.assetKey.startsWith(assetPrefix+senderId+':')&&storage.getItem(attachment.assetKey)){e.attachment={...attachment};delete e.attachment.data;}else if(attachment?.data){const akey=assetPrefix+senderId+':'+(assetId||id);if(!/^[A-Za-z0-9_-]{1,160}$/.test(assetId||id))throw Error('照片識別碼無效');const existing=storage.getItem(akey);if(existing&&existing!==attachment.data)throw Error('照片識別碼衝突');if(!existing){storage.setItem(akey,attachment.data);createdAsset=akey;}e.attachment={...attachment,assetKey:akey};delete e.attachment.data;}

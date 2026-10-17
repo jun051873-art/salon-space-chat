@@ -11,3 +11,7 @@ assert.equal(vars['--salon-bubble-ink'],'#ffffff');assert.equal(vars['--salon-ac
 console.log('PASS: untrusted theme values, clamps, null defaults, contrasting text, reduced motion and scoped preview variables.');
 
 assert.equal(normalizeTheme({effectDuration:999,greetingSize:999,greetingOpacity:0}).effectDuration,60);assert.equal(normalizeTheme({greetingSize:999}).greetingSize,320);assert.equal(normalizeTheme({greetingOpacity:0}).greetingOpacity,35);
+const custom=normalizeTheme({buttonColor:'#123456',tagColor:'#ffffff',iconShape:'capsule',navBackground:'#aabbcc',pageColors:{broadcast:{buttonColor:'#aa0033',tagColor:'red;display:none'},'bad"{}':{buttonColor:'#123456'}}});
+assert.deepEqual(custom.pageColors,{broadcast:{buttonColor:'#aa0033'}});assert.equal(custom.iconShape,'capsule');applyTheme(custom,target);assert.equal(vars['--salon-button'],'#123456');assert.equal(vars['--salon-tag-ink'],'#292722');assert.equal(vars['--salon-icon-width'],'76px');assert.equal(vars['--salon-nav-background'],'#aabbcc');assert.equal(normalizeTheme({accent:'red;display:none'}).buttonColor,'#8c7158');
+const copy=normalizeTheme(custom);copy.pageColors.broadcast.buttonColor='#ffffff';assert.equal(custom.pageColors.broadcast.buttonColor,'#aa0033');
+console.log('PASS global/page palettes: validated colors, isolated draft copies, contrast, navigation and icon shapes');

@@ -23,6 +23,6 @@ vm.runInContext(source.slice(start,end),c);
 // Replacing a confirmation dialog must settle its pending operation as cancelled.
 const dialogs=[],buttons={};
 class Dialog{constructor(){this.open=false;this.listeners={};this.isConnected=true;}set innerHTML(value){for(const id of ['confirmYes','confirmNo'])buttons[id]={};}querySelector(){return{}}addEventListener(n,f){(this.listeners[n]??=[]).push(f)}showModal(){this.open=true}close(){if(!this.open)return;this.open=false;for(const fn of this.listeners.close||[])fn()}remove(){this.isConnected=false}}
-const mc=vm.createContext({document:{querySelectorAll:()=>dialogs.filter(d=>d.isConnected),createElement:()=>new Dialog(),body:{dataset:{},append:d=>dialogs.push(d)}},esc:x=>x,icon:()=>'', $:id=>buttons[id]});
+const mc=vm.createContext({admin:false,activeTool:'',document:{querySelectorAll:()=>dialogs.filter(d=>d.isConnected),createElement:()=>new Dialog(),body:{dataset:{},append:d=>dialogs.push(d)}},esc:x=>x,icon:()=>'', $:id=>buttons[id]});
 vm.runInContext(source.slice(source.indexOf(' function modal('),source.indexOf(' async function store(')),mc);
 (async()=>{const answer=mc.confirmAction('確認','測試');mc.modal('下一個視窗','');assert.equal(await answer,false);assert.equal(dialogs.filter(d=>d.isConnected).length,1);console.log('PASS replacing a confirmation cancels its pending operation and leaves one dialog');})();

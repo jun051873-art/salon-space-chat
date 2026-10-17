@@ -341,3 +341,30 @@ body .chatImageAttachment img{width:100%!important;height:100%!important;object-
 .broadcastSuccess{color:#246d50;font-weight:750;padding:18px 20px;border-radius:24px;background:#e7f4ec}
 .broadcastResult{scroll-margin-top:170px}.broadcastResult h3{margin:0 0 10px}.broadcastResult p{margin:8px 0}
 #bComposer[hidden],#bNew[hidden]{display:none!important}
+
+/* N35: one palette for controls across both roles, with optional page overrides. */
+body :where(#toolBody,#adminHome,#adminAnalysis,#preferences,#booking,#info,#gallery,.salonDialog) :where(button:not(.toolItem):not([data-close]):not(.photoClose):not(.themePreset):not(.effectTile):not(.photoPreview):not([data-image-preview]):not([data-product-photo]):not(.calendarDay)),
+body :is(#send,#replyBtn,#bSend,#themePublish,#settingsSave){background:var(--salon-button,var(--salon-accent))!important;color:var(--salon-button-ink,var(--salon-accent-ink))!important}
+body :is(.softBtn,.quickPills button,.ownerQuickReplies button,.phraseCards button,.customerFilters button,.broadcastModes button,#bTags button,.tagEditor button){background:var(--salon-soft,#edeaf1)!important;color:var(--salon-soft-ink,#292722)!important}
+body :is(.customerFilters .active,.broadcastModes [aria-pressed=true],#bTags [aria-pressed=true],[data-profile-tag][aria-pressed=true],.inquiryChoices button[aria-pressed=true],.calendar button.chosen,.bookingTabs button[aria-pressed=true],.settingsJump button[aria-pressed=true],.themeTarget button[aria-pressed=true]){background:var(--salon-tag,var(--salon-accent))!important;color:var(--salon-tag-ink,var(--salon-accent-ink))!important;border-color:var(--salon-tag,var(--salon-accent))!important}
+body input[type=checkbox],body input[type=radio]{accent-color:var(--salon-tag,var(--salon-accent))}
+body .bottomNav{background:linear-gradient(120deg,#ffffffa8,color-mix(in srgb,var(--salon-nav-background,#edf3f3) 72%,transparent))!important}
+body .bottomNav::before{background:linear-gradient(135deg,#ffffffa0,var(--salon-bottom-droplet,#e9e5f0))!important}
+body .bottomNav .navBtn{color:var(--salon-nav-text,#786951)!important;font-size:var(--salon-nav-font-size,12px)!important;background:transparent!important}
+body .bottomNav .navBtn.active{color:var(--salon-nav-active-text,#493e35)!important}
+body .bottomNav .navBtn>span:not(.countBadge){color:inherit!important;background:transparent!important}
+body.adminApp .toolGroup .toolItem{background:transparent!important;border:0!important;box-shadow:none!important;padding:10px 4px!important;display:flex;flex-direction:column;align-items:center;gap:9px;min-width:0}
+body.adminApp .toolGroup .toolItem>span:not(.countBadge),.themePreview .previewIcon{display:grid;place-items:center;flex:0 0 auto;width:var(--salon-icon-width,60px)!important;height:60px!important;margin:0 auto!important;border-radius:var(--salon-icon-radius,999px)!important;color:var(--salon-icon,var(--salon-accent))!important;background:linear-gradient(135deg,#ffffffbd,color-mix(in srgb,var(--salon-icon-fill,#e4eeea) 78%,transparent))!important;border:1px solid #ffffffdc;box-shadow:inset 0 1px 2px #fff,0 5px 15px #39434b0d;}
+body.adminApp .toolGroup .toolItem>span:not(.countBadge) svg{width:27px!important;height:27px!important;stroke-width:1.8;overflow:visible}
+body.adminApp .toolGroup .toolItem b{color:var(--salon-icon-text,#655a4a)!important;font-size:13px;line-height:1.5;font-weight:650;word-break:normal;overflow-wrap:anywhere}
+[data-icon-shape=none] .toolGroup .toolItem>span:not(.countBadge),[data-icon-shape=none] .previewIcon{background:transparent!important;box-shadow:none!important;border-color:transparent!important}
+body.adminApp .toolCells{gap:14px 8px!important}
+@media(max-width:359px){body.adminApp .toolCells{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
+.themePreview .previewControls{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;padding:12px}
+.themePreview .previewControls button,.themePreview .previewTag{border:0;border-radius:999px;padding:10px 14px;font-size:13px}
+.themePreview .previewPrimary{background:var(--salon-button)!important;color:var(--salon-button-ink)!important}
+.themePreview .previewSoft{background:var(--salon-soft)!important;color:var(--salon-soft-ink)!important}
+.themePreview .previewTag{background:var(--salon-tag);color:var(--salon-tag-ink)}
+.themePreview .previewBottom{background:var(--salon-nav-background)!important;color:var(--salon-nav-text)!important;padding:16px;display:flex;align-items:center;justify-content:space-evenly}
+.themePreview .previewBottom b{background:var(--salon-bottom-droplet);color:var(--salon-nav-active-text);padding:12px 22px;border-radius:999px}
+.pageColorOptions summary{cursor:pointer;padding:14px 0;font-weight:700}.pageColorOptions select{width:100%}.themeFields input[type=color]{min-width:44px;min-height:44px;cursor:pointer;border-radius:999px;padding:3px}.themeFields label{min-width:0}

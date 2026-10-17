@@ -16,6 +16,7 @@ for(const people of [100,200,300,400]){
  // Closing/reopening plus lost-response retry. Advance retry deadlines only in the fixture.
  for(const [k,v]of storage.m)if(!k.includes(':asset:')){const e=JSON.parse(v);e.nextAt=0;storage.setItem(k,JSON.stringify(e));}
  online=true;d=make();for(let attempt=0;attempt<4;attempt++){for(const [k,v]of storage.m)if(!k.includes(':asset:')){const e=JSON.parse(v);e.nextAt=0;storage.setItem(k,JSON.stringify(e));}await d.flush();}
+ for(let wait=0;wait<200&&!d.entries().every(e=>e.stage==='done');wait++)await new Promise(r=>setTimeout(r,5));
  assert.equal(commits,people*3);assert.equal(pushes,people*3);assert(d.entries().every(e=>e.stage==='done'));assert(![...storage.m.keys()].some(k=>k.includes(':asset:')));d.acknowledge(jobs.map(e=>e.id));assert.equal(d.entries().length,people*3,'report accounting survives viewing a chat');d.stop();
  console.log(`PASS ${people} recipients: ${commits} unique commits, ${pushes} mock notifications, offline/reopen/lost-response retry; peak local queue ${(storage.peak/1048576).toFixed(2)} MiB`);
 }
