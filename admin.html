@@ -312,7 +312,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='OPEN_
 window.addEventListener('salon:open-notification',e=>void routeNotification(e.detail));
 onAuthStateChanged(auth,async user=>{
  if(suite?.demo)return;
- if(user?.uid!==ADMIN){adminFeed?.destroy();adminFeed=null;closeChatListener();suite?.stopUnread();}
+ if(user?.uid!==ADMIN){adminFeed?.destroy();adminFeed=null;currentChatView?.feed?.pause();closeChatListener();suite?.stopUnread();document.querySelectorAll('dialog[open]').forEach(d=>d.close());$('adminNav').classList.add('hidden');document.body.classList.remove('conversationOpen');document.documentElement.classList.remove('conversationOpen');if(booted)$('err').textContent='店家登入已失效，請重新登入。';booted=false;show('login');return;}
  if(booted)return;
  booted=true;
  if(user?.uid===ADMIN){await openAdminHome();return}
