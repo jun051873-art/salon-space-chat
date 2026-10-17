@@ -182,7 +182,9 @@ function renderChatView(reason="update"){
  suite?.bindChat();
  const waiting=own.filter(e=>e.stage==="queued"),push=own.filter(e=>e.stage==="stored"||e.stage==="notify-error");
  $("chatWrite").textContent=waiting.length?waiting.length+" 則待傳，已保存在此裝置；重新開啟後會接續傳送。"+(waiting.find(e=>e.error)?.error?"\n原因："+waiting.find(e=>e.error).error:""):"";
- $("pushStatus").textContent=push.length?"訊息已送出；對方手機提醒尚未確認。":"";
+ const pushError=push.find(e=>e.error)?.error||"",pushCode=pushError.match(/"(?:error|code)":"([A-Z0-9_-]+)"/)?.[1]||(/逾時|TIMEOUT|AbortError/.test(pushError)?'TIMEOUT':pushError?'PUSH_FAILED':'');
+ const pushExplanation=pushCode==='NO_DEVICE_TOKENS'?'對方尚未完成通知設定，請對方在使用的手機開啟通知。':/UNREGISTERED|NOT_FOUND/.test(pushCode)?'對方的通知登記已失效，請對方重新開啟通知。':pushCode==='TIMEOUT'?'通知服務回應逾時，系統會重試；訊息不會重複傳送。':pushCode?'通知未完成（'+pushCode+'），訊息已保留。':'正在確認對方手機通知…';
+ $("pushStatus").textContent=push.length?'訊息已送出。'+pushExplanation:"";
  let hint=document.getElementById('deliveryHint');if(!hint){hint=document.createElement('button');hint.id='deliveryHint';hint.type='button';hint.setAttribute('role','status');document.querySelector('.composer').before(hint);}const failed=push.some(e=>e.stage==='notify-error');hint.hidden=!failed;hint.textContent='訊息已送出，手機提醒尚未完成。點此重試通知';hint.onclick=()=>delivery.retryFailed();
 }
 function watchChat(room,el,viewer){
