@@ -144,3 +144,22 @@ body .pageBack,body .dialogHead button{align-items:center!important;justify-cont
 [data-salon-layout=soft] #homeCards>*{border-radius:40px 16px 40px 16px}
 [data-salon-layout=editorial] #homeCards>:first-child,[data-salon-layout=wide] #homeCards>:first-child{padding-block:30px}
 [data-salon-layout=ribbon] #homeCards>*{border-radius:999px}
+
+/* N42: quiet, hand-drawn atmosphere; no weather report overlay. */
+.ambientCaption{display:none!important}
+.ambientScene[data-motion=soft] .ambientSymbol{left:12%;top:23%;width:clamp(100px,24vw,160px);height:auto;font-size:initial;opacity:0;color:#bdd3dc;filter:drop-shadow(0 2px 10px #fff5);animation:ambientSoftDrift var(--ambient-time,12s) cubic-bezier(.2,.55,.55,1) both;animation-delay:0s}
+.ambientSymbol svg{display:block;width:100%;height:auto}
+.ambientScene[data-motion=soft][data-effect=sun] .ambientSymbol,.ambientScene[data-motion=soft][data-effect=suncloud] .ambientSymbol{color:#d9b774}
+.sceneEffects .ambientScene[data-motion=soft] .ambientSymbol{color:#f2eee0}
+.ambientScene[data-motion=soft][data-direction=right] .ambientSymbol{left:auto;right:12%;animation-name:ambientSoftReverse}
+.ambientScene[data-motion=soft][data-direction=stay] .ambientSymbol{left:calc(50% - 60px);animation-name:ambientSoftStay}
+@keyframes ambientSoftDrift{0%{opacity:0;transform:translate3d(-80px,8px,0) scale(.94)}22%{opacity:.38}70%{opacity:.3}100%{opacity:0;transform:translate3d(180px,-20px,0) scale(1.04)}}
+@keyframes ambientSoftReverse{0%{opacity:0;transform:translate3d(80px,8px,0) scale(.94)}22%{opacity:.38}70%{opacity:.3}100%{opacity:0;transform:translate3d(-180px,-20px,0) scale(1.04)}}
+@keyframes ambientSoftStay{0%,100%{opacity:0;transform:translateY(8px) scale(.96)}28%,65%{opacity:.36;transform:translateY(-8px) scale(1)}}
+.ambientRandomSwitch,.profileScene .sceneSheet .sceneRandomSwitch{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:14px 0}
+.sceneRandomSwitch small{display:block;max-width:300px;font-size:12px;line-height:1.6;color:#748078;margin-top:5px}
+.ambientRandomSwitch input[type=checkbox],.profileScene .sceneSheet .sceneRandomSwitch input[type=checkbox]{appearance:none;flex:0 0 48px;width:48px;height:28px;min-height:0;border:0;border-radius:99px;padding:3px;margin:0;background:#ccd3ce;cursor:pointer;transition:background .2s}
+.ambientRandomSwitch input:before,.sceneRandomSwitch input:before{content:'';display:block;width:22px;height:22px;border-radius:50%;background:white;box-shadow:0 1px 4px #0002;transition:transform .2s}
+.ambientRandomSwitch input:checked,.profileScene .sceneSheet .sceneRandomSwitch input:checked{background:#718f80}
+.ambientRandomSwitch input:checked:before,.sceneRandomSwitch input:checked:before{transform:translateX(20px)}
+.effectSample{display:grid;place-items:center;color:#f2eee0}.effectSample svg{width:70%;height:70%}.effectSample:before{display:none!important}
