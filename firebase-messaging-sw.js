@@ -1,5 +1,5 @@
 importScripts('./push-presentation.js?v=N2');
-const NOTIFICATION_VERSION='N4';
+const NOTIFICATION_VERSION='N5';
 const BRAND_CACHE='salon-notification-brand-v1';
 const BRAND_URL='/salon-space-chat/__notification_brand__';
 async function readBrand(){try{const response=await (await caches.open(BRAND_CACHE)).match(BRAND_URL);return response?await response.json():{};}catch{return {};}}
@@ -24,7 +24,7 @@ self.addEventListener('notificationclick',event=>{
     // Keep the target in the URL even if auth is still loading or a suspended
     // page misses postMessage. Navigation keeps this installed app's identity.
     let target=client;
-    try{if(client.navigate)target=await client.navigate(destination.href)||client;}catch{}
+    try{if(current.href!==destination.href&&client.navigate)target=await client.navigate(destination.href)||client;}catch{}
     target.postMessage({type:'OPEN_NOTIFICATION_URL',url:destination.href});
     if('focus' in target)return target.focus();
    }
