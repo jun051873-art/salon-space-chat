@@ -29,7 +29,7 @@ export function startAtmosphere(canvas,effect,{direction='left',rng=Math.random}
  if(effect==='fireworks'){for(let j=0;j<4;j++){const age=(t*.24+j*.26)%1,x=w*(.2+j*.21),y=h*(.16+(j%2)*.22),radius=age*95;c.strokeStyle=`rgba(${j%2?'205,160,170':'211,179,112'},${(1-age)*.6})`;c.lineWidth=1.3;for(let k=0;k<32;k++){const a=k*Math.PI/16;c.beginPath();c.moveTo(x+Math.cos(a)*radius*.74,y+Math.sin(a)*radius*.74+age*age*22);c.lineTo(x+Math.cos(a)*radius,y+Math.sin(a)*radius+age*age*22);c.stroke();}}return;}
  particles.forEach((p,i)=>{
  const z=p.z;let x=wrap(p.x*w+t*(8+z*15)*sign+Math.sin(t*.65+p.p)*18,w+70)-35,y=wrap(p.y*h+t*(12+z*28),h+60)-30;
- if(effect==='rain'){x=wrap(p.x*w+t*30*sign,w+40)-20;y=wrap(p.y*h+t*(180+z*270),h+50)-25;c.strokeStyle=`rgba(113,157,178,${.09+z*.22})`;c.lineWidth=.45+z*.65;c.beginPath();c.moveTo(x,y);c.lineTo(x+sign*(2+z*4),y+8+z*19);c.stroke();if(i<12){const a=(t*.6+p.s)%1;c.strokeStyle=`rgba(130,167,178,${(1-a)*.23})`;ellipse(p.x*w,h*(.72+p.y*.28),a*22+1,a*5+.2);c.stroke();}return;}
+ if(effect==='rain'){x=wrap(p.x*w+t*30*sign,w+40)-20;y=wrap(p.y*h+t*(180+z*270),h+50)-25;c.strokeStyle=`rgba(113,157,178,${.14+z*.30})`;c.lineWidth=.45+z*.65;c.beginPath();c.moveTo(x,y);c.lineTo(x+sign*(2+z*4),y+8+z*19);c.stroke();if(i<12){const a=(t*.6+p.s)%1;c.strokeStyle=`rgba(130,167,178,${(1-a)*.23})`;ellipse(p.x*w,h*(.72+p.y*.28),a*22+1,a*5+.2);c.stroke();}return;}
  if(effect==='snow'){x=wrap(p.x*w+t*(3+z*8)*sign+Math.sin(t*.7+p.p)*18,w+40)-20;y=wrap(p.y*h+t*(9+z*24),h+30)-15;if(z>.85)glow(x,y,7,'rgba(220,232,239,.33)');c.fillStyle=`rgba(214,229,238,${.30+z*.45})`;ellipse(x,y,1+z*2.4,1+z*2.4);c.fill();return;}
  if(['clouds','mist','wind','rainbow'].includes(effect))return;
  if(['sun','suncloud','moon','midautumn','stars','fireflies'].includes(effect)){
@@ -43,7 +43,7 @@ export function startAtmosphere(canvas,effect,{direction='left',rng=Math.random}
  c.save();c.translate(x,y);c.rotate(Math.sin(t*.6+p.p)*.5+(effect==='petals'?t*.22:0));c.globalAlpha=.22+z*.47;const s=4+z*7;
  if(['petals','leaves','confetti','newyear','dragonboat'].includes(effect)){
  c.scale(.35+Math.abs(Math.sin(t*.7+p.p))*.65,1);
- if(effect==='petals')petal(s,['#e7a8bc','#efbaca','#f5d3de'][i%3]);
+ if(effect==='petals')petal(s,['#d88ca6','#e5a6bc','#f4c8d7'][i%3]);
  if(effect==='leaves'){petal(s*1.35,['#c9a36a','#bc895c','#d5b475'][i%3]);}
  if(effect==='confetti'){c.fillStyle=['#d7b0b6','#b5c9bc','#d5bd89','#b5c2d6'][i%4];c.fillRect(-s/3,-s,s*.65,s*1.7);}
  if(effect==='newyear'){c.fillStyle='#b35b55';c.fillRect(-s*.65,-s,s*1.3,s*2);c.strokeStyle='#dfbe7c';c.lineWidth=.8;c.strokeRect(-s*.45,-s*.8,s*.9,s*1.6);c.rotate(Math.PI/4);c.fillStyle='#dfbe7c';c.fillRect(-s*.25,-s*.25,s*.5,s*.5);}
