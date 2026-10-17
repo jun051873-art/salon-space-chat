@@ -12,7 +12,7 @@ export function syncNotificationBrand(config,role){
   }
   const title=document.querySelector('meta[name="apple-mobile-web-app-title"]');
   if(title)title.content=role==='admin'?'沙龍管理':'專屬空間';
-  const send=registration=>registration.active?.postMessage({type:'SALON_NOTIFICATION_BRAND',branding});
+  const send=registration=>registration.active?.postMessage({type:'SALON_NOTIFICATION_BRAND',branding,ownerDevice:role==='admin'});
   navigator.serviceWorker?.ready.then(send).catch(()=>{});
 }
 

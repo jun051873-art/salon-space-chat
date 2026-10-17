@@ -15,3 +15,8 @@ const custom=normalizeTheme({buttonColor:'#123456',tagColor:'#ffffff',iconShape:
 assert.deepEqual(custom.pageColors,{broadcast:{buttonColor:'#aa0033'}});assert.equal(custom.iconShape,'capsule');applyTheme(custom,target);assert.equal(vars['--salon-button'],'#123456');assert.equal(vars['--salon-tag-ink'],'#292722');assert.equal(vars['--salon-icon-width'],'76px');assert.equal(vars['--salon-nav-background'],'#aabbcc');assert.equal(normalizeTheme({accent:'red;display:none'}).buttonColor,'#8c7158');
 const copy=normalizeTheme(custom);copy.pageColors.broadcast.buttonColor='#ffffff';assert.equal(custom.pageColors.broadcast.buttonColor,'#aa0033');
 console.log('PASS global/page palettes: validated colors, isolated draft copies, contrast, navigation and icon shapes');
+
+for(const position of ['top-left','top-center','top-right','middle-left','middle-center','middle-right','bottom-left','bottom-center','bottom-right']){assert.equal(normalizeTheme({greetingPosition:position}).greetingPosition,position);}
+for(const motif of ['dog','bear','rabbit','panda','moon','star'])assert.equal(normalizeTheme({motif}).motif,motif);
+assert.equal(normalizeTheme({greetingPosition:'bad',greetingSide:'bad',greetingStyle:'bad'}).greetingPosition,'bottom-right');
+assert.deepEqual(normalizeTheme(normalizeTheme({greetingSide:'left',greetingStyle:'shape'})),normalizeTheme({greetingSide:'left',greetingStyle:'shape'}));

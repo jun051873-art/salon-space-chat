@@ -54,6 +54,7 @@ export function installInteractions(){
  // Receiving an FCM message while visible does not create an OS notification.
  window.addEventListener('salon:foreground-message',event=>{
   const data=event.detail||{};if(document.hidden)return;
+  if(location.pathname.endsWith('/admin.html')&&(data.automatic===true||data.automatic==='true'))return;
   let url;try{url=new URL(data.url,location.href);}catch{return;}
   if(url.pathname!==location.pathname||url.origin!==location.origin||!['/salon-space-chat/customer.html','/salon-space-chat/admin.html'].includes(url.pathname))return;
   let banner=document.getElementById('foregroundMessage');

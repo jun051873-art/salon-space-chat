@@ -4,11 +4,11 @@ import {customerVisible,broadcastEligible,customerDeletionPatch} from './custome
 import{bindPhotoViewer,openPhotoViewer}from'./photo-viewer.js?v=HD3';
 import{openProfileScene}from'./profile-scene.js?v=C28';
 import{saveCustomerProfile}from'./customer-profile.js?v=C26';
-import{syncNotificationBrand,notificationColor,notificationIcon}from'./notification-brand.js?v=N2';
+import{syncNotificationBrand,notificationColor,notificationIcon}from'./notification-brand.js?v=N3';
 import{bindLongPress,readPreview}from'./chat-preview.js?v=C24';
 import{setupGlassSwitches,resumeNotice}from'./salon-header.js?v=C16';
 import{inquiryTimes,inquiryText}from'./booking-inquiry.js?v=C12';
-import{applyTheme,mountThemeEditor,showGreeting,hideGreeting}from'./salon-theme.js?v=N36';
+import{applyTheme,mountThemeEditor,showGreeting,hideGreeting}from'./salon-theme.js?v=N40';
 import{createCustomerPages}from'./customer-pages.js?v=C9.1';
 import{badge,appDot,appPending,refreshAppBadge,unreadSummary,unreadAlert}from'./salon-unread.js?v=N4';
 import{accountDialog,installGuide,setupOnboarding}from'./salon-onboarding.js?v=N39';

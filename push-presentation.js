@@ -7,9 +7,10 @@
     try {
       const url=new URL(value||'./customer.html',origin+'/salon-space-chat/');
       if(url.origin!==origin || !/^\/salon-space-chat\/(admin|customer)\.html$/.test(url.pathname))throw Error('invalid destination');
-      if(url.pathname.endsWith('/customer.html'))url.hash='chat';
+      if(url.pathname.endsWith('/customer.html'))url.hash='inbox';
+      else if(url.searchParams.has('chat')||url.hash.startsWith('#chat')){url.searchParams.delete('chat');url.searchParams.set('view','messages');url.hash='';}
       return url;
-    }catch{return new URL('/salon-space-chat/customer.html#chat',origin);}
+    }catch{return new URL('/salon-space-chat/customer.html#inbox',origin);}
   }
   function notification(data,branding,origin){
     const url=destination(data.url,origin),role=url.pathname.endsWith('/admin.html')?'admin':'customer';

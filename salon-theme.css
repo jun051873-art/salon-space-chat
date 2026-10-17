@@ -63,3 +63,27 @@ body .productCategorySection .productGrid .productCover{box-sizing:border-box!im
 body .productCategorySection .productGrid .productCover img{position:static!important;transform:none!important;object-fit:contain!important;object-position:50% 50%!important;max-width:100%!important;max-height:100%!important}
 body .productCategorySection .productGrid .product h3,body .productCategorySection .productGrid .product p{text-align:center!important}
 body .pageBack,body .dialogHead button{align-items:center!important;justify-content:center!important}
+
+/* N40: nine safe-area anchors, independent of entrance animation. */
+.salonGreeting[data-position]{left:16px;right:auto;top:calc(env(safe-area-inset-top) + 100px);bottom:auto;translate:0 0;max-width:calc(100vw - 32px)}
+.salonGreeting[data-position$="-center"]{left:50%;translate:-50% 0}
+.salonGreeting[data-position$="-right"]{left:auto;right:16px}
+.salonGreeting[data-position^="middle-"]{top:50%;translate:0 -50%}
+.salonGreeting[data-position="middle-center"]{translate:-50% -50%}
+.salonGreeting[data-position^="bottom-"]{top:auto;bottom:calc(env(safe-area-inset-bottom) + 100px)}
+.salonGreeting[data-style="companion"]{padding:0;border:0;border-radius:0;background:none;box-shadow:none;backdrop-filter:none;gap:12px;align-items:center;isolation:isolate}
+.salonGreeting[data-style="companion"] .greetingMark{font-size:clamp(42px,14vw,64px);flex:0 0 auto;line-height:1.2;filter:drop-shadow(0 5px 5px #493e3520)}
+.salonGreeting[data-style="companion"] .greetingSpeech{position:relative;min-width:0;padding:16px;border:1px solid #fff;border-radius:22px;background:var(--hello-glass,#fffaf0f5);box-shadow:0 8px 24px #493e3520;line-height:1.6;overflow-wrap:anywhere;animation:greetingSpeechIn .35s .45s both}
+.salonGreeting[data-style="companion"] .greetingSpeech::before{content:'';position:absolute;width:12px;height:12px;background:var(--hello-glass,#fffaf0f5);left:-6px;top:50%;transform:translateY(-50%) rotate(45deg);z-index:-1}
+.salonGreeting[data-side="right"]{flex-direction:row-reverse}
+.salonGreeting[data-side="right"] .greetingSpeech::before{left:auto;right:-6px}
+.salonGreeting[data-side="top"]{flex-direction:column}
+.salonGreeting[data-side="top"] .greetingSpeech::before{left:50%;top:-6px;transform:translateX(-50%) rotate(45deg)}
+.salonGreeting[data-side="bottom"]{flex-direction:column-reverse}
+.salonGreeting[data-side="bottom"] .greetingSpeech::before{left:50%;top:auto;bottom:-6px;transform:translateX(-50%) rotate(45deg)}
+.salonGreeting[data-motif="none"] .greetingMark,.salonGreeting[data-motif="none"] .greetingSpeech::before{display:none}
+.salonGreeting.still .greetingSpeech{animation:none}
+.themePreview .salonGreeting[data-position]{max-width:calc(100% - 24px)}
+.themePreview .salonGreeting[data-position^="top-"]{top:65px}
+.themePreview .salonGreeting[data-position^="bottom-"]{bottom:70px}
+@keyframes greetingSpeechIn{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:scale(1)}}
