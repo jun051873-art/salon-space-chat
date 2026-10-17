@@ -1,4 +1,5 @@
-import {solarDates} from './solar-terms-data.js?v=N42';
+import {startAtmosphere} from './ambient-renderer.js?v=N43';
+import {solarDates} from './solar-terms-data.js?v=N43';
 export const scenes={rain:['細雨','💧','fall'],petals:['櫻花','🌸','fall'],snow:['飄雪','❄','fall'],sun:['暖陽','☀️','stay'],fireflies:['螢火','✧','float'],bubbles:['泡泡','○','rise'],ripples:['水波','◯','pulse'],leaves:['秋葉','🍂','fall'],stars:['星光','✦','pulse'],confetti:['彩紙','▰','fall'],wind:['微風','〰','cross'],clouds:['流雲','☁️','cross'],suncloud:['雲間晴光','🌤️','cross'],moon:['月光','🌙','stay'],rainbow:['雨後彩虹','🌈','stay'],mist:['晨霧','☁','cross'],lanterns:['元宵燈籠','🏮','rise'],newyear:['新春祝福','🧧','fall'],fireworks:['跨年煙火','✺','pulse'],christmas:['聖誕小樹','🎄','float'],gifts:['聖誕禮物','🎁','fall'],midautumn:['中秋月兔','🐇','cross'],dragonboat:['端午粽香','🍃','fall'],hearts:['情人愛心','♡','rise'],birthday:['生日氣球','🎈','rise'],halloween:['萬聖南瓜','🎃','float'],sprouts:['春日嫩芽','🌱','rise'],wheat:['金色麥穗','🌾','cross']};
 export const cities={yingge:['新北・鶯歌',24.96,121.35],taipei:['台北',25.04,121.56],keelung:['基隆',25.13,121.74],taoyuan:['桃園',24.99,121.31],taichung:['台中',24.15,120.67],tainan:['台南',23,120.21],kaohsiung:['高雄',22.63,120.30],hualien:['花蓮',23.99,121.60]};
 const termScenes=['wind','snow','sprouts','rain','fireflies','petals','clouds','rain','suncloud','wheat','wheat','sun','bubbles','sun','leaves','wind','mist','moon','leaves','wind','moon','snow','snow','lanterns'];
@@ -37,9 +38,9 @@ export function mountAmbient(target,{effect,text='',direction='left',duration=12
  // Ambient scenes are visual only: no city, temperature or status captions.
  layer.setAttribute('aria-hidden','true');
  const entry=scenes[effect],reduced=matchMedia('(prefers-reduced-motion: reduce)').matches||document.documentElement.dataset.readingMotion==='off'||document.documentElement.dataset.readingMotion==='reduced';
- if(entry&&!reduced){layer.dataset.motion='soft';const p=document.createElement('i');p.className='ambientSymbol';p.innerHTML=sceneArtwork(effect);layer.append(p);}
-
- target.append(layer);const remove=()=>{clearTimeout(timer);layer.remove();document.removeEventListener('visibilitychange',hidden)};const hidden=()=>{if(document.hidden)remove()};const timer=setTimeout(remove,Math.max(5,Math.min(20,duration))*1000);document.addEventListener('visibilitychange',hidden);return remove;
+ let stop=()=>{};
+ if(entry&&!reduced){layer.dataset.motion='art';const canvas=document.createElement('canvas');canvas.className='atmosphereCanvas';layer.append(canvas);target.append(layer);stop=startAtmosphere(canvas,effect,{direction});}else target.append(layer);
+ const remove=()=>{clearTimeout(timer);stop();layer.remove();document.removeEventListener('visibilitychange',hidden)};const hidden=()=>{if(document.hidden)remove()};const timer=setTimeout(remove,Math.max(5,Math.min(20,duration))*1000);document.addEventListener('visibilitychange',hidden);return remove;
 }
 
 const cloud='<path d="M23 58c-15 0-16-22-1-24 1-19 28-24 37-7 16-6 30 6 27 20 14 12 4 24-10 24H27" fill="#eaf3f4" fill-opacity=".45"/><path d="M23 58h52c17 0 18-24 1-25-5-19-33-17-37 1-18-7-30 17-16 24Z"/>';

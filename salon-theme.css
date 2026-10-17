@@ -163,3 +163,8 @@ body .pageBack,body .dialogHead button{align-items:center!important;justify-cont
 .ambientRandomSwitch input:checked,.profileScene .sceneSheet .sceneRandomSwitch input:checked{background:#718f80}
 .ambientRandomSwitch input:checked:before,.sceneRandomSwitch input:checked:before{transform:translateX(20px)}
 .effectSample{display:grid;place-items:center;color:#f2eee0}.effectSample svg{width:70%;height:70%}.effectSample:before{display:none!important}
+
+/* N43: layered original atmospheric artwork, behind profile content. */
+.atmosphereCanvas{display:block;width:100%;height:100%;pointer-events:none}
+.ambientScene[data-motion=art]{overflow:hidden;mix-blend-mode:normal}
+@media(prefers-reduced-motion:reduce){.atmosphereCanvas{display:none}}
