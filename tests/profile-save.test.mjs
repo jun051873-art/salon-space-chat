@@ -14,6 +14,8 @@ await env.withSecurityRulesDisabled(async c=>{let db=c.firestore(),u=(await getD
 await save('profile-active',{statusText:'今天想慢慢來。',profileEffect:'sakura'});
 await env.withSecurityRulesDisabled(async c=>{const u=(await getDoc(doc(c.firestore(),'users','profile-active'))).data();assert.equal(u.statusText,'今天想慢慢來。');assert.equal(u.profileEffect,'sakura');assert.equal(u.adminProfile.name,'店家私用');});
 await assert.rejects(save('profile-active',{statusText:'a'.repeat(121)}),/120/);
+await save('profile-active',{profileEffect:'weather',profileWeatherCity:'yingge',profileEffectDirection:'right'});
+await save('profile-active',{profileEffect:'solar'});
 await assert.rejects(save('profile-active',{profileEffect:'unknown'}),/特效/);
 await assert.rejects(save('profile-blocked-chat',{name:'不可寫入'}),/暫停/);
 await assert.rejects(save('profile-pending',{name:'不可寫入'}),/尚未開放/);
