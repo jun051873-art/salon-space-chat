@@ -1,7 +1,7 @@
 import{DEFAULT_NOTICE,noticeView}from'./notice-model.js?v=2';
 import{designerList,designerChoices,validateDesigners}from'./designers.js?v=1';
 import {customerVisible,broadcastEligible,customerDeletionPatch} from './customer-management.js?v=1';
-import{bindPhotoViewer,openPhotoViewer}from'./photo-viewer.js?v=N44';
+import{bindPhotoViewer,openPhotoViewer}from'./photo-viewer.js?v=N44.1';
 import{openProfileScene}from'./profile-scene.js?v=N43';
 import{saveCustomerProfile}from'./customer-profile.js?v=N43';
 import{syncNotificationBrand,notificationColor,notificationIcon}from'./notification-brand.js?v=N3';

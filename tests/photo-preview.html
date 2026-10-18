@@ -5,7 +5,7 @@
 <main><h1>本月主打</h1><p>測試用文字海報，未連接雲端資料。點擊照片可放大，雙指縮放或使用按鈕。</p><div id="photo"></div><p id="result" role="status">正在準備…</p><label>重新選取原圖<input id="upload" type="file" accept="image/*"></label></main>
 <script type="module">
 import{compressCanvas,mountPhotoPicker}from'../salon-ui.js';
-import{bindPhotoViewer,openPhotoViewer}from'../photo-viewer.js?v=N44';
+import{bindPhotoViewer,openPhotoViewer}from'../photo-viewer.js?v=N44.1';
 import{installEdgeBack}from'../navigation-recovery.js?v=N44';
 installEdgeBack();
 document.addEventListener('close',()=>{document.getElementById('result').textContent='已返回照片頁，照片視窗已關閉';},true);

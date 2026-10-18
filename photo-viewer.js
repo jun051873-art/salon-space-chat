@@ -23,7 +23,7 @@ export function openPhotoViewer(src,alt='照片',actions=null){
  const paint=()=>{const w=img.offsetWidth,h=img.offsetHeight;const boundX=Math.max(0,(w*scale-stage.clientWidth)/2),boundY=Math.max(0,(h*scale-stage.clientHeight)/2);x=Math.max(-boundX,Math.min(boundX,x));y=Math.max(-boundY,Math.min(boundY,y));img.style.transform=`translate(${x}px,${y}px) scale(${scale})`;};
  const zoom=value=>{scale=Math.max(1,Math.min(4,value));if(scale===1)x=y=0;paint();};
  const button=(label,action)=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.setAttribute('aria-label',label);b.style.cssText='font:inherit;font-weight:700;min-width:44px;min-height:44px;margin:0;padding:8px 14px;border:1px solid #777;border-radius:24px;background:#222;color:white;';b.onclick=action;bar.append(b);return b;};
- const close=button('關閉照片',()=>dialog.close());close.className='salonClose';close.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>';
+ const close=button('關閉照片',()=>dialog.close());close.className='salonClose';close.innerHTML='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>';
  button('原尺寸',()=>{zoom(1);restoreViewport();});
  let blankTap=null;
  dialog.addEventListener('click',e=>{if(e.target===dialog||e.target===bar)dialog.close();});
