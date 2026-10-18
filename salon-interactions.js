@@ -39,12 +39,19 @@ export function installInteractions(){
    if(!document.querySelector('dialog[open]'))document.body.style.removeProperty('overflow');
    window.dispatchEvent(new Event('salon:viewport'));
    for(const link of document.querySelectorAll('link[rel="stylesheet"]')){
-    if(link.sheet||link.dataset.recovering||navigator.onLine===false)continue;
+    const name=new URL(link.href).pathname.split('/').pop();
+    const marker={'salon-layout.css':'--salon-layout-ready','salon-upgrade.css':'--salon-upgrade-ready'}[name];
+    const missingMarker=marker&&typeof getComputedStyle==='function'&&!getComputedStyle(document.documentElement).getPropertyValue(marker).trim();
+    if((link.sheet&&!missingMarker)||link.dataset.recovering||navigator.onLine===false)continue;
     const attempts=Number(link.dataset.recoverAttempts||0);if(attempts>=3)continue;
     link.dataset.recoverAttempts=String(attempts+1);link.dataset.recovering='true';
-    const done=()=>{delete link.dataset.recovering;link.removeEventListener('load',done);link.removeEventListener('error',done);};
-    link.addEventListener('load',done);link.addEventListener('error',done);
-    const url=new URL(link.href);url.searchParams.set('recover','R1-'+attempts);link.href=url.href;
+    // Load beside the old sheet, so a failed retry cannot remove working styles.
+    const replacement=link.cloneNode();replacement.disabled=false;replacement.media=link.media;
+    replacement.dataset.recovering='true';
+    const url=new URL(link.href);url.searchParams.set('recover','N44-'+Date.now()+'-'+attempts);replacement.href=url.href;
+    replacement.addEventListener('load',()=>{delete replacement.dataset.recovering;link.remove();window.dispatchEvent(new Event('salon:viewport'));},{once:true});
+    replacement.addEventListener('error',()=>{replacement.remove();delete link.dataset.recovering;},{once:true});
+    link.after(replacement);
    }
    if(Date.now()-lastResume>1000){lastResume=Date.now();window.dispatchEvent(new Event('salon:resume'));}
   });

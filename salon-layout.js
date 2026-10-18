@@ -1,11 +1,12 @@
-import{installInteractions}from'./salon-interactions.js?v=R4';
+import{keyboardViewport,installEdgeBack}from'./navigation-recovery.js?v=N44';
+import{installInteractions}from'./salon-interactions.js?v=N44';
 installInteractions();
 // Keep one scroll surface; visualViewport is used only while a keyboard is open.
 let frame=0;
 function sync(){cancelAnimationFrame(frame);frame=requestAnimationFrame(()=>{
  const root=document.documentElement,view=window.visualViewport;
  const editing=/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName||'');
- const keyboard=editing&&view&&view.height<window.innerHeight-100;
+ const keyboard=keyboardViewport(view,window.innerHeight,editing);
  root.style.setProperty('--salon-height',keyboard?`${view.height}px`:'100dvh');
  root.style.setProperty('--salon-top',keyboard?`${view.offsetTop}px`:'0px');
  root.classList.toggle('keyboardOpen',!!keyboard);
@@ -17,8 +18,4 @@ document.addEventListener('visibilitychange',sync);
 document.addEventListener('focusin',sync);
 document.addEventListener('focusout',()=>{sync();setTimeout(sync,300);setTimeout(sync,700);});
 sync();
-// Edge-only back gesture leaves inbox swipe actions and photo cropping independent.
-let backGesture=null;
-document.addEventListener('pointerdown',e=>{backGesture=null;if(e.clientX>36||e.target.closest('input,textarea,select,dialog,.swipeShell,canvas,.homeProductRail,.homeEventRail,.productGallery'))return;backGesture={id:e.pointerId,x:e.clientX,y:e.clientY};},{passive:true});
-document.addEventListener('pointerup',e=>{const g=backGesture;backGesture=null;if(!g||g.id!==e.pointerId||e.clientX-g.x<85||Math.abs(e.clientY-g.y)>55)return;const candidates=[...document.querySelectorAll('.pageBack,#back,#toolBack,#leaveChat,[data-chat-back]')];const button=candidates.find(b=>b.getClientRects().length&&!b.closest('.hidden'));button?.click();},{passive:true});
-document.addEventListener('pointercancel',()=>backGesture=null,{passive:true});
+installEdgeBack();

@@ -4,8 +4,8 @@ class Element{
  constructor(tag){this.tagName=tag;this.style={};this.dataset={};this.children=[];this.events={};this.offsetWidth=300;this.offsetHeight=400;this.clientWidth=400;this.clientHeight=700;this.closed=false;}
  setAttribute(){} append(...c){this.children.push(...c)} addEventListener(n,f){(this.events[n]??=[]).push(f)} emit(n,e={}){for(const f of this.events[n]||[])f({type:n,...e})} setPointerCapture(){} showModal(){} focus(){} remove(){} close(){this.closed=true;this.emit('close')}decode(){return Promise.resolve()}
 }
-globalThis.document={createElement:t=>new Element(t),body:new Element('body')};globalThis.window={addEventListener(){},removeEventListener(){}};globalThis.Image=class extends Element{constructor(){super('img')}};
-const src=await readFile('photo-viewer.js','utf8');const{openPhotoViewer}=await import('data:text/javascript;base64,'+Buffer.from(src).toString('base64'));
+globalThis.document={querySelector:()=>null,createElement:t=>new Element(t),body:new Element('body')};globalThis.window={dispatchEvent(){},addEventListener(){},removeEventListener(){}};globalThis.Image=class extends Element{constructor(){super('img')}};
+const{openPhotoViewer}=await import('../photo-viewer.js');
 function fixture(){const d=openPhotoViewer('photo.jpg');return{d,stage:d.children[0],img:d.children[0].children[0]};}
 let{d,stage,img}=fixture();stage.emit('pointerdown',{button:0,pointerId:1,clientX:30,clientY:30,target:img});stage.emit('pointerup',{pointerId:1,clientX:30,clientY:30});assert(!d.closed,'tapping photo must not close');
 ({d,stage}=fixture());stage.emit('pointerdown',{button:0,pointerId:1,clientX:5,clientY:5,target:stage});stage.emit('pointerup',{pointerId:1,clientX:5,clientY:5});assert(d.closed,'blank tap closes');

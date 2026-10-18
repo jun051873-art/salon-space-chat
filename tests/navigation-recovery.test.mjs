@@ -1,0 +1,21 @@
+import assert from 'node:assert/strict';
+import {keyboardViewport,installEdgeBack,navigateBack,restoreViewport} from '../navigation-recovery.js';
+assert.equal(keyboardViewport({height:390,scale:1},800,true),true);
+assert.equal(keyboardViewport({height:390,scale:2},800,true),false,'pinch zoom is not a keyboard');
+let closes=0,backs=0,prevented=0,blurred=0,modal=null;const handlers={};const meta={content:'width=device-width,initial-scale=1',dataset:{}};
+const back={getClientRects:()=>[{}],closest:()=>null,click:()=>backs++};
+globalThis.window={visualViewport:{scale:1,offsetLeft:0},dispatchEvent(){}};
+globalThis.document={activeElement:{blur(){blurred++}},querySelector:()=>meta,querySelectorAll:s=>s==='dialog[open]'?(modal?[modal]:[]):[back],addEventListener:(n,f)=>handlers[n]=f};
+installEdgeBack();
+const touch=(x,y=100,id=1)=>({identifier:id,clientX:x,clientY:y});
+const event=touches=>({touches,cancelable:true,preventDefault(){prevented++},stopPropagation(){}});
+function swipe(start,end){handlers.touchstart(event([touch(start)]));handlers.touchmove(event([touch(end)]));handlers.touchend(event([]));}
+swipe(10,100);assert.equal(backs,1);assert(prevented>0);
+modal={dispatchEvent:()=>true,close:()=>closes++};swipe(10,100);assert.equal(closes,1);assert.equal(backs,1,'close top photo first');
+modal={dispatchEvent:()=>false,close:()=>closes++};navigateBack();assert.equal(closes,1,'respect unsaved dialog cancellation');modal=null;
+handlers.touchstart(event([touch(10)]));handlers.touchmove(event([touch(15,200)]));handlers.touchmove(event([touch(150,200)]));assert.equal(backs,1,'vertical scrolling does not navigate');
+handlers.touchstart(event([touch(10)]));handlers.touchmove(event([touch(20),touch(80,100,2)]));handlers.touchmove(event([touch(150)]));assert.equal(backs,1,'pinch does not navigate');
+swipe(60,180);assert.equal(backs,1,'center drag does not navigate');
+window.visualViewport={scale:2,offsetLeft:140};swipe(145,190);assert.equal(backs,2,'visible left edge works while zoomed');assert(meta.content.includes('maximum-scale=1'));
+await new Promise(resolve=>setTimeout(resolve,200));assert.equal(meta.content,'width=device-width,initial-scale=1','restore accessibility zoom after explicit reset');assert(blurred>0);
+console.log('PASS edge back, modal-first/cancel handling, vertical/pinch exclusion, zoomed edge coordinates, temporary viewport reset');

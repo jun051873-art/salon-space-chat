@@ -378,3 +378,11 @@ body .bubbleRow .msg.automaticReply,.themePreview .automaticReply{
 }
 .automaticReplyLabel{display:block;font-size:12px;font-weight:700;letter-spacing:.06em;margin-bottom:7px;line-height:1.5}
 .themePreview .automaticReply{padding:14px 18px;max-width:90%}
+
+/* N44: avoid focus zoom and keep browser pinch available in the conversation. */
+:root{--salon-upgrade-ready:1}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+@media(pointer:coarse){body input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]),body textarea,body select,body .composer textarea{font-size:max(16px,1rem)!important}}
+body.customerApp #msgs,body.adminApp #adminMsgs{touch-action:pan-y pinch-zoom;min-width:0!important}
+body .msg,body .chatImageAttachment{min-width:0;overflow-wrap:anywhere}
+body .msg img{max-width:100%;height:auto}

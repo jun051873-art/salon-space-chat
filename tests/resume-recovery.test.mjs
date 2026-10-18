@@ -1,11 +1,12 @@
 import assert from'node:assert/strict';import{readFile}from'node:fs/promises';
 const events={},docEvents={},frames=[],classes=new Set();let resume=0;
-const loaded={sheet:{},dataset:{},href:'https://example.test/style.css'},missing={sheet:null,dataset:{},href:'https://example.test/theme.css?v=C34',addEventListener(){},removeEventListener(){}};
+let replacement=null,removed=false;
+const loaded={sheet:{},dataset:{},href:'https://example.test/style.css'},missing={sheet:null,dataset:{},href:'https://example.test/theme.css?v=C34',events:{},addEventListener(n,f){this.events[n]=f},removeEventListener(){},cloneNode(){return {...this,dataset:{...this.dataset},events:{},remove(){this.removed=true}}},after(node){replacement=node},remove(){removed=true}};
 globalThis.window={addEventListener:(n,f)=>{(events[n]??=[]).push(f)},dispatchEvent:e=>{if(e.type==='salon:resume')resume++}};
 globalThis.document={hidden:false,documentElement:{dataset:{}},body:{nodeType:1,dataset:{},matches:()=>false,querySelectorAll:()=>[],style:{removeProperty(){}},classList:{add:x=>classes.add(x)}},addEventListener:(n,f)=>docEvents[n]=f,querySelector:()=>null,querySelectorAll:()=>[loaded,missing]};
 globalThis.location={pathname:'/salon-space-chat/customer.html'};Object.defineProperty(globalThis,'navigator',{value:{onLine:true},configurable:true});globalThis.MutationObserver=class{observe(){}};globalThis.requestAnimationFrame=f=>{frames.push(f);return frames.length};globalThis.cancelAnimationFrame=()=>{};
 const{installInteractions}=await import('data:text/javascript;base64,'+Buffer.from(await readFile('salon-interactions.js','utf8')).toString('base64'));
-installInteractions();frames.shift()();assert(classes.has('customerApp'));assert.equal(loaded.href,'https://example.test/style.css');assert(missing.href.includes('recover=R1-0'));assert.equal(resume,1);
+installInteractions();frames.shift()();assert(classes.has('customerApp'));assert.equal(loaded.href,'https://example.test/style.css');assert.equal(missing.href,'https://example.test/theme.css?v=C34');assert(replacement.href.includes('recover=N44-'));assert(!removed,'keep old stylesheet until replacement loads');assert.equal(resume,1);
 document.hidden=true;docEvents.visibilitychange();assert.equal(frames.length,0);
 document.hidden=false;docEvents.visibilitychange();frames.shift()();assert.equal(missing.dataset.recoverAttempts,'1','do not start duplicate stylesheet recovery');
-assert.equal(resume,1,'rapid lifecycle events are coalesced');console.log('PASS background hide/resume, missing stylesheet recovery, no duplicate request or navigation');
+assert.equal(resume,1,'rapid lifecycle events are coalesced');replacement.events.error();assert(replacement.removed);assert(!removed,'failed retry preserves old stylesheet');events.online[0]();frames.shift()();replacement.events.load();assert(removed);console.log('PASS background hide/resume, missing stylesheet recovery, no duplicate request or navigation');

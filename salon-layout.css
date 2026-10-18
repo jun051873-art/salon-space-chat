@@ -1,5 +1,5 @@
 /* C15: viewport shell. Only the page body or the message list can scroll. */
-html,body{height:100%;width:100%;margin:0;overflow:hidden!important;overscroll-behavior:none}
+html,body{height:100%;width:100%;margin:0;overflow:hidden!important;overscroll-behavior-y:none;overscroll-behavior-x:auto}
 body.customerApp .app,body.adminApp .app{position:fixed;inset:0;margin:auto;width:100%;height:100dvh;overflow-y:auto;overflow-x:hidden;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;transform:none;filter:none;contain:none;padding-bottom:calc(110px + env(safe-area-inset-bottom))}
 body .app>section,body .app>div{min-width:0}
 body .bottomNav{position:fixed!important;bottom:calc(12px + env(safe-area-inset-bottom))!important;z-index:80}
@@ -9,7 +9,7 @@ body.customerApp #chat .conversationHeader{flex:0 0 auto!important;margin:0 0 8p
 body.customerApp #chat h2{font-size:14px!important;line-height:1.4}body.customerApp #chat h2 small{font-size:11px}
 body #chatOptions,body #chatShortcuts,body #chatPanel,body #chatDetails,body .ownerQuickReplies,body #chatStatus,body #pushStatus,body #pushDiag,body #chatRead{display:none!important}
 body.customerApp.conversationOpen #globalNotice{display:none!important}
-body.customerApp #msgs,body.adminApp #adminMsgs{flex:1 1 0!important;height:0!important;min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior:contain;padding:12px 6px 18px!important;touch-action:pan-y}
+body.customerApp #msgs,body.adminApp #adminMsgs{flex:1 1 0!important;height:0!important;min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior:contain;padding:12px 6px 18px!important;touch-action:pan-y pinch-zoom}
 body.customerApp .conversationFooter,body.adminApp #adminChat .composer{flex:0 0 auto!important;width:100%!important;border-radius:30px!important;padding:8px!important;margin:8px 0 0!important;min-height:58px!important;background:linear-gradient(130deg,#ffffffe0,var(--salon-glass,#ffffffb8))!important;border:1.5px solid #b6a99099!important;box-shadow:inset 0 2px 3px white,0 5px 18px #5143331c;backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px)}
 body.customerApp #chat .composer,body.adminApp #adminChat .composer{display:flex!important;align-items:center;gap:8px;grid-template-columns:none!important;flex-wrap:nowrap!important}
 body.customerApp #chat .composer{padding:0!important;margin:0!important}
@@ -111,3 +111,5 @@ body.customerApp .homeFeature strong{font-size:19px;line-height:1.4;overflow-wra
 body.customerApp .homeFeature p{font-size:13px;line-height:1.5;margin:5px 0;white-space:pre-wrap;-webkit-line-clamp:4}
 @media(max-width:380px){body.customerApp #enterChat{gap:9px;padding:13px}body.customerApp #enterChat .conversationCopy strong{font-size:16px}body.customerApp .homeFeature{grid-template-columns:minmax(95px,34%) minmax(0,1fr)}body.customerApp .homeFeature>span:last-child{padding:11px}}
 
+
+:root{--salon-layout-ready:1}

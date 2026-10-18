@@ -1,3 +1,4 @@
+import{restoreViewport}from'./navigation-recovery.js?v=N44';
 // Display the stored image directly; never make a thumbnail or canvas copy.
 export function openPhotoViewer(src,alt='照片',actions=null){
  const dialog=document.createElement('dialog');dialog.className='photoViewerDialog';
@@ -23,6 +24,7 @@ export function openPhotoViewer(src,alt='照片',actions=null){
  const zoom=value=>{scale=Math.max(1,Math.min(4,value));if(scale===1)x=y=0;paint();};
  const button=(label,action)=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.setAttribute('aria-label',label);b.style.cssText='font:inherit;font-weight:700;min-width:44px;min-height:44px;margin:0;padding:8px 14px;border:1px solid #777;border-radius:24px;background:#222;color:white;';b.onclick=action;bar.append(b);return b;};
  const close=button('關閉照片',()=>dialog.close());close.className='salonClose';close.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>';
+ button('原尺寸',()=>{zoom(1);restoreViewport();});
  let blankTap=null;
  dialog.addEventListener('click',e=>{if(e.target===dialog||e.target===bar)dialog.close();});
  stage.addEventListener('dblclick',()=>zoom(scale===1?2:1));
@@ -33,7 +35,7 @@ export function openPhotoViewer(src,alt='照片',actions=null){
  const key=e=>{if(e.key==='+'||e.key==='='){e.preventDefault();zoom(scale*1.5);}else if(e.key==='-'){e.preventDefault();zoom(scale/1.5);}else if(e.key==='0'){e.preventDefault();zoom(1);}};dialog.addEventListener('keydown',key);
  const resize=()=>paint();window.addEventListener('resize',resize);
  const oldOverflow=document.body.style.overflow;document.body.style.overflow='hidden';
- dialog.addEventListener('close',()=>{document.body.style.overflow=oldOverflow;window.removeEventListener('resize',resize);dialog.remove();},{once:true});
+ dialog.addEventListener('close',()=>{pointers.clear();previous=null;blankTap=null;document.body.style.overflow=oldOverflow;restoreViewport();window.removeEventListener('resize',resize);dialog.remove();},{once:true});
  img.decode().then(()=>{status.textContent='雙指縮放、拖曳查看照片';paint();}).catch(()=>{status.textContent='照片暫時無法開啟，請關閉後再試。';});
  dialog.showModal();close.focus({preventScroll:true});return dialog;
 }
