@@ -131,3 +131,21 @@ html.keyboardOpen body.customerApp #chat>.card,html.keyboardOpen body.adminApp #
 html.keyboardOpen body.customerApp #chat .conversationFooter,html.keyboardOpen body.adminApp #adminChat .composer{margin-bottom:0!important;padding-bottom:4px!important}
 body .productGallery img{height:auto!important;max-height:60svh!important;aspect-ratio:auto!important;border-radius:calc(var(--surface-radius,28px) * .7)!important}
 body .productGallery figure{align-self:start!important}
+
+/* N53: contextual owner controls; customer design has one dedicated entrance. */
+body .pageAppearanceButton{position:fixed;z-index:95;right:max(14px,env(safe-area-inset-right));bottom:calc(98px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:7px;min-height:44px;padding:10px 14px!important;margin:0;border-radius:999px!important;border:1px solid #ffffffe0!important;background:linear-gradient(130deg,#ffffffdf,#e4efead6)!important;color:#38564e!important;box-shadow:0 5px 20px #294a3c20,inset 0 1px 0 white!important;backdrop-filter:blur(12px);font-size:12px!important}
+body .pageAppearanceButton svg{width:19px;height:19px}body .pageAppearanceButton[hidden],body:has(dialog[open]) .pageAppearanceButton{display:none!important}
+body.adminApp:has(#adminChat:not(.hidden)) .pageAppearanceButton{top:calc(12px + env(safe-area-inset-top));bottom:auto;z-index:1100}
+body .designHub{display:grid;gap:16px;margin:22px 0}body .designHub button{display:grid;gap:10px;text-align:left;padding:24px!important;min-height:138px;border:1px solid #fff!important;border-radius:26px!important;background:linear-gradient(130deg,#ffffffcf,#dae9e2a3)!important;color:#324e45!important;box-shadow:0 8px 24px #3a524710}
+body .designHub b{font-size:21px}body .designHub span{font-size:13px;line-height:1.7;opacity:.75}
+body .designFold{margin:14px 0;border:1px solid #ffffffb0;border-radius:22px;background:#ffffff35;padding:16px}
+body .designFold>summary{cursor:pointer;list-style-position:inside;font-size:16px;font-weight:650;padding:4px;line-height:1.6}
+body .designFold>.settingsGroup{margin:14px 0 0!important;padding:16px!important}
+body .localAppearanceHost .surfaceEditor{margin:16px 0;padding:18px!important}body .localAppearanceHost .surfaceSample{min-height:116px}
+body .localThemeExtras{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+body .localThemeExtras label{min-width:0}body .localThemeExtras select{font-size:16px;min-width:0;width:100%}
+body.adminApp :is(#toolBody,#admin,#adminHome,#adminAnalysis){background:linear-gradient(var(--surface-angle),color-mix(in srgb,var(--surface-start) var(--surface-alpha),transparent),color-mix(in srgb,var(--surface-end) var(--surface-alpha),transparent))!important;color:var(--surface-ink)!important;border-radius:var(--surface-radius)!important}
+body.adminApp #toolBody{padding:16px;min-width:0}body.adminApp #toolBody :is(input,textarea,select){max-width:100%;min-width:0;box-sizing:border-box}
+body .holidayPaper .holidayDates button{background:color-mix(in srgb,var(--surface-start) 75%,transparent)!important;border-radius:calc(var(--surface-radius) * .55)!important;color:var(--surface-ink)!important}
+body .holidayPaper .holidayDates button.isClosed{background:linear-gradient(145deg,color-mix(in srgb,var(--surface-closed,#e4c9d1) 65%,white),var(--surface-closed,#e4c9d1))!important;color:#293e3b!important;border:1px solid #ffffffb0!important}
+body [hidden]{display:none!important}
