@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 22690)
-Total output lines: 557
-
 /* C19: compact controls, consistent geometry, and isolated read-only preview */
 .dialogHead [data-close]{border:2px solid var(--salon-accent,#577f88)!important;border-radius:50%!important;min-width:44px;min-height:44px}
 .productGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.productGrid:has(>.product:only-child){grid-template-columns:1fr}.product{min-width:0;overflow:hidden}.productCover{display:block;width:100%;padding:0;background:none;border-radius:24px;overflow:hidden}.productCover img{width:100%;aspect-ratio:1;object-fit:cover}.productGallery{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:12px}.productGallery figure{flex:0 0 100%;scroll-snap-align:center;margin:0}.productGallery img{width:100%;max-height:48vh;object-fit:contain;border-radius:22px}.productGallery figcaption{text-align:center}.productDescription{white-space:pre-wrap;overflow-wrap:anywhere}.productThumb{display:flex;align-items:center;gap:8px;margin:8px 0}.productThumb img{width:64px;height:64px;object-fit:cover;border-radius:14px}.productPrice strong{color:var(--salon-accent)}
@@ -97,7 +94,121 @@ body.customerApp #info .infoFactGrid p{display:grid;grid-template-columns:minmax
 body.customerApp #info .infoFactGrid p:last-child{border-bottom:0!important}body.customerApp #info .infoFactGrid p small{font-size:12px;color:#8e7966;letter-spacing:.06em}
 body.customerApp #info .infoBlock-amenities{display:block!important}.facilityPanel{padding:18px 18px 6px;border:1px solid #d3c8b9;border-radius:24px;background:#fffdf8db;box-shadow:0 8px 22px #463e3310}.facilityPanel header small{font-size:10px;letter-spacing:.18em;color:#9a8169}.facilityPanel header h3{margin:4px 0 12px;font-size:19px}.facilityRow{display:grid;grid-template-columns:minmax(82px,30%) minmax(0,1fr);gap:12px;align-items:start;padding:12px 2px;border-top:1px solid #e0d9ce;font-size:14px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere}.facilityRow b{color:#816e5e;font-size:13px}.facilityRow span{color:var(--salon-ink,#292722)}
 body.adminApp #toolBody:has(.settingsJump){padding-bottom:38px}.settingsJump{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px!important;padding:6px!important;margin:4px 0 8px;border-radius:22px;background:#e8e8e3b9;border:1px solid #ffffffd4}.settingsJump button[data-settings-jump]{font-size:13px;line-height:1.25;min-width:0;min-height:49px;padding:8px 5px;border:0;border-radius:17px;background:transparent;box-shadow:none;color:#5c625d}.settingsJump button[data-settings-jump][aria-pressed=true]{background:#fffdf8;color:#253b3b;font-weight:800;box-shadow:0 4px 10px #4d4a3b18}.settingsJump button:not([data-settings-jump]){font-size:12px;min-height:38px;padding:6px 8px;background:transparent;border:0;box-shadow:none;text-decoration:underline;color:#577679}
-body.adminApp #toolBody .settingsGroup[…4690 tokens truncated…2px #fff,0 8px 22px #335b6326!important;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);margin-bottom:24px!important}
+body.adminApp #toolBody .settingsGroup[hidden]{display:none!important}body.adminApp #toolBody:has(.settingsJump)>.settingsGroup{margin:10px 0!important;padding:18px!important;border-radius:22px!important;box-shadow:0 5px 18px #473e3a0d!important}body.adminApp #toolBody:has(.settingsJump)>.settingsGroup h3{margin:3px 0 12px}.amenityEditorRow{display:grid;grid-template-columns:1fr 1fr auto;align-items:end;gap:6px;padding:10px 0;border-top:1px solid #ded8cb}.amenityEditorRow label{font-size:12px;min-width:0}.amenityEditorRow input{width:100%}.amenityEditorRow button{min-width:55px;padding:8px 4px}#infoOrderRows .suiteRow{padding:7px 9px!important;margin:3px 0!important;box-shadow:none!important;border-radius:12px!important}
+.paymentEditor{margin:16px 0}.paymentChoices{display:flex;flex-wrap:wrap;gap:7px;margin:9px 0}.paymentChoices label{display:inline-flex;align-items:center;gap:5px;width:auto!important;min-height:35px;margin:0;padding:6px 9px;border:1px solid #d4c9bb;border-radius:999px;background:#fffdf9;font-size:12px}.paymentChoices input{width:auto!important;margin:0!important}#settingsSaveTop{display:block;width:100%;min-height:44px;margin:8px 0 18px;border-radius:17px;background:#4f7880;color:#fff;font-weight:700}
+.homeProductRail,.homeEventRail{display:flex;gap:12px;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;padding:3px 2px 12px;-webkit-overflow-scrolling:touch;scrollbar-width:thin}.homeProductRail .homeProduct{flex:0 0 min(43vw,178px);scroll-snap-align:start}.homeCategory{margin:16px 0}.homeCategory>h4{margin:5px 0 8px;color:#826c57;font-size:14px}.homeEventCard{flex:0 0 min(78vw,310px);scroll-snap-align:start;display:flex;flex-direction:column;min-width:0;overflow:hidden;border:1px solid #d2c5b6;border-radius:20px;background:#fffdf8}.homeEventCard>img{width:100%;height:150px;object-fit:cover}.homeEventCard>strong{padding:14px 14px 4px;font-size:17px}.homeEventCard>p{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;padding:0 14px;margin:4px 0 12px;min-height:35px;font-size:13px;white-space:pre-wrap}.homeEventCard>div{display:flex;gap:7px;padding:0 12px 13px;margin-top:auto}.homeEventCard button{flex:1;min-height:38px;margin:0;padding:7px;font-size:12px;border-radius:999px;background:#e5efed;color:#365b5e}.homeEventCard button:first-child{background:#f0ebe3;color:#685a4b}.productCategoryOrder{margin:17px 0;padding:14px;border-radius:20px;background:#f7f5ee}.productCategoryOrder h3,.productCategorySection h3{font-size:17px}.productCategorySection{margin:22px 0}.productCategorySection>.suiteGrid{margin-top:10px}
+@media(max-width:380px){.amenityEditorRow{grid-template-columns:1fr 1fr}.amenityEditorRow button{grid-column:2;justify-self:end}.settingsJump button[data-settings-jump]{font-size:12px}}
+
+/* C32: inline sharp chat photos, calm image zoom, smooth rails, and image-first feature cards. */
+.chatImageAttachment{display:grid;gap:7px;max-width:min(76vw,560px);margin-top:8px}
+.chatImageAttachment img{display:block;width:auto;max-width:100%;height:auto;max-height:62vh;object-fit:contain;object-position:left center;border-radius:14px;background:#ece8e0}
+.chatImageDownload{justify-self:start;display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:6px 12px;border-radius:999px;background:#e9f0ed;color:#365b5e;text-decoration:none;font-size:13px;font-weight:750}
+.chatImageDownload[hidden]{display:none!important}
+.productDetailDialog{display:flex;flex-direction:column;gap:8px;overscroll-behavior:contain}
+.productDetailDialog>.dialogHead{position:sticky;top:-20px;z-index:5;flex:none;margin:-8px -8px 0;padding:8px;background:#fcf9f3ed;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.productDetailDialog .productGallery{flex:none;min-height:0;max-height:50dvh;gap:10px;overscroll-behavior-x:contain;scroll-snap-type:x proximity;scroll-padding:8px;-webkit-overflow-scrolling:touch;scroll-behavior:smooth;touch-action:pan-x pan-y}
+.productDetailDialog .productGallery figure{display:grid;grid-template-rows:minmax(0,1fr) auto;max-height:50dvh}
+.productDetailDialog .productGallery img{display:block;width:100%;height:min(43dvh,420px);max-height:43dvh;object-fit:contain;background:#f1eee8;border-radius:18px}
+.productDetailDialog .productGallery figcaption{padding:6px;color:#857761;font-size:12px}
+.productDetailDialog .productPrice,.productDetailDialog .productDescription{flex:none;margin:4px 0}
+.boardDetailDialog>.dialogHead{position:sticky;top:-20px;z-index:4;padding:8px 0;background:#fcf9f3ed;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.boardDetailDialog .boardDetailImage{display:block;width:100%;height:auto;max-height:68dvh;object-fit:contain;object-position:center;background:#f2efe9;border-radius:18px}
+.homeProductRail,.homeEventRail{scroll-snap-type:x proximity;scroll-padding-inline:14px;scroll-behavior:smooth;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y}
+.homeProductRail .homeProduct,.homeEventRail .homeEventCard{scroll-snap-stop:normal}
+.homeSpotlightList .homeNoticeLink{display:flex;align-items:center;gap:14px;min-height:112px;padding:12px;text-align:left}
+.homeSpotlightList .homeNoticeLink>img{display:block;flex:0 0 96px;width:96px;height:96px;object-fit:cover;border-radius:15px;background:#f0ece5}
+.homeNoticeIcon{display:grid;place-items:center;flex:0 0 64px;width:64px;height:64px;border-radius:18px;background:#eee8dc;color:#82725c;font-size:27px}
+.homeNoticeCopy{display:grid;gap:5px;min-width:0}
+.homeNoticeCopy strong{font-size:15px}
+.homeNoticeCopy small{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;color:#827968;font-size:12px;line-height:1.55;white-space:pre-wrap}
+.homeNoticeCopy b{font-size:12px;color:#52777a}
+body.customerApp #homeCards .homeFeature{display:flex;flex-direction:column;align-items:stretch;min-height:0;text-align:left}
+body.customerApp #homeCards .homeFeatureImage{display:block;width:100%;height:auto;min-height:0;max-height:none;background:#eee9e1;overflow:hidden}
+body.customerApp #homeCards .homeFeatureImage img{display:block;width:100%;height:auto;min-height:0;max-height:min(58vh,560px);object-fit:contain;object-position:center;background:#eee9e1}
+body.customerApp #homeCards .homeFeatureCopy{display:flex;gap:0;width:100%;padding:18px 20px 20px!important}
+body.customerApp #homeCards .homeFeatureCopy>small{font-size:10px!important}
+body.customerApp #homeCards .homeFeatureCopy strong{margin:7px 0 5px;font-size:20px}
+body.customerApp #homeCards .homeFeatureCopy p{margin:0 0 9px;font-size:13px;-webkit-line-clamp:2}
+body.customerApp #homeCards .homeFeatureCopy em{margin-top:2px}
+body[data-input-modality="pointer"] button:focus-visible,body[data-input-modality="pointer"] a:focus-visible{outline:none!important;box-shadow:none!important}
+@media(max-width:420px){.productDetailDialog{padding:18px!important}.productDetailDialog>.dialogHead{top:-14px}.productDetailDialog .productGallery,.productDetailDialog .productGallery figure{max-height:46dvh}.productDetailDialog .productGallery img{height:min(39dvh,360px);max-height:39dvh}.homeSpotlightList .homeNoticeLink>img{flex-basis:82px;width:82px;height:88px}body.customerApp #homeCards .homeFeatureCopy{padding:15px 16px 17px!important}}
+
+
+/* C33: clear photo zoom and multi-photo affordances. */
+.chatImageAttachment img{cursor:zoom-in;touch-action:manipulation}
+.productCover{position:relative}
+.productZoomHint{position:absolute;right:8px;bottom:8px;z-index:1;padding:5px 9px;border:1px solid #ffffffb8;border-radius:999px;background:#fffc;color:#5e5142;font-size:11px;font-weight:750;box-shadow:0 3px 12px #392d221c;pointer-events:none}
+.productPhotoHint{margin:0 0 4px;text-align:center;color:#786f62;font-size:13px;font-weight:650}
+.productDetailDialog .productGallery figure{display:flex;flex-direction:column;align-items:center;gap:8px}
+.productDetailDialog .productGallery figure>[data-photo-viewer]{width:100%;flex:1;min-height:0}
+.productDetailDialog .productGallery img{cursor:zoom-in}
+.productDetailDialog .productGallery figcaption{padding:7px 12px;border-radius:999px;background:#eeeae3;color:#766c5e;font-size:12px;font-weight:700}
+
+/* C34: shared touch controls, legible unread state and a fixed frosted header. */
+body .salonClose,body .dialogHead [data-close],body .salonClose:focus,body .salonClose:focus-visible{display:inline-grid!important;place-items:center!important;width:46px!important;height:46px!important;min-width:46px!important;min-height:46px!important;padding:10px!important;margin:0!important;border:0!important;outline:0!important;border-radius:0!important;box-shadow:none!important;background:transparent!important;transform:none!important;flex:none;line-height:1!important;color:inherit}
+body .salonClose svg,body .dialogHead [data-close] svg{display:block;width:26px!important;height:26px!important;fill:none;stroke:currentColor;stroke-width:2.8;stroke-linecap:round}
+body[data-input-modality=keyboard] .salonClose:focus-visible{color:var(--salon-accent,#8c5b37)!important;filter:drop-shadow(0 0 3px currentColor)}
+body .photoViewerDialog{outline:none!important;border:0!important;border-radius:0!important}
+body .photoViewerDialog img{border:0!important;outline:none!important;box-shadow:none!important;border-radius:0!important}
+body button[data-photo-viewer],body button[data-photo-viewer]:active,body button[data-photo-viewer]:focus,body .productCover:active{transform:none!important;border:0!important;outline:none!important;box-shadow:none!important;background:transparent!important;-webkit-tap-highlight-color:transparent}
+body[data-input-modality=pointer] .productCover:focus,body[data-input-modality=pointer] [data-image-preview]:focus,body[data-input-modality=pointer] dialog:focus{outline:none!important;box-shadow:none!important}
+body[data-input-modality=keyboard] button[data-photo-viewer]:focus-visible{outline:2px solid var(--salon-accent)!important;outline-offset:2px}
+body .photoViewerDialog .salonClose{color:white!important}
+body .chatImageAttachment img{-webkit-touch-callout:none;user-select:none;-webkit-user-select:none}
+body .bottomNav .navBtn{position:relative;overflow:visible!important}
+body .bottomNav .navBtn>.countBadge,body #enterChat>.countBadge{position:absolute!important;top:0!important;right:calc(50% - 32px)!important;z-index:5!important;display:grid!important;place-items:center!important;min-width:24px!important;width:auto!important;height:24px!important;padding:0 6px!important;margin:0!important;border:2px solid #fff!important;border-radius:999px!important;background:#c63935!important;color:#fff!important;font-size:13px!important;font-weight:800!important;line-height:20px!important;box-shadow:0 2px 8px #6f1d2440!important}
+body #enterChat{position:relative}body #enterChat>.countBadge{top:9px!important;right:10px!important}
+body .countBadge[hidden],body #foregroundMessage[hidden]{display:none!important}
+body .unreadDot{width:12px!important;height:12px!important;background:#c63935!important;box-shadow:0 0 0 3px #c6393520}
+body #foregroundMessage{position:fixed;z-index:25000;left:50%;top:calc(10px + env(safe-area-inset-top));transform:translateX(-50%)!important;width:min(440px,calc(100% - 28px));padding:16px 20px;background:#315760f2;color:white;border:1px solid #ffffff99;border-radius:24px;box-shadow:0 8px 30px #0003;font-size:15px;font-weight:700;text-align:left;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+body.adminApp .app>h1{position:fixed!important;inset:calc(8px + env(safe-area-inset-top)) 14px auto!important;z-index:90!important;display:flex!important;align-items:center!important;justify-content:center!important;min-height:62px!important;width:auto!important;max-width:872px!important;margin:0 auto!important;padding:14px 22px!important;border:1px solid #ffffffbb!important;border-radius:26px!important;background:linear-gradient(125deg,#ffffffa8,#eef3f17a)!important;backdrop-filter:blur(22px) saturate(140%)!important;-webkit-backdrop-filter:blur(22px) saturate(140%)!important;box-shadow:inset 0 1px 1px #fff,0 5px 22px #443b3014!important;font-size:21px!important;letter-spacing:.1em!important}
+body.adminApp .app{padding-top:calc(88px + env(safe-area-inset-top))!important}
+body .chatCard,body .chatCard *,body .chatPreview,body .chatPreview *{-webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none!important}
+body .notificationHelp[data-ready=true]{padding:12px 15px!important}
+body .notificationHelp[data-ready=true] p{font-size:13px!important;line-height:1.5;margin:6px 0!important}
+body .notificationHelp button{font-size:13px!important;min-height:40px!important;padding:8px 12px!important;margin:4px 6px 0 0!important}
+body #deliveryHint{flex:none;margin:4px 0;padding:8px 12px;border-radius:14px;background:#fff0d5;color:#714b19;font-size:12px;line-height:1.5;text-align:center}body #deliveryHint[hidden]{display:none!important}
+
+body #enterChat,body #enterChat *{-webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none!important}
+
+body.adminApp .app>h1{transform:none!important}
+body .bottomNav .navBtn>.countBadge[hidden],body #enterChat>.countBadge[hidden]{display:none!important}
+
+/* C37: anchored translucent shells, consistent touch targets and media. */
+body .dialogHead [data-close]:focus,body .dialogHead [data-close]:focus-visible,body dialog button.salonClose:focus-visible{outline:0!important;border:0!important;box-shadow:none!important;border-radius:999px!important}
+body .salonClose{border-radius:999px!important;-webkit-appearance:none;appearance:none}
+body[data-input-modality=keyboard] .dialogHead [data-close]:focus-visible{color:var(--salon-accent)!important;filter:drop-shadow(0 0 3px currentColor)}
+body.customerApp #customerHeader{position:fixed!important;top:calc(8px + env(safe-area-inset-top))!important;left:12px!important;right:12px!important;width:auto!important;max-width:876px!important;margin:0 auto!important;min-height:94px!important;box-sizing:border-box;padding:37px 8px 5px!important;border-radius:30px!important;z-index:90!important;background:linear-gradient(130deg,#ffffffaa,#ffffff45)!important;border:1px solid #ffffffd9;box-shadow:inset 0 1px 2px #fff,0 6px 22px #384b5214;backdrop-filter:blur(20px) saturate(145%);-webkit-backdrop-filter:blur(20px) saturate(145%)}
+body.customerApp #customerHeader .homeBrand{position:absolute;top:10px;left:12px;right:12px;text-align:center;font-size:18px;font-weight:800;letter-spacing:.06em;pointer-events:none}
+body.customerApp .app{padding-top:calc(114px + env(safe-area-inset-top))!important}
+body.customerApp #globalNotice:not([hidden]){position:relative!important;top:auto!important;z-index:1!important;border-radius:999px!important}
+body.customerApp #chat .conversationHeader,body.adminApp #adminChat .conversationHeader,body.customerApp .conversationFooter,body.adminApp #adminChat .composer{background:linear-gradient(130deg,#ffffffb3,#ffffff4d)!important;border:1px solid #ffffffed!important;border-radius:32px!important;box-shadow:inset 0 1px 2px #fff,0 5px 20px #384b5217!important;backdrop-filter:blur(20px) saturate(140%)!important;-webkit-backdrop-filter:blur(20px) saturate(140%)!important;z-index:3!important}
+body.customerApp #chat .conversationHeader{padding:9px 12px!important;margin:0 0 -4px!important;min-height:62px!important;grid-template-columns:auto minmax(0,1fr)!important}
+body.customerApp .conversationFooter{margin:-4px 0 0!important}
+body.adminApp #adminChat .conversationHeader{margin:0 0 -4px!important;padding:10px 12px!important;min-height:62px!important}
+body.adminApp #adminChat .composer{width:100%!important;margin:-4px 0 0!important;box-sizing:border-box}
+body .notificationHelp,body .notificationHelp[data-ready=true],body .notificationGuide,body #preferences .menuCard{border:1px solid #ffffffd9!important;background:linear-gradient(125deg,#ffffffb8,#ffffff66)!important;border-radius:28px!important;box-shadow:inset 0 1px 2px #fff,0 4px 16px #384b5210;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+body .notificationHelp strong{display:block;font-size:15px}body .notificationHelp[data-ready=true] strong{color:#326356}
+body .salonDialog{border-radius:32px!important;max-height:calc(100dvh - 40px);overscroll-behavior:contain}
+body .dialogHead{display:flex;align-items:center;gap:12px;margin-bottom:14px}.dialogHead h2{flex:1;min-width:0;margin:0!important}
+body .productGrid .product{display:flex;flex-direction:column;border-radius:28px!important;padding:12px!important;gap:8px}
+body .productGrid .product h3,body .productGrid .product p{margin:0!important}
+body .productGrid .product>.softBtn{margin-top:auto!important;align-self:stretch;border-radius:999px!important}
+body .productCover{border-radius:22px!important;aspect-ratio:1;flex:none;box-sizing:border-box}
+body .productCover img{display:block;width:100%!important;height:100%!important;object-fit:contain!important;background:#eeeae5}
+body .productGallery{scroll-snap-type:x proximity!important;overscroll-behavior-x:contain;touch-action:pan-x pan-y}
+body .productGallery img{display:block;height:auto!important;max-height:48dvh!important;aspect-ratio:auto!important;margin:auto;object-fit:contain!important}
+body .productGallery button[data-photo-viewer]{display:block;width:100%;border-radius:24px!important;overflow:hidden}
+@media(prefers-reduced-motion:reduce){body dialog,body .productGallery{scroll-behavior:auto!important;animation:none!important}}
+body.customerApp #msgs,body.adminApp #adminMsgs{margin-top:-24px!important;margin-bottom:-24px!important;padding-top:38px!important;padding-bottom:38px!important;scroll-padding-block:38px;position:relative;z-index:1}
+body.customerApp #chat .composer{background:transparent!important;box-shadow:none!important;border:0!important}
+/* C38: compact notification status and a prominent conversation entry. */
+body .notificationHelp,body .notificationHelp[data-ready=true]{padding:10px 13px!important;margin:10px 0 18px!important;border-radius:24px!important}
+body .notificationHelp p{font-size:12px!important;line-height:1.45!important;margin:5px 0!important}
+body .notificationHelp button{min-height:36px!important;padding:6px 11px!important;font-size:12px!important;margin-top:3px!important}
+body .notificationHelp button[hidden]{display:none!important}
+body .notificationHelp[data-ready=true] strong{color:#246f4c!important}
+body.customerApp #enterChat{position:relative!important;display:flex!important;align-items:center!important;gap:14px!important;min-height:106px!important;padding:20px 16px!important;border-radius:30px!important;border:1.5px solid #ffffffed!important;background:linear-gradient(120deg,#ffffffd4,#e4f4f299)!important;box-shadow:inset 0 2px 2px #fff,0 8px 22px #335b6326!important;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);margin-bottom:24px!important}
 body.customerApp #enterChat .conversationCopy{flex:1;min-width:0}body.customerApp #enterChat .conversationCopy small{line-height:1.55;display:block;margin-top:5px}
 body.customerApp .homeFeature{margin-top:28px!important}body.customerApp #enterChat~.homeFeature{border-top:1px solid #ffffffa8}
 body .pageBack{display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:5px!important;min-height:42px!important;line-height:1!important;border-radius:999px!important}
@@ -385,62 +496,3 @@ body.customerApp #enterChat:active{transform:none!important;filter:brightness(.9
  body.customerApp #customerHeader .headerActions button,body.customerApp #customerHeader .notificationIndicator{flex-basis:34px!important;width:34px!important;min-width:34px!important}
  body.customerApp #customerHeader .headerActions .salonIcon,body.customerApp #customerHeader .notificationIndicator svg{width:21px!important;height:21px!important}
 }
-
-/* N47: compact, balanced home header and centered login splash. */
-body.customerApp #customerHeader{
- height:104px!important;min-height:104px!important;padding:28px 7px 22px 5px!important;
- border-radius:32px!important
-}
-body.customerApp #customerHeader .profileSwitch{transform:translateY(-2px);padding:2px!important}
-body.customerApp #customerHeader .profileSwitch::before{
- background:linear-gradient(125deg,rgba(255,255,255,.68),rgba(240,234,223,.43))!important;
- border-color:rgba(255,255,255,.68)!important;box-shadow:inset 0 1px 2px #ffffffaa,0 2px 8px #51433308!important
-}
-body.customerApp #customerHeader .headerActions,
-body.customerApp #customerHeader .notificationIndicator{transform:translateY(-2px)}
-body.customerApp #customerHeader .headerActions{gap:1px!important}
-body.customerApp #customerHeader .headerActions button,
-body.customerApp #customerHeader .notificationIndicator{
- flex-basis:36px!important;width:36px!important;min-width:36px!important;height:38px!important;min-height:38px!important
-}
-body.customerApp #customerHeader .notificationIndicator{margin-left:1px!important}
-body.customerApp #customerHeader .noticeRibbon{left:16px!important;right:16px!important;bottom:4px!important;height:18px!important;min-height:18px!important}
-body.customerApp.hasNotice:not(.conversationOpen) .app,
-body.customerApp:not(.hasNotice):not(.conversationOpen):not([data-page=setup]) .app{padding-top:calc(140px + env(safe-area-inset-top))!important}
-#splash>div{transform:translateY(-2.5dvh)}
-@media(max-width:360px){
- body.customerApp #customerHeader{padding-right:5px!important;padding-left:4px!important}
- body.customerApp #customerHeader .profileSwitch{transform:translate(-1px,-2px)}
- body.customerApp #customerHeader .headerActions,
- body.customerApp #customerHeader .notificationIndicator{transform:translate(1px,-2px)}
- body.customerApp #customerHeader .headerActions button,
- body.customerApp #customerHeader .notificationIndicator{flex-basis:33px!important;width:33px!important;min-width:33px!important}
- body.customerApp #customerHeader .noticeRibbon{left:12px!important;right:12px!important}
-}
-@media(min-width:430px){
- body.customerApp #customerHeader{padding-left:8px!important;padding-right:9px!important}
- body.customerApp #customerHeader .profileSwitch{flex-basis:39%;max-width:39%!important}
- body.customerApp #customerHeader .headerActions button,
- body.customerApp #customerHeader .notificationIndicator{flex-basis:38px!important;width:38px!important;min-width:38px!important}
-}
-
-/* N47.2: keep the header layout self-contained across cached and embedded views. */
-body.customerApp #customerHeader{
- position:fixed!important;top:calc(4px + env(safe-area-inset-top))!important;left:12px!important;right:12px!important;
- width:auto!important;max-width:876px!important;margin:0 auto!important;z-index:90!important;overflow:hidden!important;
- display:flex!important;justify-content:flex-start!important;align-items:center!important
-}
-body.customerApp #customerHeader .homeBrand{position:absolute!important;top:7px!important;left:0!important;right:0!important;width:auto!important;text-align:center!important;font-size:17px!important}
-body.customerApp #customerHeader .profileSwitch{position:relative!important;display:flex!important;align-items:center!important;flex:0 1 38%!important;max-width:38%!important;min-width:0!important;margin:0!important}
-body.customerApp #customerHeader #profileEntry{display:flex!important;align-items:center!important;max-width:100%!important;min-width:0!important}
-body.customerApp #customerHeader .headerActions{position:relative!important;display:flex!important;align-items:center!important;justify-content:center!important;flex:0 0 auto!important;max-width:none!important;height:40px!important;margin:0 0 0 auto!important;padding:0!important}
-body.customerApp #customerHeader .notificationIndicator{position:relative!important;display:grid!important;place-items:center!important;flex:0 0 36px!important;width:36px!important;min-width:36px!important;height:38px!important;min-height:38px!important;margin:0 0 0 1px!important;padding:0!important}
-body.customerApp #customerHeader .noticeRibbon{
- position:absolute!important;left:16px!important;right:16px!important;top:auto!important;bottom:4px!important;
- z-index:1!important;width:auto!important;max-width:none!important;height:18px!important;min-height:18px!important;
- margin:0!important;padding:0!important;display:flex!important;align-items:center!important;overflow:hidden!important;
- border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important
-}
-body.customerApp #customerHeader .noticeRibbon>div{width:100%!important;height:100%!important;display:flex!important;align-items:center!important;overflow:hidden!important}
-body.customerApp #customerHeader .noticeRibbon p{position:relative!important;left:-100%;flex:0 0 auto!important;width:max-content!important;margin:0!important;padding:0!important;white-space:nowrap!important;animation:salonMarqueeAcross 24s linear infinite!important}
-@media(max-width:360px){body.customerApp #customerHeader .headerActions{gap:0!important}body.customerApp #customerHeader .noticeRibbon{left:12px!important;right:12px!important}}
