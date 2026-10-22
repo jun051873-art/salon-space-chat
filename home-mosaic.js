@@ -7,5 +7,6 @@ export function homeMosaicHTML({sections={},feature,products=[],events=[],notice
  if(sections.products===true&&products.length)tiles.push(tile('products','精選商品','日常保養提案','data-home-products'));
  if(sections.events===true&&events.length)tiles.push(tile('events','本月活動','值得期待的相聚','data-home-collection="events"'));
  if(sections.board!==false&&notices.length)tiles.push(tile('board','空間布告欄','關於這裡的消息','data-home-collection="board"'));
+ if(sections.holidays===true)tiles.push(tile('holidays','休假表','為相聚留好時間','data-home-holidays'));
  return tiles.join('');
 }
