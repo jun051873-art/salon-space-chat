@@ -1,5 +1,5 @@
-Warning: truncated output (original token count: 22010)
-Total output lines: 536
+Warning: truncated output (original token count: 22690)
+Total output lines: 557
 
 /* C19: compact controls, consistent geometry, and isolated read-only preview */
 .dialogHead [data-close]{border:2px solid var(--salon-accent,#577f88)!important;border-radius:50%!important;min-width:44px;min-height:44px}
@@ -97,28 +97,7 @@ body.customerApp #info .infoFactGrid p{display:grid;grid-template-columns:minmax
 body.customerApp #info .infoFactGrid p:last-child{border-bottom:0!important}body.customerApp #info .infoFactGrid p small{font-size:12px;color:#8e7966;letter-spacing:.06em}
 body.customerApp #info .infoBlock-amenities{display:block!important}.facilityPanel{padding:18px 18px 6px;border:1px solid #d3c8b9;border-radius:24px;background:#fffdf8db;box-shadow:0 8px 22px #463e3310}.facilityPanel header small{font-size:10px;letter-spacing:.18em;color:#9a8169}.facilityPanel header h3{margin:4px 0 12px;font-size:19px}.facilityRow{display:grid;grid-template-columns:minmax(82px,30%) minmax(0,1fr);gap:12px;align-items:start;padding:12px 2px;border-top:1px solid #e0d9ce;font-size:14px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere}.facilityRow b{color:#816e5e;font-size:13px}.facilityRow span{color:var(--salon-ink,#292722)}
 body.adminApp #toolBody:has(.settingsJump){padding-bottom:38px}.settingsJump{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px!important;padding:6px!important;margin:4px 0 8px;border-radius:22px;background:#e8e8e3b9;border:1px solid #ffffffd4}.settingsJump button[data-settings-jump]{font-size:13px;line-height:1.25;min-width:0;min-height:49px;padding:8px 5px;border:0;border-radius:17px;background:transparent;box-shadow:none;color:#5c625d}.settingsJump button[data-settings-jump][aria-pressed=true]{background:#fffdf8;color:#253b3b;font-weight:800;box-shadow:0 4px 10px #4d4a3b18}.settingsJump button:not([data-settings-jump]){font-size:12px;min-height:38px;padding:6px 8px;background:transparent;border:0;box-shadow:none;text-decoration:underline;color:#577679}
-body.adminApp #toolBody .settingsGroup[…4010 tokens truncated…);-webkit-backdrop-filter:blur(16px)}
-body .notificationHelp strong{display:block;font-size:15px}body .notificationHelp[data-ready=true] strong{color:#326356}
-body .salonDialog{border-radius:32px!important;max-height:calc(100dvh - 40px);overscroll-behavior:contain}
-body .dialogHead{display:flex;align-items:center;gap:12px;margin-bottom:14px}.dialogHead h2{flex:1;min-width:0;margin:0!important}
-body .productGrid .product{display:flex;flex-direction:column;border-radius:28px!important;padding:12px!important;gap:8px}
-body .productGrid .product h3,body .productGrid .product p{margin:0!important}
-body .productGrid .product>.softBtn{margin-top:auto!important;align-self:stretch;border-radius:999px!important}
-body .productCover{border-radius:22px!important;aspect-ratio:1;flex:none;box-sizing:border-box}
-body .productCover img{display:block;width:100%!important;height:100%!important;object-fit:contain!important;background:#eeeae5}
-body .productGallery{scroll-snap-type:x proximity!important;overscroll-behavior-x:contain;touch-action:pan-x pan-y}
-body .productGallery img{display:block;height:auto!important;max-height:48dvh!important;aspect-ratio:auto!important;margin:auto;object-fit:contain!important}
-body .productGallery button[data-photo-viewer]{display:block;width:100%;border-radius:24px!important;overflow:hidden}
-@media(prefers-reduced-motion:reduce){body dialog,body .productGallery{scroll-behavior:auto!important;animation:none!important}}
-body.customerApp #msgs,body.adminApp #adminMsgs{margin-top:-24px!important;margin-bottom:-24px!important;padding-top:38px!important;padding-bottom:38px!important;scroll-padding-block:38px;position:relative;z-index:1}
-body.customerApp #chat .composer{background:transparent!important;box-shadow:none!important;border:0!important}
-/* C38: compact notification status and a prominent conversation entry. */
-body .notificationHelp,body .notificationHelp[data-ready=true]{padding:10px 13px!important;margin:10px 0 18px!important;border-radius:24px!important}
-body .notificationHelp p{font-size:12px!important;line-height:1.45!important;margin:5px 0!important}
-body .notificationHelp button{min-height:36px!important;padding:6px 11px!important;font-size:12px!important;margin-top:3px!important}
-body .notificationHelp button[hidden]{display:none!important}
-body .notificationHelp[data-ready=true] strong{color:#246f4c!important}
-body.customerApp #enterChat{position:relative!important;display:flex!important;align-items:center!important;gap:14px!important;min-height:106px!important;padding:20px 16px!important;border-radius:30px!important;border:1.5px solid #ffffffed!important;background:linear-gradient(120deg,#ffffffd4,#e4f4f299)!important;box-shadow:inset 0 2px 2px #fff,0 8px 22px #335b6326!important;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);margin-bottom:24px!important}
+body.adminApp #toolBody .settingsGroup[…4690 tokens truncated…2px #fff,0 8px 22px #335b6326!important;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);margin-bottom:24px!important}
 body.customerApp #enterChat .conversationCopy{flex:1;min-width:0}body.customerApp #enterChat .conversationCopy small{line-height:1.55;display:block;margin-top:5px}
 body.customerApp .homeFeature{margin-top:28px!important}body.customerApp #enterChat~.homeFeature{border-top:1px solid #ffffffa8}
 body .pageBack{display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:5px!important;min-height:42px!important;line-height:1!important;border-radius:999px!important}
@@ -444,3 +423,24 @@ body.customerApp:not(.hasNotice):not(.conversationOpen):not([data-page=setup]) .
  body.customerApp #customerHeader .headerActions button,
  body.customerApp #customerHeader .notificationIndicator{flex-basis:38px!important;width:38px!important;min-width:38px!important}
 }
+
+/* N47.2: keep the header layout self-contained across cached and embedded views. */
+body.customerApp #customerHeader{
+ position:fixed!important;top:calc(4px + env(safe-area-inset-top))!important;left:12px!important;right:12px!important;
+ width:auto!important;max-width:876px!important;margin:0 auto!important;z-index:90!important;overflow:hidden!important;
+ display:flex!important;justify-content:flex-start!important;align-items:center!important
+}
+body.customerApp #customerHeader .homeBrand{position:absolute!important;top:7px!important;left:0!important;right:0!important;width:auto!important;text-align:center!important;font-size:17px!important}
+body.customerApp #customerHeader .profileSwitch{position:relative!important;display:flex!important;align-items:center!important;flex:0 1 38%!important;max-width:38%!important;min-width:0!important;margin:0!important}
+body.customerApp #customerHeader #profileEntry{display:flex!important;align-items:center!important;max-width:100%!important;min-width:0!important}
+body.customerApp #customerHeader .headerActions{position:relative!important;display:flex!important;align-items:center!important;justify-content:center!important;flex:0 0 auto!important;max-width:none!important;height:40px!important;margin:0 0 0 auto!important;padding:0!important}
+body.customerApp #customerHeader .notificationIndicator{position:relative!important;display:grid!important;place-items:center!important;flex:0 0 36px!important;width:36px!important;min-width:36px!important;height:38px!important;min-height:38px!important;margin:0 0 0 1px!important;padding:0!important}
+body.customerApp #customerHeader .noticeRibbon{
+ position:absolute!important;left:16px!important;right:16px!important;top:auto!important;bottom:4px!important;
+ z-index:1!important;width:auto!important;max-width:none!important;height:18px!important;min-height:18px!important;
+ margin:0!important;padding:0!important;display:flex!important;align-items:center!important;overflow:hidden!important;
+ border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important
+}
+body.customerApp #customerHeader .noticeRibbon>div{width:100%!important;height:100%!important;display:flex!important;align-items:center!important;overflow:hidden!important}
+body.customerApp #customerHeader .noticeRibbon p{position:relative!important;left:-100%;flex:0 0 auto!important;width:max-content!important;margin:0!important;padding:0!important;white-space:nowrap!important;animation:salonMarqueeAcross 24s linear infinite!important}
+@media(max-width:360px){body.customerApp #customerHeader .headerActions{gap:0!important}body.customerApp #customerHeader .noticeRibbon{left:12px!important;right:12px!important}}
