@@ -412,3 +412,5 @@ body #homeCards .homeMosaicTile{position:relative;display:flex;align-items:stret
 .mosaicOpen{display:flex;align-items:center;justify-content:space-between;font-size:10px;margin-top:3px}.mosaicOpen b{font-size:16px;font-weight:400}
 @media(min-width:600px){body.customerApp #homeCards[data-layout=mosaic]{grid-auto-rows:145px;gap:14px}.homeMosaicTile .mosaicCopy{padding:20px}.mosaicCopy strong{font-size:22px}}
 @media(max-width:360px){body.customerApp #customerHeader .headerActions button{width:34px;min-width:34px;padding:6px}body.customerApp #customerHeader #profileEntry>span:last-child{max-width:48px}}
+
+body.customerApp:not(.hasNotice):not(.conversationOpen):not([data-page=setup]) .app{padding-top:calc(102px + env(safe-area-inset-top))!important}
