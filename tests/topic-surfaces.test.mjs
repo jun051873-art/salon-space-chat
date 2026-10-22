@@ -14,3 +14,5 @@ const safe=normalizeSurfaces({home:{start:'red;display:none',end:'#123456',ink:'
 assert.deepEqual(Object.keys(safe),['home']);assert.equal(safe.home.opacity,100);assert.equal(safe.home.blur,0);assert.equal(safe.home.radius,40);assert.equal(safe.home.angle,360);assert.equal(safe.home.start,'#f9f6f0');
 const t=normalizeTheme({surfaces:safe});assert.deepEqual(normalizeTheme(t),t);safe.home.end='#000000';assert.equal(t.surfaces.home.end,'#123456');assert.equal(surfaceVars(t.surfaces.home)['--surface-ink'],'#ffffff');
 console.log('PASS one entrance per topic, empty/disabled categories, no homepage images, bounded scoped theme settings and independent copies');
+
+const tiles=normalizeSurfaces({tileFeature:{start:'#ffeedd'},tileProducts:{start:'#ddeecc'},holiday:{end:'#ccddee'}});assert.equal(tiles.tileFeature.start,'#ffeedd');assert.equal(tiles.tileProducts.start,'#ddeecc');assert.equal(tiles.holiday.end,'#ccddee');
