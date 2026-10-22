@@ -177,3 +177,8 @@ body.customerApp #customerHeader .headerActions{gap:6px!important;margin-right:0
 body.customerApp #customerHeader #reportEntry::before,body.customerApp #customerHeader .notificationIndicator::before{display:none!important}
 body input:is([type=checkbox],[type=radio],[type=range]){accent-color:var(--salon-accent,#557d73)}
 body :is(.sceneEditBar button,.settingsJump button,.settingsDrawer>summary){transition:box-shadow .15s ease,transform .15s ease!important}
+/* N54.2: three daily destinations, quiet settings beside notifications. */
+body #customerNav{--tabs:3;grid-template-columns:repeat(3,minmax(0,1fr))}
+body.customerApp #customerHeader .headerActions button,body.customerApp #customerHeader .notificationIndicator{flex-basis:44px!important;width:44px!important;min-width:44px!important;height:44px!important;min-height:44px!important}
+body.customerApp #customerHeader .headerActions .salonIcon,body.customerApp #customerHeader .notificationIndicator svg{width:21px!important;height:21px!important;stroke-width:1.5}
+body.customerApp #customerHeader .headerActions button::before{display:none!important}
