@@ -17,6 +17,6 @@ const a=makeDrawer(host,[group],'店家資訊','影響客人店名'),b=makeDrawe
 assert.equal(a.open,false);assert.equal(b.open,false);assert(a.contains(input));assert.equal(input.value,'未儲存的店名');button.handlers.click();assert.equal(saves,1);
 a.open=true;a.handlers.toggle();b.open=true;b.handlers.toggle();assert.equal(a.open,false);assert.equal(b.open,true);assert.equal(input.value,'未儲存的店名');
 const html=fs.readFileSync(new URL('../customer.html',import.meta.url),'utf8');
-assert.deepEqual([...html.matchAll(/class="navBtn[^"\n]*" data-customer-page="([^"]+)"/g)].map(x=>x[1]),['inbox','chat','booking','preferences']);
+assert.deepEqual([...html.matchAll(/class="navBtn[^"\n]*" data-customer-page="([^"]+)"/g)].map(x=>x[1]),['info','inbox','booking','preferences']);
 assert(!html.includes('data-header-page="preferences"'));assert(!html.includes('data-header-page="info"'));
 console.log('PASS drawers preserve unsaved values and handlers, exclusive expansion, customer four-tab navigation');
