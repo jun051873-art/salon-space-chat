@@ -1,0 +1,59 @@
+/* N47: responsive customer header and login splash. Loaded after shared styles. */
+body.customerApp #customerHeader{
+ position:fixed!important;top:calc(4px + env(safe-area-inset-top))!important;left:12px!important;right:12px!important;
+ width:auto!important;max-width:876px!important;height:104px!important;min-height:104px!important;margin:0 auto!important;
+ box-sizing:border-box!important;padding:28px 7px 22px 5px!important;z-index:90!important;overflow:hidden!important;
+ display:flex!important;justify-content:flex-start!important;align-items:center!important;border-radius:32px!important;
+ background:linear-gradient(128deg,rgba(255,255,255,.78),rgba(232,243,242,.60) 52%,rgba(225,236,238,.74))!important;
+ border:1px solid rgba(255,255,255,.85)!important;box-shadow:inset 0 1px 2px #fff,0 6px 22px #384b5214!important;
+ backdrop-filter:blur(20px) saturate(145%)!important;-webkit-backdrop-filter:blur(20px) saturate(145%)!important
+}
+body.customerApp #customerHeader .homeBrand{position:absolute!important;top:7px!important;left:0!important;right:0!important;width:auto!important;text-align:center!important;font-size:17px!important;font-weight:800!important;letter-spacing:.08em!important;pointer-events:none!important}
+body.customerApp #customerHeader .profileSwitch{position:relative!important;display:flex!important;align-items:center!important;flex:0 1 38%!important;max-width:38%!important;min-width:0!important;margin:0!important;padding:2px!important;background:transparent!important;border:0!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;transform:translateY(-2px)!important}
+body.customerApp #customerHeader .profileSwitch::before{top:2px!important;bottom:2px!important;background:linear-gradient(125deg,rgba(255,255,255,.68),rgba(240,234,223,.43))!important;border-color:rgba(255,255,255,.68)!important;box-shadow:inset 0 1px 2px #ffffffaa,0 2px 8px #51433308!important}
+body.customerApp #customerHeader #profileEntry{display:flex!important;align-items:center!important;justify-content:flex-start!important;max-width:100%!important;min-width:0!important;height:40px!important;gap:6px!important;padding:4px 8px!important;font-size:13px!important}
+body.customerApp #customerHeader #profileEntry .miniAvatar{width:32px!important;height:32px!important;flex:0 0 32px!important}
+body.customerApp #customerHeader #profileEntry>span:last-child{max-width:calc(100% - 39px)!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
+body.customerApp #customerHeader .headerActions{position:relative!important;display:flex!important;align-items:center!important;justify-content:center!important;flex:0 0 auto!important;max-width:none!important;height:40px!important;margin:0 0 0 auto!important;padding:0!important;gap:1px!important;background:transparent!important;border:0!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;transform:translateY(-2px)!important}
+body.customerApp #customerHeader .headerActions::before{display:none!important}
+body.customerApp #customerHeader .headerActions button,body.customerApp #customerHeader .notificationIndicator{
+ position:relative!important;isolation:isolate;display:grid!important;place-items:center!important;
+ flex:0 0 36px!important;width:36px!important;min-width:36px!important;height:38px!important;min-height:38px!important;
+ margin:0!important;padding:0!important;border:0!important;border-radius:50%!important;background:transparent!important;
+ box-shadow:none!important;color:var(--salon-ink,#665f52)!important;font-size:0!important;line-height:1!important;transform:none!important
+}
+body.customerApp #customerHeader .notificationIndicator{margin-left:1px!important;transform:translateY(-2px)!important}
+body.customerApp #customerHeader .headerActions button::before,body.customerApp #customerHeader .notificationIndicator::before{
+ content:"";position:absolute;z-index:-1;inset:1px;border-radius:50%;background:linear-gradient(145deg,rgba(255,255,255,.90),rgba(230,239,235,.75));
+ border:1px solid rgba(255,255,255,.92);box-shadow:inset 0 1px 2px #fff,0 2px 9px #44554a12;opacity:0;transition:opacity .12s ease;pointer-events:none
+}
+body.customerApp #customerHeader .headerActions button:active::before,body.customerApp #customerHeader .headerActions button[aria-pressed=true]::before,body.customerApp #customerHeader .notificationIndicator:active::before{opacity:1}
+body.customerApp #customerHeader .headerActions .salonIcon,body.customerApp #customerHeader .notificationIndicator svg{position:relative!important;z-index:1!important;width:23px!important;height:23px!important}
+body.customerApp #customerHeader .notificationIndicator i{top:2px!important;right:4px!important;width:8px!important;height:8px!important}
+body.customerApp #customerHeader .noticeRibbon{
+ position:absolute!important;left:16px!important;right:16px!important;top:auto!important;bottom:4px!important;z-index:1!important;
+ width:auto!important;max-width:none!important;height:18px!important;min-height:18px!important;margin:0!important;padding:0!important;
+ display:flex!important;align-items:center!important;overflow:hidden!important;border:0!important;border-radius:0!important;
+ background:transparent!important;box-shadow:none!important;color:var(--salon-muted,#887b68)!important;font-size:11px!important;
+ backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+ mask-image:linear-gradient(90deg,transparent 0,#000 4%,#000 96%,transparent 100%);
+ -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 4%,#000 96%,transparent 100%)
+}
+body.customerApp #customerHeader .noticeRibbon>div{width:100%!important;height:100%!important;display:flex!important;align-items:center!important;overflow:hidden!important}
+body.customerApp #customerHeader .noticeRibbon p{position:relative!important;left:-100%;flex:0 0 auto!important;width:max-content!important;margin:0!important;padding:0!important;max-width:none!important;white-space:nowrap!important;animation:salonHeaderMarquee 24s linear infinite!important}
+@keyframes salonHeaderMarquee{0%,4%{left:-100%;opacity:0}12%{opacity:1}84%{opacity:1}96%,100%{left:100%;opacity:0}}
+body.customerApp #customerHeader .noticeRibbon[hidden]{display:none!important}
+body.customerApp.hasNotice:not(.conversationOpen) .app,body.customerApp:not(.hasNotice):not(.conversationOpen):not([data-page=setup]) .app{padding-top:calc(140px + env(safe-area-inset-top))!important}
+body.customerApp #enterChat{width:calc(100% - 14px)!important;margin:18px auto 28px!important;min-height:118px!important;padding:19px 16px!important;border-radius:38px!important;background:linear-gradient(128deg,rgba(255,255,255,.88),rgba(230,244,243,.76) 50%,rgba(218,235,237,.84))!important;border:1px solid rgba(255,255,255,.96)!important;box-shadow:inset 0 1.5px 2px #fff,0 9px 25px rgba(53,88,91,.12)!important}
+body.customerApp #enterChat .conversationEnter{border-radius:999px!important;padding:13px 17px!important;white-space:nowrap!important}
+body.customerApp #enterChat:active{transform:none!important;filter:brightness(.99)!important}
+#splash>div{transform:translateY(-2.5dvh)!important}
+@media(max-width:360px){
+ body.customerApp #customerHeader{padding-left:4px!important;padding-right:5px!important}
+ body.customerApp #customerHeader .profileSwitch{flex-basis:34%!important;max-width:34%!important;transform:translate(-1px,-2px)!important}
+ body.customerApp #customerHeader .headerActions{gap:0!important;transform:translate(1px,-2px)!important}
+ body.customerApp #customerHeader .headerActions button,body.customerApp #customerHeader .notificationIndicator{flex-basis:33px!important;width:33px!important;min-width:33px!important}
+ body.customerApp #customerHeader .headerActions .salonIcon,body.customerApp #customerHeader .notificationIndicator svg{width:21px!important;height:21px!important}
+ body.customerApp #customerHeader .noticeRibbon{left:12px!important;right:12px!important}
+}
+@media(min-width:430px){body.customerApp #customerHeader{padding-left:8px!important;padding-right:9px!important}body.customerApp #customerHeader .profileSwitch{flex-basis:39%!important;max-width:39%!important}body.customerApp #customerHeader .headerActions button,body.customerApp #customerHeader .notificationIndicator{flex-basis:38px!important;width:38px!important;min-width:38px!important}}
