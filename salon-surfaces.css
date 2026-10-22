@@ -131,3 +131,49 @@ html.keyboardOpen body.customerApp #chat>.card,html.keyboardOpen body.adminApp #
 html.keyboardOpen body.customerApp #chat .conversationFooter,html.keyboardOpen body.adminApp #adminChat .composer{margin-bottom:0!important;padding-bottom:4px!important}
 body .productGallery img{height:auto!important;max-height:60svh!important;aspect-ratio:auto!important;border-radius:calc(var(--surface-radius,28px) * .7)!important}
 body .productGallery figure{align-self:start!important}
+
+/* N54: quiet drawers, explicit scopes and consistent touch states. */
+body .settingsDrawer{margin:14px 0;border:1px solid #ffffffc9;border-radius:26px;background:linear-gradient(125deg,#ffffffa8,#e0ece958);box-shadow:0 8px 24px #30483d09;overflow:hidden}
+body .settingsDrawer>summary{position:relative;display:block;list-style:none;padding:20px 44px 20px 20px;cursor:pointer;color:var(--salon-text,#293e3a)}
+body .settingsDrawer>summary::-webkit-details-marker{display:none}
+body .settingsDrawer>summary:after{content:'＋';position:absolute;right:18px;top:22px;font-size:20px;color:var(--salon-accent,#557d73)}
+body .settingsDrawer[open]>summary:after{content:'−'}
+body .settingsDrawer>summary strong{display:block;font-size:17px;line-height:1.4}
+body .settingsDrawer>summary span{display:block;font-size:13px;line-height:1.7;opacity:.75;margin-top:6px}
+body .settingsDrawerBody{padding:0 14px 18px}
+body .settingsDrawerBody>.settingsGroup{margin:0;padding:14px 6px;border:0;background:transparent;box-shadow:none}
+body .settingsJump{display:flex;flex-wrap:wrap;gap:8px;padding:12px}
+body .settingsJump button{flex:1 1 42%;background:linear-gradient(125deg,#ffffffda,#e0ece9b0)!important;color:#334b45!important;border:1px solid #fff!important;min-height:44px;border-radius:18px!important;text-decoration:none;font-size:14px}
+body #settingsSaveTop{background:var(--salon-accent,#557d73)!important;color:white!important;border:0;border-radius:22px;min-height:48px}
+body :is(button,a,input,textarea,select,summary){-webkit-tap-highlight-color:transparent}
+body :is(button,a,summary):focus:not(:focus-visible){outline:none!important}
+body :is(input,textarea,select):focus{outline:1px solid var(--salon-accent,#557d73)!important;outline-offset:2px;box-shadow:none!important}
+body :is(button,a,summary,input,textarea,select):focus-visible{outline:2px solid var(--salon-accent,#557d73)!important;outline-offset:3px}
+body .sceneEditBar{justify-content:center!important;gap:12px!important;max-width:360px!important}
+body .sceneEditBar button{display:flex!important;flex-direction:row!important;align-items:center;justify-content:center;gap:8px;min-height:48px!important;padding:12px 18px!important;border-radius:22px!important;background:linear-gradient(120deg,#ffffffc9,#e2eeea9c)!important;font-size:14px!important;box-shadow:0 4px 16px #203e3014!important}
+body .sceneEffectChoices{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:18px 12px!important}
+body .effectSample{height:84px!important;width:100%!important;border-radius:20px!important;background:linear-gradient(135deg,#f8f6ee,#c7dad1)!important;color:#526e65!important;box-shadow:inset 0 1px #fff,0 4px 12px #29463e0c!important}
+body .effectSample:is(.effect-sakura,.effect-hearts,.effect-birthday){background:linear-gradient(140deg,#fff2ed,#e9c8d5)!important;color:#9b6379!important}
+body .effectSample:is(.effect-rain,.effect-snow,.effect-clouds,.effect-wind,.effect-ripples,.effect-mist){background:linear-gradient(140deg,#f0f7fa,#bdd3e2)!important;color:#527993!important}
+body .effectSample:is(.effect-sun,.effect-suncloud,.effect-leaves,.effect-wheat,.effect-lanterns,.effect-newyear,.effect-fireflies){background:linear-gradient(140deg,#fff4d6,#dfc19a)!important;color:#9a7341!important}
+body .effectSample:is(.effect-stars,.effect-moon,.effect-midautumn,.effect-fireworks){background:linear-gradient(140deg,#e8e6f4,#a4aecb)!important;color:#535a82!important}
+body .effectSample svg{width:52px!important;height:52px!important}
+body .sceneEffectChoices button[aria-pressed=true] .effectSample{outline:2px solid #557d73!important;outline-offset:3px!important}
+body h1.adminNotificationHeader{display:flex;align-items:center;justify-content:center;gap:20px}
+body .adminNotificationHeader .notificationIndicator{position:relative;flex:none;width:44px;height:44px;padding:8px;background:transparent!important;border:0;box-shadow:none;color:var(--salon-accent,#557d73)}
+body .adminNotificationHeader .notificationIndicator svg{width:27px;height:27px}
+body .adminNotificationHeader .notificationIndicator i{position:absolute;width:7px;height:7px;border-radius:50%;right:5px;top:4px;background:#a5aaa7;border:2px solid white}
+body .adminNotificationHeader .notificationIndicator[data-ready=true] i{background:#44826a}
+body .notificationStatusDialog .notificationHelp{margin:8px 0;padding:12px;background:transparent!important;border:0;box-shadow:none}
+body .notificationStatusDialog button{background:linear-gradient(130deg,#fafcf9,#dceae6)!important;color:#334c45!important;border:1px solid #fff!important;border-radius:20px;padding:12px 16px}
+@media(prefers-reduced-motion:reduce){body .settingsDrawer,body .sceneEditBar button{transition:none!important}}
+body #customerHeader .headerActions{width:auto!important;gap:8px!important;margin-right:48px!important}
+body #customerHeader .headerActions:before,body #customerHeader .headerActions:after{display:none!important}
+body #customerHeader :is(#reportEntry,.notificationIndicator){background:transparent!important;box-shadow:none!important;border-color:transparent!important}
+body #customerNav{--tabs:4;display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
+body #customerNav.hidden{display:none}
+body #customerNav .navBtn{min-width:0;padding-inline:6px}
+body.customerApp #customerHeader .headerActions{gap:6px!important;margin-right:0!important}
+body.customerApp #customerHeader #reportEntry::before,body.customerApp #customerHeader .notificationIndicator::before{display:none!important}
+body input:is([type=checkbox],[type=radio],[type=range]){accent-color:var(--salon-accent,#557d73)}
+body :is(.sceneEditBar button,.settingsJump button,.settingsDrawer>summary){transition:box-shadow .15s ease,transform .15s ease!important}

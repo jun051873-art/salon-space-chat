@@ -17,9 +17,10 @@ export function mountNotificationHelp(host,enable,role){
  enableButton.onclick=async()=>{if(busy)return;busy=true;error='';render();try{await enable();}catch(e){error=e.message;}finally{busy=false;if(!ready&&!error)error='通知尚未完成，請確認已允許通知後再試。';render();}};
  box.append(title,p,enableButton);if(role==='admin')box.append(test);box.append(help);
  let indicator=null;
- if(role==='customer'){
-  const header=document.getElementById('customerHeader');
+ if(role==='customer'||role==='admin'){
+  const header=role==='customer'?document.getElementById('customerHeader'):document.querySelector?.('.app > h1, body > h1');
   if(header){
+   if(role==='admin')header.classList.add('adminNotificationHeader');
    indicator=document.createElement('button');indicator.type='button';indicator.className='notificationIndicator';
    indicator.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><i aria-hidden="true"></i>';
    const panel=document.createElement('dialog');panel.className='notificationGuide notificationStatusDialog';panel.id='notificationStatusDialog';

@@ -31,7 +31,7 @@ export function mountThemeEditor(body,raw,onSave,{audience="admin"}={}){let draf
  page.onchange=()=>{fillPage();paint();};
  pageEnabled.onchange=()=>{if(pageEnabled.checked)draft.pageColors[page.value]=Object.fromEntries(Object.keys(paletteFields).map(k=>[k,draft[k]]));else delete draft.pageColors[page.value];fillPage();paint();};
  pageFields.forEach(el=>el.oninput=()=>{draft.pageColors[page.value]={...draft.pageColors[page.value],[el.dataset.pageColor]:el.value};paint();body.querySelector('#themeStatus').textContent='預覽中，尚未發布。';});
- const refreshSurfaces=mountSurfaceEditor(body,()=>draft,surfaces=>{draft=normalizeTheme({...draft,surfaces});paint();body.querySelector('#themeStatus').textContent='預覽中，尚未發布。';},audience);body.querySelector('#themeReset').onclick=()=>{draft=normalizeTheme(raw);fill();};body.querySelector('#themePublish').onclick=async e=>{const b=e.currentTarget;b.disabled=true;const saved=normalizeTheme(draft);try{await onSave(saved);raw=saved;body.querySelector('#themeStatus').textContent='已發布。客戶端開啟時會同步套用；已開啟的客戶端會收到設定更新。';}catch(err){body.querySelector('#themeStatus').textContent='發布失敗：'+err.message;}finally{b.disabled=false;}};fill();}
+ const refreshSurfaces=mountSurfaceEditor(body,()=>draft,surfaces=>{draft=normalizeTheme({...draft,surfaces});paint();body.querySelector('#themeStatus').textContent='預覽中，尚未發布。';},audience);body.querySelector('#themeReset').onclick=()=>{draft=normalizeTheme(raw);fill();};body.querySelector('#themePublish').onclick=async e=>{const b=e.currentTarget;b.disabled=true;const saved=normalizeTheme(draft);try{await onSave(saved);raw=saved;body.querySelector('#themeStatus').textContent='已發布。客戶端開啟時會同步套用；已開啟的客戶端會收到設定更新。';}catch(err){body.querySelector('#themeStatus').textContent='發布失敗：'+err.message;}finally{b.disabled=false;}};fill();organizeAppearance(body,audience);}
 
 let atmosphereTimer,lastAtmosphere=0,atmosphereEpoch=0,ambientStop;
 export function stopAtmosphere(){++atmosphereEpoch;clearTimeout(atmosphereTimer);ambientStop?.();ambientStop=null;document.querySelectorAll('.salonAtmosphere').forEach(x=>x.remove());}
@@ -58,4 +58,52 @@ function mountSurfaceEditor(host,getTheme,onChange,audience){
  fields.forEach(el=>el.oninput=()=>save({...active(),[el.dataset.surface]:el.type==='checkbox'?el.checked:el.type==='range'?Number(el.value):el.value}));
  const palette={pearl:{start:'#f9f6f0',end:'#d8e9e5',ink:'#293e3b'},rose:{start:'#fff4e9',end:'#e8cad4',ink:'#50333f'},dusk:{start:'#f8f2e6',end:'#d7d4ec',ink:'#403c59'},ink:{start:'#405e64',end:'#172f3a',ink:'#ffffff'}};
  panel.querySelectorAll('[data-surface-preset]').forEach(b=>b.onclick=()=>save({...active(),...palette[b.dataset.surfacePreset]}));paint();return paint;
+}
+
+// Move existing controls, keeping their values and event listeners intact.
+const helpFor = title => {
+ const rules = [
+ [/頁面配色/, '先選要修改的頁面：主頁、商品、排休月曆等；可調卡片漸層、文字、透明度與圓角。'],
+ [/換膚/, '整體預設配色。已設定獨立配色的頁面會保留自己的顏色。'],
+ [/自動回覆/, '聊天室內系統自動回覆的訊息外觀。'],
+ [/按鈕與標籤/, '目前所選介面的按鈕及小標籤配色。'],
+ [/主頁圖示/, '主頁功能入口的圖示、大小與排列。'],
+ [/導覽/, '畫面底部切換分頁的導覽列及文字。'],
+ [/透亮與形狀/, '目前所選介面的玻璃透明度與形狀。'],
+ [/背景氣氛/, '進入聊天室時的櫻花、雨雪等動畫；個人封面特效請點頭像 → 編輯 → 氣氛特效。'],
+ [/小招呼/, '進入聊天室時短暫出現的角色與文字，可預覽或關閉。'],
+ [/店家資訊/, '店名、照片、電話與地址，會同步顯示在客人端。'],
+ [/主頁|首頁/, '客人主頁的入口、內容顯示與排列；不會刪除商品或公告資料。'],
+ [/營業|時段|預約/, '客人詢問預約時可選的服務與時段，以及營業安排。'],
+ [/資訊|設施|排列/, '客人店家資訊頁的內容與區塊順序。']
+ ];
+ return rules.find(([pattern])=>pattern.test(title))?.[1] || '點開查看選項；修改後請按本頁儲存或發布才會套用。';
+};
+export function makeDrawer(host, nodes, title, description){
+ const drawer=document.createElement('details');drawer.className='settingsDrawer';
+ const summary=document.createElement('summary');
+ const name=document.createElement('strong'),hint=document.createElement('span');
+ name.textContent=title;hint.textContent=description||helpFor(title);summary.append(name,hint);
+ const content=document.createElement('div');content.className='settingsDrawerBody';
+ nodes[0].before(drawer);drawer.append(summary,content);nodes.forEach(node=>content.append(node));
+ drawer.addEventListener('toggle',()=>{if(drawer.open)for(const other of host.querySelectorAll('.settingsDrawer'))if(other!==drawer&&!other.contains(drawer)&&!drawer.contains(other))other.open=false;});
+ return drawer;
+}
+export function organizeAppearance(host,audience){
+ // Split only structural settings groups, never sample previews.
+ for(const group of [...host.querySelectorAll(':scope > .settingsGroup')]){
+  const headings=[...group.children].filter(el=>el.tagName==='H3');
+  if(headings.length>1){
+   for(const h of headings){const section=document.createElement('section');section.className='settingsGroup';group.before(section);let next=h;while(next){const after=next.nextElementSibling;section.append(next);if(!after||after.tagName==='H3')break;next=after;}}
+   if(!group.children.length)group.remove();
+  }
+ }
+ for(const group of [...host.querySelectorAll(':scope > .settingsGroup')]){
+  const h=group.querySelector('h3');if(h){makeDrawer(host,[group],h.textContent,(audience==='admin'?'店家端｜':'客人端｜')+helpFor(h.textContent));h.hidden=true;}
+ }
+ for(const h of [...host.querySelectorAll(':scope > h3')]){
+  const nodes=[h];let next=h.nextElementSibling;
+  while(next&&!next.matches('h3,.settingsDrawer,.toolbar,#themeStatus')){nodes.push(next);next=next.nextElementSibling;}
+  makeDrawer(host,nodes,h.textContent,(audience==='admin'?'店家端｜':'客人端｜')+helpFor(h.textContent));h.hidden=true;
+ }
 }
