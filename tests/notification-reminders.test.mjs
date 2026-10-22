@@ -30,7 +30,7 @@ globalThis.window=globalThis;
 globalThis.Notification={permission:'default'};
 globalThis.PushManager=function(){};
 globalThis.matchMedia=()=>({matches:false});
-globalThis.document={createElement:tag=>new Element(tag),head:new Element('head')};
+globalThis.document={getElementById:()=>null,createElement:tag=>new Element(tag),head:new Element('head')};
 Object.defineProperty(globalThis,'navigator',{configurable:true,value:{userAgent:'Android',serviceWorker:{}}});
 const host=new Element('main');let enabled=0;
 const help=mountNotificationHelp(host,async()=>{enabled++;Notification.permission='granted';help.update(true);},'customer');

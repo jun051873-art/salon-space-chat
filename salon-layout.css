@@ -113,3 +113,9 @@ body.customerApp .homeFeature p{font-size:13px;line-height:1.5;margin:5px 0;whit
 
 
 :root{--salon-layout-ready:1}
+
+/* N45: the visual viewport already ends above the open keyboard. */
+html.keyboardOpen body.customerApp #chat>.card,
+html.keyboardOpen body.adminApp #adminChat:not(.hidden){padding-bottom:4px!important}
+html.keyboardOpen body.customerApp #chat .conversationFooter,
+html.keyboardOpen body.adminApp #adminChat .composer{margin-bottom:0!important;min-height:50px!important;padding:4px!important}

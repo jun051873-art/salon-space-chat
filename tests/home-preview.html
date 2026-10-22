@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#f5f1ea"><link rel="manifest" href="../manifest-customer.json">
+<title>N45 首頁範例・專屬空間</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f5f1ea;color:#292722}
+.app{max-width:720px;margin:auto;min-height:100vh;padding:20px}.hidden{display:none!important}
+#splash{position:fixed;inset:0;z-index:99;background:#f5f1ea;display:flex;align-items:center;justify-content:center;text-align:center}
+.logo{font-size:30px;font-weight:800}.sub{margin-top:10px;opacity:.55}
+.card{background:#fff;padding:20px;border-radius:22px;margin:14px 0}h1{font-size:25px}
+input,button{font:inherit}input{width:100%;padding:14px;border:1px solid #ddd;border-radius:14px;margin:6px 0}
+button{padding:14px 18px;border:0;border-radius:16px;background:#292722;color:#fff;font-weight:700}
+#msgs{height:58vh;overflow:auto;padding:8px}.msg{padding:10px 13px;border-radius:16px;margin:7px;max-width:78%;background:#fff}.mine{margin-left:auto;background:#292722;color:#fff}
+.composer{display:flex;gap:8px}.composer input{flex:1}.status{font-size:12px;opacity:.7;margin-top:8px}
+.bottomNav{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:min(720px,100%);display:flex;gap:6px;padding:9px 10px calc(9px + env(safe-area-inset-bottom));background:rgba(250,248,244,.96);backdrop-filter:blur(18px);border-top:1px solid #e4ddd4;z-index:50}.navBtn{flex:1;background:transparent;color:#716b63;padding:10px 4px;margin:0;border-radius:15px;font-size:12px}.navBtn span{display:block;font-size:22px;margin-bottom:3px}.navBtn.active{background:#292722;color:#fff}.placeholder{min-height:62vh;display:flex;align-items:center;justify-content:center;text-align:center}.placeholder p{color:#817b72;line-height:1.7}.app{padding-bottom:100px}
+/* visual refinement */
+:root{--ink:#292722;--muted:#8b857d;--line:#e9e3da}
+#chat>.card{background:rgba(255,255,255,.78);box-shadow:0 14px 40px rgba(70,58,42,.06)}
+#msgs{padding:10px 2px 18px}.msg{max-width:76%;padding:11px 14px;margin:9px 0;border-radius:18px 18px 18px 6px;background:#fff;box-shadow:0 5px 18px rgba(70,58,42,.06);line-height:1.45}.msg.mine{margin-left:auto;border-radius:18px 18px 6px 18px;background:#292722;color:#fff}
+.bottomNav{border-radius:24px 24px 0 0;box-shadow:0 -8px 30px rgba(70,58,42,.08)}.navBtn span{width:30px;height:30px;margin:0 auto 4px;display:grid;place-items:center;border-radius:10px;font-size:17px;background:rgba(41,39,34,.06)}.navBtn.active span{background:rgba(255,255,255,.15)}
+.quickPills{display:flex;gap:8px;overflow-x:auto;padding:4px 0 10px}.quickPills button{flex:0 0 auto;background:#eee9e2;color:#292722;border-radius:999px;padding:8px 13px;font-size:13px;font-weight:650}.quickPills::-webkit-scrollbar{display:none}</style><link rel="stylesheet" href="../salon.css?v=S5.3"><link rel="stylesheet" href="../customer-chat.css?v=C28"><link rel="stylesheet" href="../salon-refine.css?v=C9"><link rel="stylesheet" href="../salon-theme.css?v=N43"><link rel="stylesheet" href="../salon-layout.css?v=N45"><link rel="stylesheet" href="../salon-upgrade.css?v=N45"></head>
+<body data-page="inbox" class="customerApp">
+<div id="splash"><div><div class="logo">專屬空間</div><div class="sub">連線中…</div></div></div>
+
+<div class="app">
+<header id="customerHeader"><strong class="homeBrand">專屬空間</strong><div class="glassPill headerSwitch profileSwitch"><button id="profileEntry" data-header-page="profile" aria-label="我的資料"><span class="miniAvatar">我</span><span>我的資料 ✎</span></button></div><div class="glassPill headerSwitch headerActions"><button data-header-page="info" aria-label="店家資訊">⌂</button><button data-header-page="preferences" aria-label="設定"><svg class="salonIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 3-.6 2.2-2 .9-2-.6-2 3.4 1.6 1.6v2.3L2.4 14l2 3.4 2-.6 2 .9L9 20h4l.6-2.3 2-.9 2 .6 2-3.4-1.6-1.2v-2.3l1.6-1.6-2-3.4-2 .6-2-.9L13 3Z"/><circle cx="11" cy="11.5" r="3"/></svg></button><button id="reportEntry" aria-label="回報與建議"><svg class="salonIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10v4h4l12 5V5L7 10ZM7 14l2 6h3l-2-5M22 9v6"/></svg></button></div></header><div id="globalNotice" class="noticeRibbon" hidden><span>公告</span><div><p></p></div></div>
+<section id="setup" hidden class="card hidden">
+<h2>第一次使用</h2>
+<p>留下稱呼與電話，店家核准後即可使用。</p>
+<input id="name" autocomplete="nickname" maxlength="80" placeholder="名字或綽號，例如：怡君、Momo" aria-describedby="nameHelp">
+<p id="nameHelp" class="status">請填店家容易認出你的名字或綽號，避免只寫「陳先生」「黃小姐」，以免和其他客人混淆。例如：怡君、Momo（短髮）。之後也能修改。</p><input id="phone" type="tel" autocomplete="tel" placeholder="聯絡電話，可含區碼或分隔符號"><div style="display:flex;gap:8px"><input id="birthMonth" inputmode="numeric" placeholder="生日月份，例如 5"><input id="birthDay" inputmode="numeric" placeholder="日期，例如 18"></div><p class="status">生日選填，只需要月／日；之後可以補填。</p>
+<label>性別<select id="setupGender"><option value="">不透露</option><option>女性</option><option>男性</option><option>其他</option></select></label><button id="start">送出加入申請</button>
+<p id="setupErr" class="status"></p>
+</section>
+<section id="inbox">
+
+<button id="enterChat" class="conversationEntry"><span class="salonMonogram" aria-label="店家圖片">專</span><span class="conversationCopy"><strong>與專屬空間聊天</strong><small>點此進入聊天室・詢問服務或預約</small></span><span class="conversationEnter">開始聊天 ›</span></button>
+</section>
+<section id="chat" class="hidden" aria-label="與店家聊天">
+<div class="card"><header class="conversationHeader"><div class="chatIdentity"><button id="leaveChat" aria-label="返回聊天列表">‹</button><button type="button" id="chatCustomerName" class="chatCustomerPill" aria-label="編輯我的姓名與資料" title="點擊編輯個人資料"><span class="chatPersonIcon" aria-hidden="true">♙</span><span id="chatCustomerNameText">你</span></button></div><h2 class="chatSalonPill"><strong id="chatSalonName">專屬空間</strong></h2><span class="chatHeaderBalance" aria-hidden="true"></span><button id="chatOptions" aria-label="聊天資訊" aria-expanded="false">設定</button></header><div id="msgs" role="log" aria-label="聊天訊息" tabindex="0"></div><footer class="conversationFooter"><div id="chatPanel" hidden>
+<p class="quickHint">選一句常用詢問，可修改後再傳送 ✨</p><div class="quickPills"><button data-quick="你好，我想預約整理頭髮，請問有空嗎？">✂️ 我要預約</button><button data-quick="請問最近還有哪些時間可以預約？">📅 詢問時間</button><button data-quick="你好，我想了解一下服務項目。">💇 詢問服務</button><button data-quick="請問目前的服務價格是多少？">💰 詢問價格</button><button data-quick="請問最近有什麼優惠活動嗎？">🎁 優惠活動</button><button data-quick="請問最近的休假日期有哪些？">🏖️ 店家休假</button></div></div><div class="composer"><button id="chatShortcuts" aria-label="展開快捷詢問" aria-expanded="false">＋ 快速詢問</button><textarea id="text" placeholder="輸入訊息…" rows="1" aria-label="輸入訊息"></textarea><button id="send">傳送</button></div>
+</footer><div id="chatDetails" hidden><div id="notifyBox" class="hidden" style="margin-top:14px"><button id="enableNotify">🔔 開啟訊息通知</button><p id="notifyStatus" class="status">開啟後，店家回覆時手機會提醒你。</p></div><p id="pushStatus" class="status"></p><p id="pushDiag" class="status" hidden></p></div></div>
+</section>
+<section id="info" class="card hidden placeholder"><div><h2>🏠 SALON 資訊</h2><p>正在讀取店家資訊…</p></div></section>
+<section id="gallery" class="card hidden placeholder"><div><h2>🖼 作品・產品</h2><p>正在讀取商品…</p></div></section>
+<section id="featureDetail" class="card hidden" aria-label="本月主打"></section>
+<nav id="customerNav" class="bottomNav hidden"><button class="navBtn active" data-customer-page="inbox"><span>◉</span>訊息</button><button class="navBtn" data-customer-page="booking"><span>▦</span>預約</button><button class="navBtn" data-customer-page="gallery"><span>▧</span>商品</button></nav>
+</div>
+<script type="module">
+import {homeMosaicHTML} from '../home-mosaic.js?v=N45';
+import {mountNotificationHelp} from '../notification-help.js?v=N45';
+document.body.classList.add('customerApp');
+for(const el of document.querySelectorAll('.app>section'))el.classList.toggle('hidden',el.id!=='inbox');
+const host=document.getElementById('inbox');host.classList.remove('hidden');
+mountNotificationHelp(host,async()=>{},'customer');
+const box=document.createElement('div');box.id='homeCards';box.dataset.layout='mosaic';host.append(box);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+box.innerHTML=homeMosaicHTML({sections:{products:true,events:true,notice:true},feature:{title:'秋日柔光護理',text:'為髮絲留一點時間，感受輕盈與柔順。'},notice:'週一、週二公休，期待與你相見。',products:[{id:'demo',title:'柔亮護髮油',category:'髮絲保養',description:'溫柔照顧每一天'}],events:[{id:'event',title:'秋日專屬提案',text:'探索適合你的新風格'}],notices:[{id:'board',title:'到店前的小提醒'}]},esc);
+</script></body></html>

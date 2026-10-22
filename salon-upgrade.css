@@ -386,3 +386,29 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 body.customerApp #msgs,body.adminApp #adminMsgs{touch-action:pan-y pinch-zoom;min-width:0!important}
 body .msg,body .chatImageAttachment{min-width:0;overflow-wrap:anywhere}
 body .msg img{max-width:100%;height:auto}
+
+/* N45: quiet home, notification status available from the header. */
+body.customerApp #customerHeader{gap:4px!important}
+body.customerApp #customerHeader .profileSwitch{flex:1 1 auto;max-width:40%!important;min-width:0}
+body.customerApp #customerHeader .headerActions{flex:0 0 auto;max-width:none!important}
+body.customerApp #customerHeader .notificationIndicator{position:relative;pointer-events:auto;flex:0 0 42px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;width:42px;min-height:44px;padding:2px;margin:0 0 0 auto;background:transparent!important;color:var(--salon-ink,#665f52)!important;border:0;box-shadow:none;border-radius:14px;font-size:10px;line-height:1.1}
+.notificationIndicator svg{width:23px;height:23px}.notificationIndicator i{position:absolute;top:2px;right:7px;width:7px;height:7px;border:2px solid #fff;border-radius:50%;background:#92999b}
+.notificationIndicator[data-ready=true] i{background:#398363}
+.notificationStatusDialog .notificationHelp{margin:8px 0 0;padding:0;border:0;background:transparent!important}
+.notificationStatusDialog .notificationClose{display:block;margin-left:auto;padding:6px 14px;border-radius:20px}
+body.customerApp #inbox .conversationEntry{margin-top:10px!important}
+body.customerApp #homeCards[data-layout=mosaic]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-flow:row;grid-auto-rows:112px;gap:10px;margin-top:18px}
+body #homeCards .homeMosaicTile{position:relative;display:flex;align-items:stretch;min-width:0;min-height:0;width:100%;height:100%;margin:0;padding:0;overflow:hidden;text-align:left;border-radius:22px;border:1px solid #ffffffc9;background:linear-gradient(145deg,#f8faf6,#dbe8e4);color:var(--salon-ink,#302e28);box-shadow:inset 0 1px 1px #fff,0 5px 16px #314b4810}
+#homeCards .homeMosaicTile:nth-child(6n+1){grid-row:span 2;background:linear-gradient(145deg,#e3eeea,#b9cfcc)}
+#homeCards .homeMosaicTile:nth-child(6n+4){grid-column:span 2;background:linear-gradient(120deg,#eee6dc,#faf5ec)}
+#homeCards .homeMosaicTile:nth-child(6n+5){grid-row:span 2;background:linear-gradient(145deg,#e7e3ec,#d2d5e5)}
+#homeCards .homeMosaicTile:only-child{grid-column:span 2}
+.homeMosaicTile>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.homeMosaicTile.hasImage::after{content:'';position:absolute;inset:0;background:linear-gradient(0deg,#102c2de8, #102c2d85 55%,#102c2d10)}
+.homeMosaicTile .mosaicCopy{position:relative;z-index:1;display:flex;flex-direction:column;justify-content:flex-end;width:100%;min-width:0;padding:13px;gap:5px}
+.homeMosaicTile.hasImage .mosaicCopy{color:#fff}
+.mosaicCopy small{font-size:10px;letter-spacing:.08em}.mosaicCopy strong{font-size:17px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+.mosaicExcerpt{display:none}.homeMosaicTile:nth-child(6n+1) .mosaicExcerpt,.homeMosaicTile:nth-child(6n+5) .mosaicExcerpt{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:12px;line-height:1.5;opacity:.85}
+.mosaicOpen{display:flex;align-items:center;justify-content:space-between;font-size:10px;margin-top:3px}.mosaicOpen b{font-size:16px;font-weight:400}
+@media(min-width:600px){body.customerApp #homeCards[data-layout=mosaic]{grid-auto-rows:145px;gap:14px}.homeMosaicTile .mosaicCopy{padding:20px}.mosaicCopy strong{font-size:22px}}
+@media(max-width:360px){body.customerApp #customerHeader .headerActions button{width:34px;min-width:34px;padding:6px}body.customerApp #customerHeader #profileEntry>span:last-child{max-width:48px}}
