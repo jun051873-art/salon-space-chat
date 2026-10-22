@@ -21,10 +21,10 @@ export function mountNotificationHelp(host,enable,role){
   const header=document.getElementById('customerHeader');
   if(header){
    indicator=document.createElement('button');indicator.type='button';indicator.className='notificationIndicator';
-   indicator.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><i aria-hidden="true"></i><span>通知</span>';
+   indicator.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><i aria-hidden="true"></i>';
    const panel=document.createElement('dialog');panel.className='notificationGuide notificationStatusDialog';panel.id='notificationStatusDialog';
    const close=document.createElement('button');close.type='button';close.className='notificationClose';close.textContent='關閉';close.onclick=()=>panel.close();
-   panel.append(close,box);document.body.append(panel);header.insertBefore(indicator,header.querySelector('.headerActions'));
+   panel.append(close,box);document.body.append(panel);header.append(indicator);
    indicator.setAttribute('aria-haspopup','dialog');indicator.setAttribute('aria-controls',panel.id);
    indicator.onclick=()=>{render();if(!panel.open)panel.showModal();};
   }
