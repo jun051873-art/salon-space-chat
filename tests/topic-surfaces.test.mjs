@@ -16,3 +16,14 @@ const t=normalizeTheme({surfaces:safe});assert.deepEqual(normalizeTheme(t),t);sa
 console.log('PASS one entrance per topic, empty/disabled categories, no homepage images, bounded scoped theme settings and independent copies');
 
 const tiles=normalizeSurfaces({tileFeature:{start:'#ffeedd'},tileProducts:{start:'#ddeecc'},holiday:{end:'#ccddee'}});assert.equal(tiles.tileFeature.start,'#ffeedd');assert.equal(tiles.tileProducts.start,'#ddeecc');assert.equal(tiles.holiday.end,'#ccddee');
+
+const layouts=await import('../home-mosaic.js');
+for(const id of ['mosaic','rows','tiles','spotlight']){
+ assert.equal(layouts.normalizeHomeLayout(id),id);
+ assert.equal(layouts.isTopicLayout(id),true);
+}
+for(const id of [undefined,null,'bad','toString','__proto__']){
+ assert.equal(layouts.normalizeHomeLayout(id),'normal');
+ assert.equal(layouts.isTopicLayout(id),false);
+}
+console.log('PASS layout choices retain topic routing and reject unknown/inherited layout keys');

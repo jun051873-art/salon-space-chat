@@ -1,3 +1,6 @@
+export const homeLayouts={normal:'原本展示・橫向滑動',mosaic:'錯落拼塊',rows:'直式長卡',tiles:'雙欄小卡',spotlight:'主打一張＋小卡'};
+export const normalizeHomeLayout=value=>Object.hasOwn(homeLayouts,value)?value:'normal';
+export const isTopicLayout=value=>normalizeHomeLayout(value)!=='normal';
 // One quiet entrance per subject. Rich content belongs inside the destination.
 export function homeMosaicHTML({sections={},feature,products=[],events=[],notices=[],notice},esc){
  const tiles=[];
