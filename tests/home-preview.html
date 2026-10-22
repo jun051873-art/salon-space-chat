@@ -23,7 +23,7 @@ button{padding:14px 18px;border:0;border-radius:16px;background:#292722;color:#f
 #chat>.card{background:rgba(255,255,255,.78);box-shadow:0 14px 40px rgba(70,58,42,.06)}
 #msgs{padding:10px 2px 18px}.msg{max-width:76%;padding:11px 14px;margin:9px 0;border-radius:18px 18px 18px 6px;background:#fff;box-shadow:0 5px 18px rgba(70,58,42,.06);line-height:1.45}.msg.mine{margin-left:auto;border-radius:18px 18px 6px 18px;background:#292722;color:#fff}
 .bottomNav{border-radius:24px 24px 0 0;box-shadow:0 -8px 30px rgba(70,58,42,.08)}.navBtn span{width:30px;height:30px;margin:0 auto 4px;display:grid;place-items:center;border-radius:10px;font-size:17px;background:rgba(41,39,34,.06)}.navBtn.active span{background:rgba(255,255,255,.15)}
-.quickPills{display:flex;gap:8px;overflow-x:auto;padding:4px 0 10px}.quickPills button{flex:0 0 auto;background:#eee9e2;color:#292722;border-radius:999px;padding:8px 13px;font-size:13px;font-weight:650}.quickPills::-webkit-scrollbar{display:none}</style><link rel="stylesheet" href="../salon.css?v=S5.3"><link rel="stylesheet" href="../customer-chat.css?v=C28"><link rel="stylesheet" href="../salon-refine.css?v=C9"><link rel="stylesheet" href="../salon-theme.css?v=N43"><link rel="stylesheet" href="../salon-layout.css?v=N45"><link rel="stylesheet" href="../salon-upgrade.css?v=N46"></head>
+.quickPills{display:flex;gap:8px;overflow-x:auto;padding:4px 0 10px}.quickPills button{flex:0 0 auto;background:#eee9e2;color:#292722;border-radius:999px;padding:8px 13px;font-size:13px;font-weight:650}.quickPills::-webkit-scrollbar{display:none}</style><link rel="stylesheet" href="../salon.css?v=S5.3"><link rel="stylesheet" href="../customer-chat.css?v=C28"><link rel="stylesheet" href="../salon-refine.css?v=C9"><link rel="stylesheet" href="../salon-theme.css?v=N43"><link rel="stylesheet" href="../salon-layout.css?v=N45"><link rel="stylesheet" href="../salon-upgrade.css?v=N46.1"></head>
 <body data-page="inbox" class="customerApp">
 
 
@@ -57,6 +57,7 @@ import {mountNotificationHelp} from '../notification-help.js?v=N46';
 document.body.classList.add('customerApp');
 for(const el of document.querySelectorAll('.app>section'))el.classList.toggle('hidden',el.id!=='inbox');
 const host=document.getElementById('inbox');host.classList.remove('hidden');
+const ticker=document.getElementById('globalNotice');ticker.hidden=false;document.body.classList.add('hasNotice');ticker.querySelector('p').textContent='👏 歡迎來到專屬空間 · 公告與服務資訊會從這裡輕輕經過';
 mountNotificationHelp(host,async()=>{},'customer');
 const box=document.createElement('div');box.id='homeCards';box.dataset.layout='mosaic';host.append(box);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));

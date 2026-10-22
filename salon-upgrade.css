@@ -469,7 +469,7 @@ body.customerApp #customerHeader .noticeRibbon p{
 @keyframes salonMarqueeAcross{0%,4%{left:-100%;opacity:0}12%{opacity:1}84%{opacity:1}96%,100%{left:100%;opacity:0}}
 body.customerApp #customerHeader .noticeRibbon[hidden]{display:none!important}
 body.customerApp.hasNotice:not(.conversationOpen) .app,
-body.customerApp:not(.conversationOpen):not([data-page=setup]) .app{padding-top:calc(132px + env(safe-area-inset-top))!important}
+body.customerApp:not(.hasNotice):not(.conversationOpen):not([data-page=setup]) .app{padding-top:calc(132px + env(safe-area-inset-top))!important}
 body.customerApp #enterChat{
  width:calc(100% - 14px)!important;margin:18px auto 28px!important;min-height:118px!important;
  padding:19px 16px!important;border-radius:38px!important;
