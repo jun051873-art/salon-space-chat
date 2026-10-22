@@ -2,11 +2,15 @@ import{keyboardViewport,installEdgeBack}from'./navigation-recovery.js?v=N44';
 import{installInteractions}from'./salon-interactions.js?v=N44';
 installInteractions();
 // Keep one scroll surface; visualViewport is used only while a keyboard is open.
-let frame=0;
+let frame=0,layoutWidth=window.innerWidth,layoutHeight=window.innerHeight;
 function sync(){cancelAnimationFrame(frame);frame=requestAnimationFrame(()=>{
  const root=document.documentElement,view=window.visualViewport;
  const editing=/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName||'');
- const keyboard=keyboardViewport(view,window.innerHeight,editing);
+ // iOS may shrink innerHeight with the visual viewport. Retain the full
+ // height for this orientation so the keyboard does not look like a resize.
+ if(Math.abs(window.innerWidth-layoutWidth)>80){layoutWidth=window.innerWidth;layoutHeight=window.innerHeight;}
+ layoutHeight=Math.max(layoutHeight,window.innerHeight,root.clientHeight||0);
+ const keyboard=keyboardViewport(view,layoutHeight,editing);
  root.style.setProperty('--salon-height',keyboard?`${view.height}px`:'100dvh');
  root.style.setProperty('--salon-top',keyboard?`${view.offsetTop}px`:'0px');
  root.classList.toggle('keyboardOpen',!!keyboard);

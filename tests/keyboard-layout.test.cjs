@@ -1,0 +1,13 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+let keyboard=false;const props={};const root={clientHeight:844,style:{setProperty(k,v){props[k]=v}},classList:{toggle(k,v){keyboard=v}}};
+const win={innerWidth:390,innerHeight:844,visualViewport:{height:844,offsetTop:0,scale:1,addEventListener(){}},addEventListener(){}};
+const doc={documentElement:root,activeElement:{tagName:'BODY'},addEventListener(){}};
+const context={window:win,document:doc,requestAnimationFrame:f=>{f();return 1},cancelAnimationFrame(){},setTimeout(){},installInteractions(){},installEdgeBack(){},keyboardViewport:(view,height,editing)=>!!(editing&&view&&(view.scale||1)<1.05&&view.height<height-100)};
+vm.createContext(context);vm.runInContext(fs.readFileSync('salon-layout.js','utf8').replace(/^import.*$/mg,''),context);
+assert.equal(keyboard,false);
+doc.activeElement.tagName='TEXTAREA';win.innerHeight=450;root.clientHeight=450;win.visualViewport.height=450;context.sync();assert.equal(keyboard,true);assert.equal(props['--salon-height'],'450px');
+win.visualViewport.offsetTop=36;context.sync();assert.equal(props['--salon-top'],'36px');
+win.visualViewport.scale=1.5;context.sync();assert.equal(keyboard,false);
+win.visualViewport.scale=1;doc.activeElement.tagName='BODY';win.innerHeight=root.clientHeight=844;win.visualViewport.height=844;context.sync();assert.equal(keyboard,false);assert.equal(props['--salon-height'],'100dvh');
+win.innerWidth=844;win.innerHeight=root.clientHeight=390;win.visualViewport.height=390;doc.activeElement.tagName='TEXTAREA';context.sync();assert.equal(keyboard,false);
+console.log('PASS iOS simultaneous viewport shrink, viewport pan, zoom exclusion, dismissal and rotation');
