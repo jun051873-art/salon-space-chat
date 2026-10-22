@@ -1,3 +1,6 @@
+Warning: truncated output (original token count: 8945)
+Total output lines: 339
+
 <!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="沙龍管理"><meta name="theme-color" content="#f5f1ea"><link rel="manifest" href="./manifest-admin.json"><link rel="apple-touch-icon" href="./icons/admin-violet-192.png" type="image/png"><link rel="icon" href="./icons/admin-violet-192.png" type="image/png"><title>沙龍管理</title><style>body{margin:0;font-family:system-ui;background:#f5f1ea;color:#292722}.app{max-width:720px;margin:auto;padding:20px}.card{background:#fff;padding:20px;border-radius:22px;margin:14px 0}button,input{font:inherit}button{padding:14px;border:0;border-radius:16px;background:#292722;color:#fff;font-weight:700;margin:5px}input{padding:14px;border:1px solid #ddd;border-radius:14px;width:calc(100% - 30px);margin:5px}.hidden{display:none}.msg{padding:10px 13px;border-radius:16px;margin:7px;max-width:75%;background:#fff}.mine{margin-left:auto;background:#292722;color:#fff}#msgs,#adminMsgs{height:48vh;overflow:auto}#adminChat{min-height:calc(100vh - 70px);margin:0;background:transparent;padding:8px 4px 110px}#adminChat #adminMsgs{height:62vh}#adminChat #back{margin:4px 0 14px}#setup,#chat{display:none!important}.shellPage{padding-bottom:88px}.bottomNav{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:min(720px,100%);display:flex;gap:4px;padding:8px 8px calc(8px + env(safe-area-inset-bottom));background:rgba(250,248,244,.96);backdrop-filter:blur(18px);border-top:1px solid #e4ddd4;z-index:50}.navBtn{flex:1;background:transparent;color:#716b63;padding:9px 2px;margin:0;border-radius:14px;font-size:11px;font-weight:700}.navBtn span{display:block;font-size:20px;margin-bottom:3px}.navBtn.active{background:#292722;color:#fff}.placeholder{min-height:55vh;display:flex;align-items:center;justify-content:center;text-align:center}.placeholder h2{margin-bottom:8px}.placeholder p{color:#817b72;line-height:1.6}.app{padding-bottom:96px}
 /* visual refinement */
 :root{--ink:#292722;--muted:#8b857d;--paper:#f5f1ea;--line:#e9e3da;--glass:rgba(255,255,255,.82)}
@@ -70,180 +73,14 @@ body.chatMode #adminNav{display:none!important}body.chatMode .app{padding-bottom
 #adminChat #adminMsgs{min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important;touch-action:pan-y;-webkit-overflow-scrolling:touch;scroll-padding-top:24px;scroll-padding-bottom:28px;padding-top:24px!important;padding-bottom:28px!important;overflow-wrap:anywhere}
 #adminChat .composer{flex-shrink:0!important}#adminChat #pushStatus{display:none!important}
 @media(max-width:600px){#adminChat .conversationHeader{min-width:0}#adminChat .chatSalonPill{min-width:0;max-width:48vw;overflow:hidden;text-overflow:ellipsis}}
-</style><link rel="stylesheet" href="./salon.css?v=S5.3"><link rel="stylesheet" href="./salon-refine.css?v=C9"><link rel="stylesheet" href="./salon-theme.css?v=N43"><link rel="stylesheet" href="./salon-layout.css?v=N45"><link rel="stylesheet" href="./salon-upgrade.css?v=N47"></head><body class="adminApp"><div id="bootSplash" style="position:fixed;inset:0;z-index:9999;background:#f5f1ea;display:flex;align-items:center;justify-content:center;font-family:system-ui;color:#292722"><div style="text-align:center"><div style="font-size:30px;font-weight:800">專屬空間 SALON</div><div style="margin-top:12px;font-size:15px;opacity:.55">店家管理</div></div></div><script>
+</style><link rel="stylesheet" href="./salon.css?v=S5.3"><link rel="stylesheet" href="./salon-refine.css?v=C9"><link rel="stylesheet" href="./salon-theme.css?v=N43"><link rel="stylesheet" href="./salon-layout.css?v=N45"><link rel="stylesheet" href="./salon-upgrade.css?v=N47.1"></head><body class="adminApp"><div id="bootSplash" style="position:fixed;inset:0;z-index:9999;background:#f5f1ea;display:flex;align-items:center;justify-content:center;font-family:system-ui;color:#292722"><div style="text-align:center"><div style="font-size:30px;font-weight:800">專屬空間 SALON</div><div style="margin-top:12px;font-size:15px;opacity:.55">店家管理</div></div></div><script>
 // Runs before the modules so a stalled login or module import has a way out.
 setTimeout(()=>{
  const splash=document.getElementById('bootSplash');if(!splash)return;
  const sub=splash.querySelector('div div:last-child');if(!sub)return;
  sub.textContent='連線尚未完成，請確認網路後重試。';sub.style.opacity='1';
  if(splash.querySelector('[data-retry]'))return;
- const retry=document.createElement('button');retry.type='button';retry.dataset.retry='';retry.textContent='重新連線';retry.style.marginTop='20px';
- retry.onclick=()=>{const url=new URL(location.href);url.searchParams.set('retry',String(Date.now()));location.replace(url.href)};
- sub.after(retry);
- const help=document.createElement('p');help.textContent='若在 ChatGPT 內開啟，請點右下角指南針，改用 Safari。';help.style.cssText='font-size:14px;line-height:1.6;padding:0 24px;color:#716b63';retry.after(help);
-},12000);
-</script><div class="app">
-<h1>專屬空間 SALON </h1>
-<div id="login" class="card hidden"><h2>店家登入</h2><input id="email" type="email" placeholder="Email"><input id="pw" type="password" placeholder="密碼"><button id="go">登入</button><p id="err"></p></div>
-<div id="adminHome" class="card hidden shellPage">
-<h2>主頁</h2>
-<div class="shopHeader"><div class="shopLogo" aria-label="店家圖片">專</div><div><b>專屬空間 SALON</b><small>店家管理中心</small></div><span>›</span></div>
-<div class="toolGrid">
-<button class="toolItem" data-tool="broadcast"><span>⌁</span><b>群發訊息</b></button>
-<button class="toolItem" data-tool="welcome"><span>Hi</span><b>新客歡迎</b></button>
-<button class="toolItem" data-tool="autoreply"><span>↩</span><b>自動回覆</b></button>
-<button class="toolItem" data-tool="notice"><span>▤</span><b>公告・休假</b></button>
-<button class="toolItem" data-tool="gallery"><span>▧</span><b>商品管理</b></button>
-<button class="toolItem" data-tool="customers"><span>♙</span><b>客戶管理</b></button>
-<button class="toolItem" data-tool="tags"><span>◎</span><b>標籤分類</b></button>
-<button class="toolItem" data-tool="settings"><span>⚙</span><b>設定</b></button>
-</div>
-</div>
-<div id="adminTool" class="card hidden shellPage"><button id="toolBack">← 主頁</button><h2 id="toolTitle">功能</h2><div id="toolBody"></div></div>
-<div id="admin" class="card hidden shellPage"><h2>客戶訊息</h2><div id="adminNotifyBox" class="hidden"><button id="adminNotify">🔔 開啟店家通知</button><p id="adminNotifyStatus">這台裝置尚未完成通知設定。</p></div><div id="list">正在載入客戶訊息…</div></div>
-<div id="adminAnalysis" class="card hidden shellPage"><h2>分析</h2><div class="analysisCards"><div><small>客戶數</small><b>—</b></div><div><small>本月新客</small><b>—</b></div><div><small>訊息數</small><b>—</b></div><div><small>本月壽星</small><b>—</b></div></div><p style="color:#8b857d">分析內容先預留，之後再決定要放哪些統計。</p></div>
-<div id="adminChat" class="hidden"><div class="conversationHeader"><div class="chatIdentity"><button id="back" aria-label="返回訊息列表">‹</button><button id="adminCustomerPill" type="button" class="chatCustomerPill" aria-label="編輯這位客人的資料" title="點擊編輯客人姓名">客人 ✎</button></div><h2 class="chatSalonPill"><strong id="adminSalonName">專屬空間 SALON</strong></h2><span class="chatHeaderBalance" aria-hidden="true"></span><h2 id="who" class="adminA11yHeading">聊天室</h2></div><div id="adminMsgs"></div><div class="composer"><textarea id="reply" placeholder="輸入回覆" rows="1" aria-label="輸入訊息"></textarea><button id="replyBtn">傳送</button></div><p id="pushStatus"></p></div>
-<nav id="adminNav" class="bottomNav hidden"><button class="navBtn active" data-admin-page="adminHome"><span>⌂</span>主頁</button><button class="navBtn" data-admin-page="admin"><span>◉</span>訊息</button><button class="navBtn" data-admin-page="adminAnalysis"><span>▥</span>分析</button></nav>
-</div><script type="module" src="./salon-layout.js?v=N44"></script><script type="module">import{ensureNotificationWorker}from"./notification-worker.js?v=N6";import{mountNotificationHelp}from"./notification-help.js?v=N46";import{installSuite,messageHTML}from"./salon-suite.js?v=N46";import{pinChatBottom}from'./chat-bottom.js?v=1';import{reconcileMessages}from'./chat-render.js?v=1';let suite;import{createDelivery}from"./chat-delivery.js?v=N35";import{createPagedFeed}from"./chat-feed.js?v=D4";const CHAT_ROLE="admin";import{initializeApp}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";import{getAuth,signInAnonymously,signInWithEmailAndPassword,signOut,onAuthStateChanged,setPersistence,browserLocalPersistence}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";import{getFirestore,doc,getDoc,collection,query,orderBy,onSnapshot,limit,startAfter,getDocsFromServer}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";import{getMessaging,getToken,onMessage,isSupported}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-messaging.js";const cfg={apiKey:"AIzaSyBS-lHTp1YPhhFOKriBRSrwdSomT3ZGw0c",authDomain:"salon-space-chat.firebaseapp.com",projectId:"salon-space-chat",storageBucket:"salon-space-chat.firebasestorage.app",messagingSenderId:"103245363547",appId:"1:103245363547:web:3f19674918bbf257a4c27e"},ADMIN="HcFJGmzHw6MYoWbFmtq9IyFSjvL2",app=initializeApp(cfg),auth=getAuth(app),db=getFirestore(app),$=x=>document.getElementById(x);const VAPID="BJEl8aiGHazU3HbeuXaJabs0omFsCTic-EBlYV9xox3EMN2Ns2C2EwbxYaUC-rcqYNlkKHvJxisZx7mE5T91RtI";const MODE="admin";localStorage.setItem("salonMode","admin");let uid,sel,booted=false;
-/* CHAT-DIAG-01: report server acknowledgement separately from local echo. */
-let activeChatUnsubscribe=null, activeReadTimer=null;
-function closeChatListener(){
- suite?.stopReceipt();
- activeChatUnsubscribe?.();activeChatUnsubscribe=null;
- clearTimeout(activeReadTimer);activeReadTimer=null;currentChatView=null;
-}
-
-function chatError(e){
- const code=e?.code||"unknown";
- const labels={"permission-denied":"雲端權限拒絕","unavailable":"雲端暫時無法連線","unauthenticated":"登入已失效","resource-exhausted":"雲端用量限制"};
- return (labels[code]||"操作失敗")+" ("+code+")："+(e?.message||String(e));
-}
-function ensureChatStatus(room){
- let box=$("chatStatus");
- if(!box){
-  box=document.createElement("div");box.id="chatStatus";
-  box.style.cssText="grid-column:1/-1;flex-basis:100%;font-size:13px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere;padding:5px 0;color:#62584c";
-  box.innerHTML='<div id="chatRead" role="status"></div><div id="chatWrite" role="status"></div><details><summary>連線檢查 S5</summary><div id="chatIdentity"></div></details>';
-  const composer=document.querySelector("#adminChat .composer");
-  if(composer)composer.appendChild(box);else $("msgs").after(box);
- }
- $("chatIdentity").textContent="專案：salon-space-chat｜登入："+(auth.currentUser?.uid||"未登入")+"｜聊天室："+room;
- box.dataset.room=room;
- return box;
-}
-function safeChatText(t){return String(t??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[ch]));}
-let currentChatView=null;
-const delivery=createDelivery({auth,projectId:cfg.projectId,role:CHAT_ROLE,notify:notifyDelivery,onChange:()=>{if(currentChatView)renderChatView();}});
-const tokenSaves=new Map();
-function savePushToken(path,values){
- const key=auth.currentUser?.uid+":"+path+":"+JSON.stringify(values);
- if(tokenSaves.has(key))return tokenSaves.get(key);
- const task=writePushToken(path,values).catch(e=>{tokenSaves.delete(key);throw e;});
- tokenSaves.set(key,task);return task;
-}
-async function writePushToken(path,values){
- try{const old=await delivery.api("/"+path);if(Object.entries(values).every(([k,v])=>old.fields?.[k]?.stringValue===String(v)))return;}catch(e){if(e.status!==404)throw e;}
-
- const fields=Object.fromEntries(Object.entries(values).map(([k,v])=>[k,{stringValue:String(v)}]));
- await delivery.api(":commit",{method:"POST",body:JSON.stringify({writes:[{update:{name:"projects/"+cfg.projectId+"/databases/(default)/documents/"+path,fields},updateMask:{fieldPaths:Object.keys(fields)},updateTransforms:[{fieldPath:"updatedAt",setToServerValue:"REQUEST_TIME"}]}]})});
-}
-async function pushRequest(body){
- const idToken=await auth.currentUser?.getIdToken();if(!idToken)throw Error("請重新登入後再傳送通知");
- body={...body,idToken};
- const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),12000);
- try{
-  const r=await fetch("https://salon-space-notify.jun051873.workers.dev/",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body),signal:ctrl.signal});
-  const out=await r.json();
-  if(!r.ok||!out.ok||(out.success!==undefined&&Number(out.success)<1))throw Error("通知服務未確認送出："+JSON.stringify(out));
-  return out;
- }finally{clearTimeout(timer);}
-}
-async function notifyDelivery(e){
- // Worker v4 resolves recipient devices; avoid an extra client-side token read.
- await pushRequest({target:e.role==="customer"?"admin":"customer",customerUid:e.room,messageId:e.id});
-}
-function renderChatView(reason="update"){
- const v=currentChatView;if(!v)return;
- const previousTop=v.el.scrollTop,previousHeight=v.el.scrollHeight;
- const followBottom=v.first||previousHeight-previousTop-v.el.clientHeight<100;
- v.stopBottom?.();
- const own=delivery.entries().filter(e=>e.room===v.room&&!(e.stage==='done'&&e.id.startsWith('b_')));
- const ids=new Set(v.docs.map(d=>d.id));
- const rows=v.docs.map(d=>({id:d.id,...d.data(),pending:d.metadata.hasPendingWrites||own.some(e=>e.id===d.id&&e.stage==="queued")}));
- for(const e of own)if(!ids.has(e.id))rows.push({id:e.id,text:e.text,senderId:e.senderId,pending:e.stage==="queued",attachment:e.attachment,sticker:e.sticker});
- const moreHtml=v.more?'<button type="button" data-older '+(v.loading?'disabled':'')+' style="display:block;margin:8px auto;background:#eae4db;color:#292722;padding:9px 16px;font-size:13px">'+(v.loading?'載入中…':'查看較早訊息')+'</button>':'';
- reconcileMessages(v.el,rows,m=>messageHTML(m,v.viewer,v.peerRead||0,v.person||{}),moreHtml);
- const olderButton=v.el.querySelector('[data-older]');if(olderButton)olderButton.onclick=()=>v.feed.loadMore();
- if(reason==="older")v.el.scrollTop=previousTop+(v.el.scrollHeight-previousHeight);
- else if(followBottom)v.el.scrollTop=v.el.scrollHeight;
- else v.el.scrollTop=previousTop;
- if(reason!=="older"&&followBottom)pinChatBottom(v);
- if(v.docs.length)v.first=false;
- suite?.bindChat();
- const waiting=own.filter(e=>e.stage==="queued"),push=own.filter(e=>e.stage==="stored"||e.stage==="notify-error");
- $("chatWrite").textContent=waiting.length?waiting.length+" 則待傳，已保存在此裝置；重新開啟後會接續傳送。"+(waiting.find(e=>e.error)?.error?"\n原因："+waiting.find(e=>e.error).error:""):"";
- const pushError=push.find(e=>e.error)?.error||"",pushCode=pushError.match(/"(?:error|code)":"([A-Z0-9_-]+)"/)?.[1]||(/逾時|TIMEOUT|AbortError/.test(pushError)?'TIMEOUT':pushError?'PUSH_FAILED':'');
- const pushExplanation=pushCode==='NO_DEVICE_TOKENS'?'對方尚未完成通知設定，請對方在使用的手機開啟通知。':/UNREGISTERED|NOT_FOUND/.test(pushCode)?'對方的通知登記已失效，請對方重新開啟通知。':pushCode==='TIMEOUT'?'通知服務回應逾時，系統會重試；訊息不會重複傳送。':pushCode?'通知未完成（'+pushCode+'），訊息已保留。':'正在確認對方手機通知…';
- $("pushStatus").textContent=push.length?'訊息已送出。'+pushExplanation:"";
- let hint=document.getElementById('deliveryHint');if(!hint){hint=document.createElement('button');hint.id='deliveryHint';hint.type='button';hint.setAttribute('role','status');document.querySelector('.composer').before(hint);}const failed=push.some(e=>e.stage==='notify-error');hint.hidden=!failed;hint.textContent='訊息已送出，手機提醒尚未完成。點此重試通知';hint.onclick=()=>delivery.retryFailed();
-}
-function watchChat(room,el,viewer){
- document.activeElement?.blur?.();
- if(currentChatView?.room===room){currentChatView.first=true;pinChatBottom(currentChatView);currentChatView.feed.start();suite?.attachChat(currentChatView);return;}
- currentChatView?.stopBottom?.();activeChatUnsubscribe?.();clearTimeout(activeReadTimer);
- ensureChatStatus(room);$("chatRead").textContent="正在連接雲端訊息…";
- const v={room,el,viewer,docs:[],more:false,loading:false,first:true};currentChatView=v;
- const ref=collection(db,"chats",room,"messages");
- const feed=createPagedFeed({field:"createdAt",pageSize:30,
-  subscribe:(next,error)=>onSnapshot(query(ref,orderBy("createdAt","desc"),limit(30)),{includeMetadataChanges:true},next,error),
-  fetchPage:cursor=>getDocsFromServer(query(ref,orderBy("createdAt","desc"),startAfter(cursor),limit(30))),
-  onChange:state=>{
-   if(currentChatView!==v)return;
-   v.docs=state.docs.slice().reverse();v.more=state.more;v.loading=state.loading;
-   if(state.reason==="live"||state.reason==="reset"){clearTimeout(activeReadTimer);$("chatRead").textContent="已取得雲端訊息";}
-   if(state.reason==="cache")$("chatRead").textContent="目前顯示本機資料，等待雲端確認…";
-   if(!state.fromCache&&state.ready)delivery.acknowledge(state.docs.filter(d=>!d.metadata.hasPendingWrites).map(d=>d.id));
-   renderChatView(state.reason);
-  },onError:e=>{if(currentChatView===v){clearTimeout(activeReadTimer);$("chatRead").textContent="讀取失敗："+chatError(e);}}
- });
- v.feed=feed;activeChatUnsubscribe=()=>feed.destroy();renderChatView();delivery.resume();
- activeReadTimer=setTimeout(()=>{if(currentChatView===v)$("chatRead").textContent="尚未取得雲端回應，正在等待重新連線。"},12000);
- feed.start();suite?.attachChat(v);
-}
-function transmitChat(room,t,sender,role,input,button){
- if(!t.trim())return;
- ensureChatStatus(room);
- try{delivery.enqueue({room,text:t,senderId:sender});input.value="";button.disabled=false;input.disabled=false;}
- catch(e){$("chatWrite").textContent="尚未送出，原文仍在輸入框："+e.message;}
-}
-window.addEventListener("online",()=>delivery.resume());
-function pauseAdminListIfPresent(){adminFeed?.pause();}
-function resumeVisibleReads(){if(!$("adminChat").classList.contains("hidden"))currentChatView?.feed.start();else if(!$("admin").classList.contains("hidden"))startAdminList();}
-let backgroundReadTimer=null;
-document.addEventListener("visibilitychange",()=>{
- clearTimeout(backgroundReadTimer);
- if(document.visibilityState==="hidden")backgroundReadTimer=setTimeout(()=>{currentChatView?.feed.pause();pauseAdminListIfPresent();},60000);
- else {delivery.resume();resumeVisibleReads();}
-});
-onAuthStateChanged(auth,()=>delivery.resume());
-
-let messaging=null, messagingPromise=null;
-function supportsPushAPIs(){return "Notification" in window && "PushManager" in window && "serviceWorker" in navigator;}
-async function getChatMessaging(){
- if(!supportsPushAPIs())return null;
- if(!messagingPromise)messagingPromise=(async()=>{
-  try{if(!await isSupported())return null;messaging=getMessaging(app);onMessage(messaging,payload=>window.dispatchEvent(new CustomEvent('salon:foreground-message',{detail:payload.data||{}})));return messaging;}
-  catch(e){console.warn("通知功能無法啟用；聊天仍可使用",e);return null;}
- })();
- const pending=messagingPromise,result=await pending;
- if(!result&&messagingPromise===pending)messagingPromise=null;
- return result;
-}
-
-const notificationHelp=mountNotificationHelp($("adminHome"),()=>enableAdminNotify(),"admin");
-window.addEventListener('salon:resume',()=>{if(auth.currentUser?.uid===ADMIN){delivery.resume();resumeVisibleReads();if(Date.now()-pushCheckedAt>60000){pushCheckedAt=Date.now();void syncPushToken(auth.currentUser,'admin');}}});
-let pushCheckedAt=0;document.addEventListener("visibilitychange",()=>{if(!document.hidden&&auth.currentUser?.uid===ADMIN&&Date.now()-pushCheckedAt>60000){pushCheckedAt=Date.now();void syncPushToken(auth.currentUser,"admin");}});
-function deviceId(){let id=localStorage.getItem("salonDeviceId");if(!id){id=(crypto.randomUUID?crypto.randomUUID():(Date.now()+"-"+Math.random().toString(36).slice(2)));localStorage.setItem("salonDeviceId",id)}return id}
+ const retry=document.create…3945 tokens truncated…ction deviceId(){let id=localStorage.getItem("salonDeviceId");if(!id){id=(crypto.randomUUID?crypto.randomUUID():(Date.now()+"-"+Math.random().toString(36).slice(2)));localStorage.setItem("salonDeviceId",id)}return id}
 function deviceLabel(){const ua=navigator.userAgent;const platform=navigator.platform||"";if(/iPad/i.test(ua)||(/Macintosh/i.test(ua)&&navigator.maxTouchPoints>1))return"iPad";if(/iPhone/i.test(ua))return"iPhone";if(/Android/i.test(ua)&&!/Mobile/i.test(ua))return"Android Tablet";if(/Android/i.test(ua))return"Android Phone";if(/Mac/i.test(platform)||/Macintosh/i.test(ua))return"Mac";if(/Win/i.test(platform)||/Windows/i.test(ua))return"Windows";return"Other"}function show(x){["login","adminHome","adminTool","admin","adminAnalysis","adminChat"].forEach(i=>{const el=$(i);if(el)el.classList.toggle("hidden",i!==x)});const s=document.getElementById("bootSplash");if(s)s.remove()}function listen(u,el,viewer){watchChat(u,el,viewer)}function updateAdminNotifyUI(ok=false){notificationHelp.update(ok);const b=$("adminNotifyBox");if(!b)return;if(!supportsPushAPIs()){$("adminNotify").classList.add("hidden");$("adminNotifyStatus").textContent="此系統不支援背景通知；開啟聊天室仍可收發訊息。";b.classList.remove("hidden");return;}if(ok&&Notification.permission==="granted")b.classList.add("hidden");else b.classList.remove("hidden")}async function syncPushToken(user,role){
  try{
   if(!supportsPushAPIs()||Notification.permission!=="granted"){if(role==="admin")updateAdminNotifyUI(false);return;}
