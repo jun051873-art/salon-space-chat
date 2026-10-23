@@ -6,7 +6,7 @@ const admin='HcFJGmzHw6MYoWbFmtq9IyFSjvL2';
 const env={FIREBASE_PROJECT_ID:'test',FIREBASE_CLIENT_EMAIL:'test',FIREBASE_PRIVATE_KEY:'test'};
 const root='https://firestore.googleapis.com/v1/projects/test/databases/(default)/documents/';
 const pack=x=>typeof x==='string'?{stringValue:x}:typeof x==='boolean'?{booleanValue:x}:typeof x==='number'?{integerValue:String(x)}:Array.isArray(x)?{arrayValue:{values:x.map(pack)}}:{mapValue:{fields:Object.fromEntries(Object.entries(x).map(([k,v])=>[k,pack(v)]))}};
-function harness({users=[],chats=[],rules=[],settings={},holiday=false,caller="c1",sourceMessage={senderId:"c1",text:"預約"},sharedDevice=false}={}){
+function harness({users=[],chats=[],rules=[],settings={},holiday=false,caller="c1",sourceMessage={senderId:"c1",text:"預約"},sharedDevice=false,failMessage=false}={}){
  const calls=[],payloads=[],messages=new Map();let writes=0,pushes=0;
  const doc=(id,x)=>({name:root+id,fields:pack(x).mapValue.fields});
  const context=vm.createContext({Response,Request,URLSearchParams,AbortController,TextEncoder,Uint8Array,atob,btoa,setTimeout,clearTimeout,console,fetch:async(url,opt={})=>{
@@ -19,13 +19,13 @@ function harness({users=[],chats=[],rules=[],settings={},holiday=false,caller="c
   if(u.includes('/messages/source'))return ok(doc('source',sourceMessage));
   if(u.includes('/devices?'))return ok({documents:[doc('device',{token:sharedDevice?'shared-device':u.includes('/'+admin+'/')?'owner-device':'customer-device'})]});
   if(u.includes('/pushTokens/'))return Response.json({error:{status:'NOT_FOUND'}},{status:404});
-  if(u.endsWith(':commit')){const name=body.writes[0].update.name;if(messages.has(name))return Response.json({error:{status:'ALREADY_EXISTS'}},{status:409});messages.set(name,body.writes[0]);writes+=body.writes.length;return ok({});}
+  if(u.endsWith(':commit')){const name=body.writes[0].update.name;if(failMessage&&name.includes('/chats/bad/'))return Response.json({error:{status:'UNAVAILABLE'}},{status:503});if(messages.has(name))return Response.json({error:{status:'ALREADY_EXISTS'}},{status:409});messages.set(name,body.writes[0]);writes+=body.writes.length;return ok({});}
   if(u.includes('messages:send')){pushes++;payloads.push(body.message);return ok({name:'accepted'});}
   for(const [name,data] of Object.entries({users,chats,broadcasts:rules}))if(u===root+name+'?pageSize=300')return ok({documents:data.map(x=>doc(x.id,x))});
   if(u.includes('broadcasts/_runtime?'))return ok({});
   throw Error('Unexpected request '+u);
  }});
- vm.runInContext(source.replace('export default {','const worker = {')+'\noauthCache={key:"test:test",token:"test",until:Date.now()+3600000};globalThis.api={worker,automaticReply,runCare,findReply};',context);
+ vm.runInContext(source.replace('export default {','const worker = {')+'\noauthCache={key:"test:test",token:"test",until:Date.now()+3600000};globalThis.api={worker,automaticReply,runCare,findReply,careDue};',context);
  return {api:context.api,calls,messages,payloads,get writes(){return writes},get pushes(){return pushes}};
 }
 const h=harness({users:[{id:'c1',name:'測試'}],settings:{keywordRepliesEnabled:true,quickReplies:[{title:'預約',answer:'請選時段'}]}});
@@ -91,3 +91,22 @@ await price.api.automaticReply(env,root,'test','c1','other','您好','2026-10-15
 assert.equal(price.payloads[1].data.body,'business');
 assert.equal(price.messages.size,2);
 console.log('PASS configured price before busy reply, unmatched message falls back');
+
+const chooseCare=h.api.careDue;
+const visitRule={kind:'visit',days:7,text:'關心'};
+const guest={id:'c1',name:'客人',lastVisitAt:'2026-10-16T12:00:00+08:00'};
+assert.equal(chooseCare(visitRule,guest,{},Date.parse('2026-10-23T10:00:00+08:00')),Date.parse(guest.lastVisitAt));
+assert.equal(chooseCare(visitRule,guest,{},Date.parse('2026-10-22T23:59:59+08:00')),null);
+assert.equal(chooseCare(visitRule,{...guest,adminMergedInto:'other'},{},Date.parse('2026-10-24')),null);
+assert.equal(chooseCare(visitRule,{...guest,marketingOptIn:false},{},Date.parse('2026-10-24')),null);
+assert.equal(chooseCare({...visitRule,days:0},guest,{},Date.parse('2026-10-24')),null);
+assert.equal(chooseCare({kind:'birthday',text:'生日快樂'},{id:'c1',name:'客人',birthMonth:10,birthDay:23},{},Date.parse('2026-10-22T16:00:00Z')),2026);
+assert.equal(chooseCare({kind:'inactive',days:7,text:'好久不見'},guest,{lastCustomerMessageAt:'2026-10-20T00:00:00Z'},Date.parse('2026-10-23')),null);
+console.log('PASS Taipei calendar day reminders, merged records, opt-out, invalid rules and birthday boundary');
+
+const manyRules=Array.from({length:21},(_,i)=>({id:'r'+i,type:'automation',kind:'birthday',enabled:true,text:'生日快樂'}));
+const many=harness({users:[{id:'c1',name:'客人',birthMonth:day[1],birthDay:day[2]}],rules:manyRules});
+await many.api.runCare(env);assert.equal(many.messages.size,21,'rules after the first twenty must not disappear');
+const isolation=harness({users:[{id:'bad',name:'甲',birthMonth:day[1],birthDay:day[2]},{id:'c1',name:'乙',birthMonth:day[1],birthDay:day[2]}],rules:[manyRules[0]],failMessage:true});
+await isolation.api.runCare(env);assert.equal(isolation.messages.size,1,'one failed customer must not stop remaining reminders');
+console.log('PASS all enabled rules processed and per-customer write failures isolated');
