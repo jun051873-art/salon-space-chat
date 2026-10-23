@@ -203,3 +203,14 @@ html[data-salon-layout=list] body.adminApp #adminHome .toolItem{display:flex!imp
 html[data-salon-layout=list] body.adminApp #adminHome .toolItem>span{flex:0 0 42px!important;width:42px!important;height:42px!important;margin:0!important}
 html[data-salon-layout=mosaic] body.adminApp #adminHome .toolItem:nth-child(3n){grid-column:1/-1!important}
 html[data-salon-layout=editorial] body.adminApp #adminHome .toolItem:first-child{grid-column:1/-1!important;min-height:135px}
+
+/* N56: consistent focus for clickable cards, and natural board content. */
+body [tabindex]:focus:not(:focus-visible),body [role=button]:focus:not(:focus-visible){outline:none!important}
+body [tabindex]:focus-visible,body [role=button]:focus-visible{outline:2px solid var(--salon-accent,#557d73)!important;outline-offset:3px}
+body [tabindex],body [role=button]{-webkit-tap-highlight-color:transparent}
+body .composer textarea{min-height:44px!important;box-sizing:border-box!important;overflow-y:auto;resize:none}
+body .boardExpandedCard{padding:16px;border-radius:24px;background:linear-gradient(135deg,#ffffff70,#ffffff18);border:1px solid #ffffff90;min-width:0}
+body .boardExpandedCard h3{margin:0 0 16px;font-size:1.2rem}
+body .boardExpandedCard .boardDetailImage{display:block;width:100%;height:auto;max-height:none;object-fit:contain;border-radius:20px;cursor:zoom-in}
+body .boardExpandedCard .productDescription{white-space:pre-wrap;text-align:left;overflow-wrap:anywhere;margin:18px 0;line-height:1.8}
+body .topicCollection{display:grid;gap:20px}

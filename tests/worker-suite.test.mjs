@@ -76,10 +76,18 @@ await timedHarness.api.automaticReply(env,root,'test','c1','photo','[照片]','2
 assert.equal(timedHarness.messages.size,1);assert.equal(timedHarness.payloads[0].data.body,'business');
 const holidayHarness=harness({settings:{...timed,keywordRepliesEnabled:true,quickReplies:[{title:'預約',answer:'keyword'}]},holiday:true});
 await holidayHarness.api.automaticReply(env,root,'test','c1','source','預約','2026-10-15T04:00:00Z');
-assert.equal(holidayHarness.messages.size,1);assert.equal(holidayHarness.payloads[0].data.body,'holiday');
-console.log('PASS time reply integration: attachment trigger, duplicate prevention, holiday over keyword');
+assert.equal(holidayHarness.messages.size,1);assert.equal(holidayHarness.payloads[0].data.body,'keyword');
+console.log('PASS time reply integration: attachment trigger, duplicate prevention, keyword over holiday');
 
 const shared=harness({sharedDevice:true,settings:{keywordRepliesEnabled:true,quickReplies:[{title:'預約',answer:'收到'}]}});
 await shared.api.automaticReply(env,root,'test','c1','source','預約');
 assert.equal(shared.messages.size,1);assert.equal(shared.pushes,0,'automatic reply never alerts a device registered to the owner');
 console.log('PASS automatic reply persists while owner/shared devices are excluded');
+
+const price=harness({settings:{...timed,keywordRepliesEnabled:true,quickReplies:[{title:'護髮多少錢',keywords:['護髮'],answer:'蒸汽護髮1000打7折=700'}]}});
+await price.api.automaticReply(env,root,'test','c1','price','護髮多少錢','2026-10-15T04:00:00Z');
+assert.equal(price.payloads[0].data.body,'蒸汽護髮1000打7折=700');
+await price.api.automaticReply(env,root,'test','c1','other','您好','2026-10-15T04:00:00Z');
+assert.equal(price.payloads[1].data.body,'business');
+assert.equal(price.messages.size,2);
+console.log('PASS configured price before busy reply, unmatched message falls back');

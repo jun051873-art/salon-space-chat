@@ -11,7 +11,7 @@ export default {
  async fetch(request, env, ctx) {
   const cors = {"Access-Control-Allow-Origin":SITE,"Access-Control-Allow-Methods":"GET, POST, OPTIONS","Access-Control-Allow-Headers":"Content-Type, Authorization","Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store","Vary":"Origin"};
   if(request.method === "OPTIONS") return new Response(null,{status:204,headers:cors});
-  if(request.method === "GET") return json({ok:true,service:"salon-space-notify",version:"9-auto-customer-only",authenticated:true,features:{newCustomerNotifications:true,timeReplies:true,keywordReplies:true,keywordContains:true,scheduledCare:true,visitCare:true}},200,cors);
+  if(request.method === "GET") return json({ok:true,service:"salon-space-notify",version:"10-keyword-first",authenticated:true,features:{newCustomerNotifications:true,timeReplies:true,keywordReplies:true,keywordContains:true,scheduledCare:true,visitCare:true}},200,cors);
   if(request.method !== "POST") return json({ok:false,error:"METHOD_NOT_ALLOWED"},405,cors);
   try {
    if(request.headers.get("Origin") && request.headers.get("Origin") !== SITE) throw fault("ORIGIN_NOT_ALLOWED",403);
@@ -153,14 +153,13 @@ function timeReply(config,instant,holiday=false){
 }
 async function automaticReply(env,root,token,uid,sourceId,text,sourceTime){
  const config=await salonConfig(root,token,true);
- let reply=null;
- if(Object.values(config.timeReplies||{}).some(r=>r?.enabled===true)){
+ let reply=config.keywordRepliesEnabled===true?findReply(config.quickReplies,text):null;
+ if(!reply&&Object.values(config.timeReplies||{}).some(r=>r?.enabled===true)){
   const instant=sourceTime&&Number.isFinite(Date.parse(sourceTime))?sourceTime:new Date().toISOString();
   const date=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(instant));
   let holiday=false;try{const h=fieldsOf(await readJSON(root+'holidays/'+date,{headers:{Authorization:'Bearer '+token}},'HOLIDAY'));holiday=h.closed!==false;}catch(e){if(e.status!==404)throw e;}
   reply=timeReply(config,instant,holiday);
  }
- if(!reply&&config.keywordRepliesEnabled===true)reply=findReply(config.quickReplies,text);
  if(!reply)return;
  const customer=fieldsOf(await readJSON(root+'users/'+uid,{headers:{Authorization:'Bearer '+token}},'CUSTOMER'));
  if((customer.status||'active')!=='active')return;
