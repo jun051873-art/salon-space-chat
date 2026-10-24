@@ -153,8 +153,11 @@ export function createDelivery({auth,projectId,role,notify,onChange,storage=loca
  }
  function enqueueMany(jobs){const added=[];try{for(const job of jobs){const existed=job.id&&storage.getItem(prefix+job.senderId+':'+job.id);const e=enqueue({...job,defer:true});if(!existed)added.push(e);}}catch(error){for(const e of added)storage.removeItem(key(e));collectAssets();throw error;}void flush();return added;}
  function acknowledge(ids){for(const id of ids)seen.add(id);for(const e of all())cleanup(e);}
+ function pruneCampaign(campaignId){if(typeof campaignId!=='string'||!/^[A-Za-z0-9_-]{1,120}$/.test(campaignId))return 0;const start='b_'+campaignId+'_';let removed=0;for(const e of all()){if(e.id.startsWith(start)&&e.stage==='done'){storage.removeItem(key(e));removed++;}}if(removed)emit();return removed;}
  return {saveDraft,readDraft,enqueue,enqueueMany,flush,entries:all,acknowledge,api,retryFailed,
+  pruneCampaign,
   resume(){void flush();},
   stop(){stopped=true;clearTimeout(timer);}
  };
 }
+
