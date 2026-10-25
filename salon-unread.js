@@ -8,8 +8,5 @@ export function refreshAppBadge(){if(confirmedBadge!==null)setBadge(confirmedBad
 
 
 
-export function unreadAlert(role,pending,open){
- let el=document.getElementById('salonUnreadAlert');
- if(!el){el=document.createElement('button');el.id='salonUnreadAlert';el.type='button';el.setAttribute('aria-live','polite');el.style.cssText='position:fixed!important;box-sizing:border-box!important;display:grid!important;place-items:center!important;bottom:calc(104px + env(safe-area-inset-bottom))!important;left:14px!important;right:14px!important;margin:0 auto!important;transform:none!important;z-index:65!important;width:max-content!important;max-width:min(260px,calc(100vw - 28px))!important;min-height:40px!important;padding:9px 14px!important;border:1px solid rgba(255,255,255,.5)!important;border-radius:999px!important;background:#843c32!important;color:white!important;box-shadow:0 5px 18px #0002!important;font-size:13px!important;font-weight:700!important;line-height:1.25!important;text-align:center!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important';document.body.append(el);const style=document.createElement('style');style.textContent='#salonUnreadAlert[hidden],body.conversationOpen #salonUnreadAlert,body.adminApp:has(#adminChat:not(.hidden)) #salonUnreadAlert{display:none!important}';document.head.append(style);}
- el.hidden=!pending;el.textContent=role==='admin'?'● 客人有新訊息 · 查看':'● 店家有新訊息 · 查看';el.setAttribute('aria-label',role==='admin'?'客人有新訊息，點此查看':'店家有新訊息，點此查看');el.onclick=open;
-}
+// Unread state is represented by native notifications and page badges. Remove any legacy floating alert.
+export function unreadAlert(){document.getElementById('salonUnreadAlert')?.remove();}
