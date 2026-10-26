@@ -27,11 +27,11 @@ export function mountNotificationHelp(host,enable,role){
    const close=document.createElement('button');close.type='button';close.className='notificationClose';close.textContent='關閉';close.onclick=()=>panel.close();
    panel.append(close,box);document.body.append(panel);header.append(indicator);
    indicator.setAttribute('aria-haspopup','dialog');indicator.setAttribute('aria-controls',panel.id);
-   indicator.onclick=()=>{render();if(!panel.open)panel.showModal();};
+   indicator.onclick=()=>{render();if(!panel.open)panel.showModal();if(state()==='enable'&&!busy)enableButton.click();};
   }
  }
  let lastState='';
- function render(){const s=state(),key=JSON.stringify([s,busy,error]);if(key===lastState)return;lastState=key;const ok=s==='ready';if(document.body?.dataset)document.body.dataset.notificationReady=String(ok);box.dataset.ready=String(ok);if(indicator){indicator.dataset.ready=String(ok);indicator.setAttribute('aria-label',(ok?'通知已開啟':'通知尚未開啟')+'，點擊查看設定');indicator.title=indicator.getAttribute('aria-label');}box.setAttribute('aria-busy',String(busy));
+ function render(){const s=state(),key=JSON.stringify([s,busy,error]);if(key===lastState)return;lastState=key;const ok=s==='ready';if(document.body?.dataset)document.body.dataset.notificationReady=String(ok);box.dataset.ready=String(ok);if(indicator){indicator.dataset.ready=String(ok);indicator.setAttribute('aria-label',(ok?'通知已開啟':'通知尚未開啟')+(s==='enable'?'，點擊快速啟用':'，點擊查看狀態'));indicator.title=indicator.getAttribute('aria-label');}box.setAttribute('aria-busy',String(busy));
  title.textContent=ok?'✓ 通知已開啟':busy?'正在設定通知…':'開啟通知，不漏看新訊息';
  p.textContent=error||({install:'請從桌面 App 圖示開啟，再允許通知。',unsupported:'目前瀏覽器未支援背景通知，請查看教學。',denied:'通知已關閉，請到手機設定允許通知後再回來。',enable:'點一下開啟，完成後會顯示綠色勾勾。',ready:'此裝置已完成設定；鎖定畫面與聲音可查看教學。'})[s];
  enableButton.hidden=s!=='enable';enableButton.disabled=busy;enableButton.textContent=busy?'正在設定…':'開啟訊息通知';test.hidden=role!=='admin'||!ok;
