@@ -176,6 +176,8 @@ body #customerNav .navBtn{min-width:0;padding-inline:6px}
 
 /* Shared navigation: unboxed returns, balanced conversation names and two tabs. */
 body .backLink,
+body .profileScene .sceneHeader .sceneIcon.backLink,
+body .profileScene .sceneLightbox .sceneIcon.backLink,
 body .pageBack,
 body.adminApp #toolBack,
 body.customerApp #chat .conversationHeader #leaveChat,
