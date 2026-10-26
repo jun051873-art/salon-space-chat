@@ -113,3 +113,22 @@ await many.api.runCare(env);assert.equal(many.messages.size,21,'rules after the 
 const isolation=harness({users:[{id:'bad',name:'甲',birthMonth:day[1],birthDay:day[2]},{id:'c1',name:'乙',birthMonth:day[1],birthDay:day[2]}],rules:[manyRules[0]],failMessage:true});
 await isolation.api.runCare(env);assert.equal(isolation.messages.size,1,'one failed customer must not stop remaining reminders');
 console.log('PASS all enabled rules processed and per-customer write failures isolated');
+
+// Personal visit plans are isolated by recipient and replace only generic visit care.
+const personalRules=[7,30].map(days=>({id:'personal_visit_c1_'+days,type:'automation',kind:'personalVisit',targetUserId:'c1',days,enabled:true,text:'{姓名} '+days+' 天關心'}));
+const personalUsers=[{id:'c1',name:'甲',visitCareManaged:true,lastVisitAt:new Date(Date.now()-31*86400000).toISOString()},{id:'c2',name:'乙',lastVisitAt:new Date(Date.now()-31*86400000).toISOString()}];
+const personal=harness({users:personalUsers,rules:[...personalRules,{id:'general',type:'automation',kind:'visit',days:7,enabled:true,text:'通用關心'}]});
+await personal.api.runCare(env);await personal.api.runCare(env);
+assert.equal(personal.messages.size,3,'two personal reminders to c1 and only the general reminder to c2; retries do not duplicate');
+const personalMessages=[...personal.messages.values()];
+assert.equal(personalMessages.filter(m=>m.update.name.includes('/chats/c1/')).length,2);
+assert.equal(personalMessages.filter(m=>m.update.name.includes('/chats/c2/')).length,1);
+const checkPersonal=personal.api.careDue,at=Date.parse('2026-11-02T10:00:00+08:00');
+const one={id:'c1',name:'甲',visitCareManaged:true,lastVisitAt:'2026-10-26T12:00:00+08:00'};
+assert.notEqual(checkPersonal(personalRules[0],one,{},at),null);
+assert.equal(checkPersonal(personalRules[1],one,{},at),null);
+assert.equal(checkPersonal(personalRules[0],{...one,id:'c2'},{},at),null);
+assert.equal(checkPersonal(personalRules[0],{...one,visitCareManaged:false},{},at),null);
+for(const patch of [{status:'blocked'},{status:'pending'},{marketingOptIn:false},{adminDeleted:true},{adminMergedInto:'old'},{lastVisitAt:null},{lastVisitAt:'2026-11-01T12:00:00+08:00'}])assert.equal(checkPersonal(personalRules[0],{...one,...patch},{},at),null,JSON.stringify(patch));
+const noPersonal=harness({users:personalUsers,rules:[{id:'general',type:'automation',kind:'visit',days:7,enabled:true,text:'通用關心'},...personalRules.map(r=>({...r,enabled:false}))]});await noPersonal.api.runCare(env);assert.equal(noPersonal.messages.size,1,'personal off must not fall back to generic visit care');
+console.log('PASS per-customer 7/30-day isolation, legacy exclusion, opt-out, missing dates, new visits and retry deduplication');

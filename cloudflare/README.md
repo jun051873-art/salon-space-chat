@@ -56,3 +56,33 @@ are manually initiated in the admin app. Neither is enabled by the Cron.
 Verification: check version, send a NEW configured question, check both chat views
 and device notifications, and inspect the admin schedule status after a scheduled
 run. Mock tests do not prove production credentials, quotas, Cron or phone delivery.
+
+
+## N69: per-customer visit care — version 12-personal-visit-care
+
+Deploy the complete `cloudflare/worker-suite.js` to the existing
+`salon-space-notify` Worker (not `worker.js`). Preserve all secrets, bindings,
+URL and existing Cron triggers. No Firebase rules change is needed.
+GitHub Pages publication alone does not deploy this backend.
+
+The frontend enables personal care only when GET / advertises
+`features.personalVisitCare: true` and broadcasts/_runtime has a successful
+heartbeat within 36 hours. Until then, date registration works, and existing
+legacy generic visit rules continue to apply. Do not claim personal reminders
+are enabled before this check passes.
+
+Admin: 訊息 → customer ⋯ → 到店與關心. Today records Taiwan noon, preserving
+an existing timestamp on the same date. Personal choices write two stable,
+recipient-specific automation records (kind personalVisit, days 7 and 30),
+and users/{uid}.visitCareManaged=true, atomically. Disabled personal rules remain
+stored, and the managed marker suppresses generic visit rules even for no-reminder.
+Birthday/inactivity rules are unaffected. New kinds are ignored by old workers.
+Rules apply to each newly recorded visit until changed; editing content or toggling
+a rule does not change its deduplication ID. Selecting an already overdue interval
+makes it eligible on the next scheduled check. Blocked/pending/deleted/merged and
+marketing-opt-out customers are excluded. No customer records or enabled rules
+were created by the implementation/testing workflow.
+
+Validation: npm test; browser harness tests the real visit-care module at
+320/390/768 pixels with mocked writes. Physical phone delivery and live Cron
+execution require verification after deployment.

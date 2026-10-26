@@ -334,3 +334,19 @@ body dialog.effectPreviewDialog{width:calc(100% - 28px);max-width:520px;height:m
 .weatherSettings [data-weather-saved]:empty{display:none}
 .weatherSettings [data-weather-saved]{font-size:13px;line-height:1.6;margin:10px 0 0}
 @media(prefers-reduced-motion:reduce){.weatherSettings input[data-weather-enabled],.weatherSettings input[data-weather-enabled]::after{transition:none}}
+
+/* N69: quick visit registration and per-customer care. */
+.visitQuickCard{padding:18px;border-radius:24px;background:#ffffff65;display:grid;gap:12px;margin:16px 0}
+.visitQuickCard>strong{font-size:24px}.visitQuickCard>small{font-size:14px}
+.visitQuickCard>button{min-height:48px}.visitQuickCard details{min-width:0}
+.visitCareChoices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:12px 0}
+.visitCareChoices button{min-height:48px;padding:12px 8px;border:1px solid #a7b7ad;background:#ffffff65;color:#344c42;border-radius:18px;font-size:14px}
+.visitCareChoices button[aria-pressed=true]{background:#527b6b;color:white;border-color:#527b6b}
+.visitCareChoices button:disabled{opacity:.55}.visitCareOptions details{margin:14px 0}
+.visitCareOptions textarea{min-height:110px}.visitCareOptions summary,.visitQuickCard summary{padding:10px 0;cursor:pointer}
+.visitCareOptions [data-care-save]{width:100%;min-height:48px}
+[data-visit-status]{font-size:14px;line-height:1.6;overflow-wrap:anywhere}
+body.adminApp .salonDialog .visitCareChoices button{background:rgba(255,255,255,.6)!important;color:#344c42!important;border:1px solid #a7b7ad!important}
+body.adminApp .salonDialog .visitCareChoices button[aria-pressed=true]{background:#527b6b!important;color:#fff!important;border-color:#527b6b!important}
+.visitCareChoices button[aria-pressed=true]::before{content:'✓ '}
+body.adminApp .salonDialog .visitCareChoices button{transition:none!important}

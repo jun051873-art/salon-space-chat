@@ -11,7 +11,7 @@ export default {
  async fetch(request, env, ctx) {
   const cors = {"Access-Control-Allow-Origin":SITE,"Access-Control-Allow-Methods":"GET, POST, OPTIONS","Access-Control-Allow-Headers":"Content-Type, Authorization","Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store","Vary":"Origin"};
   if(request.method === "OPTIONS") return new Response(null,{status:204,headers:cors});
-  if(request.method === "GET") return json({ok:true,service:"salon-space-notify",version:"11-care-calendar",authenticated:true,features:{newCustomerNotifications:true,timeReplies:true,keywordReplies:true,keywordContains:true,scheduledCare:true,visitCare:true}},200,cors);
+  if(request.method === "GET") return json({ok:true,service:"salon-space-notify",version:"12-personal-visit-care",authenticated:true,features:{newCustomerNotifications:true,timeReplies:true,keywordReplies:true,keywordContains:true,scheduledCare:true,visitCare:true,personalVisitCare:true}},200,cors);
   if(request.method !== "POST") return json({ok:false,error:"METHOD_NOT_ALLOWED"},405,cors);
   try {
    if(request.headers.get("Origin") && request.headers.get("Origin") !== SITE) throw fault("ORIGIN_NOT_ALLOWED",403);
@@ -169,11 +169,13 @@ async function scanCollection(root,path,token){let page='',rows=[];do{const resu
 // Dates are compared in the shop's calendar, not elapsed 24-hour periods.
 function taipeiDay(value){const ms=typeof value==='number'?value:Date.parse(value);if(!Number.isFinite(ms))return null;return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(ms));}
 function careDue(rule,user,chat,now=Date.now()){
- if(user.id===ADMIN_UID||user.role==='admin'||user.adminMergedInto||(user.status||'active')!=='active'||user.marketingOptIn===false||!user.name||typeof rule.text!=='string'||!rule.text.trim())return null;
+ if(user.id===ADMIN_UID||user.role==='admin'||user.adminDeleted||user.adminMergedInto||(user.status||'active')!=='active'||user.marketingOptIn===false||!user.name||typeof rule.text!=='string'||!rule.text.trim())return null;
  const day=taipeiDay(now),[year,month,date]=day.split('-').map(Number);
  if(rule.kind==='birthday')return Number(user.birthMonth)===month&&Number(user.birthDay)===date?year:null;
- if(!['inactive','visit'].includes(rule.kind))return null;
- const value=rule.kind==='visit'?user.lastVisitAt:chat?.lastCustomerMessageAt;
+ if(rule.kind==='personalVisit'&&(rule.targetUserId!==user.id||user.visitCareManaged!==true))return null;
+ if(rule.kind==='visit'&&user.visitCareManaged===true)return null;
+ if(!['inactive','visit','personalVisit'].includes(rule.kind))return null;
+ const value=['visit','personalVisit'].includes(rule.kind)?user.lastVisitAt:chat?.lastCustomerMessageAt;
  const last=typeof value==='number'?value:Date.parse(value||'');
  const days=Number(rule.days);
  if(!Number.isFinite(last)||last<=0||!Number.isInteger(days)||days<1||days>365)return null;
@@ -186,7 +188,8 @@ async function runCare(env){
  let sent=0,failed=0,deferred=0;
  if(rules.length){
   const [users,chats,config]=await Promise.all([scanCollection(root,'users',token),scanCollection(root,'chats',token),salonConfig(root,token,true)]),chatMap=new Map(chats.map(c=>[c.id,c])),now=Date.now();
-  for(const rule of rules)for(const user of users){
+  const userMap=new Map(users.map(u=>[u.id,u]));
+  for(const rule of rules)for(const user of rule.kind==='personalVisit'?[userMap.get(rule.targetUserId)].filter(Boolean):users){
    const occurrence=careDue(rule,user,chatMap.get(user.id),now);if(occurrence===null)continue;
    if(sent>=300){deferred++;continue;}
    const id='care_'+rule.id+'_'+user.id+'_'+occurrence;

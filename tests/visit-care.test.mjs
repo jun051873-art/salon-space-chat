@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import {visitInstant,visitDate,careDate,personalCareRules} from '../visit-care.js';
+assert.equal(visitDate(visitInstant('2026-10-26').getTime()),'2026-10-26');
+assert.equal(careDate('2026-10-26',7),'2026-11-02');
+assert.equal(careDate('2026-10-26',30),'2026-11-25');
+assert.equal(careDate('2024-02-27',7),'2024-03-05');
+assert.throws(()=>visitInstant('2026-02-30'));
+assert.throws(()=>visitInstant('2099-01-01'));
+const texts={7:'七天',30:'三十天'};
+const plan=personalCareRules('a',[7],texts);
+assert.equal(plan[0].enabled,true);assert.equal(plan[1].enabled,false);
+assert.equal(plan[0].targetUserId,'a');assert.equal(plan[0].kind,'personalVisit');
+assert.deepEqual(personalCareRules('a',[7],texts),plan,'same recipient and days keep stable rule IDs');
+assert(personalCareRules('a',[],texts).every(r=>!r.enabled));
+assert.throws(()=>personalCareRules('a',[14],texts));
+assert.throws(()=>personalCareRules('a',[7],{7:' ',30:'ok'}));
+console.log('PASS visit dates, month/leap boundaries, invalid dates, stable targeted rules and opt-out');
