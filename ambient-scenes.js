@@ -10,7 +10,7 @@ function read(key){try{return JSON.parse(localStorage.getItem(key)||'null')}catc
 function save(key,value){try{localStorage.setItem(key,JSON.stringify(value))}catch{}}
 export function weatherScene(symbol='',temp=25,wind=0){if(/snow|sleet/.test(symbol))return 'snow';if(/rain|showers|thunder/.test(symbol))return 'rain';if(wind>=7||temp<18)return 'wind';if(/fog/.test(symbol))return 'mist';if(/night/.test(symbol))return 'moon';if(/partlycloudy|fair/.test(symbol))return 'suncloud';if(/cloud/.test(symbol))return 'clouds';return 'sun';}
 export async function dailyWeather(city='yingge'){
- if(!cities[city])city='yingge';const key='salon-weather-v1-'+city,cached=read(key),now=Date.now();
+ if(!cities[city])city='yingge';const key='salon-weather-v2-'+city,cached=read(key),now=Date.now();
  if(cached?.until>now)return cached.result;
  if(pending.has(city))return pending.get(city);
  const job=(async()=>{const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),6000);
@@ -27,9 +27,21 @@ export async function dailyWeather(city='yingge'){
  const previous=old[previousDay+' '+hour.slice(-2)];const delta=Number.isFinite(previous)?Math.round((temp-previous)*10)/10:null;
  const comparison=delta===null?'昨日同時段資料尚未累積':Math.abs(delta)<0.5?'與昨日同時段預估相近':`比昨日同時段預估${delta>0?'暖':'冷'} ${Math.abs(delta)}°C`;
  old[hour]=temp;for(const k of Object.keys(old))if(k.slice(0,10)<previousDay)delete old[k];save(key+'-history',old);
- const result={effect:weatherScene(symbol,temp,info.wind_speed),text:`${name} · 預估 ${Math.round(temp)}°C · ${comparison} · ${new Date(current.time).toLocaleTimeString("zh-TW",{timeZone:"Asia/Taipei",hour:"2-digit",minute:"2-digit"})}`,updated:data.properties.meta.updated_at};
+ const days=forecastDays(rows,now);
+ const result={days,effect:weatherScene(symbol,temp,info.wind_speed),text:`${name} · 預估 ${Math.round(temp)}°C · ${comparison} · ${new Date(current.time).toLocaleTimeString("zh-TW",{timeZone:"Asia/Taipei",hour:"2-digit",minute:"2-digit"})}`,updated:data.properties.meta.updated_at};
  const expires=Date.parse(response.headers.get('Expires'));save(key,{until:Math.max(now+3600000,Number.isFinite(expires)?expires:0),result});return result;
  }catch(e){save(key,{until:now+300000,result:{effect:'none',text:'天氣暫時無法更新，稍後再試'}});throw e}finally{clearTimeout(timer)}})();pending.set(city,job);try{return await job}finally{pending.delete(city)}
+}
+export function forecastDays(rows,now=Date.now()){
+ const today=localDate(new Date(now));
+ return Array.from({length:7},(_,i)=>{const date=localDate(new Date(Date.parse(today+'T12:00:00+08:00')+i*86400000));
+ const samples=rows.filter(r=>localDate(new Date(r.time))===date&&Number.isFinite(r.data?.instant?.details?.air_temperature));
+ if(!samples.length)return {date,available:false};
+ const midday=Date.parse(date+'T12:00:00+08:00'),r=samples.reduce((a,b)=>Math.abs(Date.parse(a.time)-midday)<Math.abs(Date.parse(b.time)-midday)?a:b);
+ const symbol=r.data.next_1_hours?.summary?.symbol_code||r.data.next_6_hours?.summary?.symbol_code||r.data.next_12_hours?.summary?.symbol_code||'';
+ const temperatures=samples.map(x=>x.data.instant.details.air_temperature);
+ return {date,available:true,min:Math.round(Math.min(...temperatures)),max:Math.round(Math.max(...temperatures)),symbol};
+ });
 }
 export function randomScene(key='default',rng=Math.random){const choices=Object.keys(scenes),last=read('salon-scene-last-'+key),pool=choices.filter(x=>x!==last);const effect=pool[Math.min(pool.length-1,Math.floor(rng()*pool.length))];save('salon-scene-last-'+key,effect);return effect;}
 export async function resolveScene(mode,effect,city){if(mode==='random')return {effect:randomScene(city||'default'),text:''};if(mode==='weather'){try{return await dailyWeather(city)}catch{return {effect:'none',text:'天氣暫時無法更新'}}}if(mode==='solar'){const t=currentTerm();return t?{effect:t.effect,text:`${t.name} · 二十四節氣意象（非即時天氣）`}:{effect:'none',text:'節氣日期待更新'}}return {effect,text:''};}

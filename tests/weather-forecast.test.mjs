@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import {forecastDays} from '../ambient-scenes.js';
+const row=(time,temp,symbol='clearsky_day')=>({time,data:{instant:{details:{air_temperature:temp}},next_6_hours:{summary:{symbol_code:symbol}}}});
+const rows=[row('2026-10-26T15:00:00Z',22),row('2026-10-26T16:00:00Z',20),row('2026-10-27T04:00:00Z',28,'rain'),row('2026-10-27T10:00:00Z',24)];
+const days=forecastDays(rows,Date.parse('2026-10-26T12:00:00Z'));
+assert.equal(days.length,7);assert.equal(days[0].date,'2026-10-26');assert.equal(days[0].min,22);
+assert.equal(days[1].date,'2026-10-27');assert.equal(days[1].min,20);assert.equal(days[1].max,28);assert.equal(days[1].symbol,'rain');
+assert.equal(days[2].available,false);assert.equal(days[6].date,'2026-11-01');
+assert.ok(forecastDays([],Date.now()).every(d=>!d.available));
+console.log('PASS Taiwan-date forecast grouping, seven dates, missing days and representative weather');
