@@ -350,3 +350,10 @@ body.adminApp .salonDialog .visitCareChoices button{background:rgba(255,255,255,
 body.adminApp .salonDialog .visitCareChoices button[aria-pressed=true]{background:#527b6b!important;color:#fff!important;border-color:#527b6b!important}
 .visitCareChoices button[aria-pressed=true]::before{content:'✓ '}
 body.adminApp .salonDialog .visitCareChoices button{transition:none!important}
+
+/* N70: explicit cancellation and reversible visit registration. */
+.visitButtonPair{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.visitButtonPair button{width:100%;min-height:44px;margin:0!important;padding:10px 8px;font-size:14px}
+.visitQuickCard [data-visit-undo]{font-size:14px;min-height:44px}
+.visitQuickCard [hidden]{display:none!important}
+.visitCareOptions [data-care-availability]{padding:12px;border-radius:16px;background:#fff8;line-height:1.7}

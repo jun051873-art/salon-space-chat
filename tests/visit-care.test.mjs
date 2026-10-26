@@ -15,3 +15,17 @@ assert(personalCareRules('a',[],texts).every(r=>!r.enabled));
 assert.throws(()=>personalCareRules('a',[14],texts));
 assert.throws(()=>personalCareRules('a',[7],{7:' ',30:'ok'}));
 console.log('PASS visit dates, month/leap boundaries, invalid dates, stable targeted rules and opt-out');
+// Exercise the real transaction patch builder, including concurrent edits.
+const fs=await import('node:fs');const vm=await import('node:vm');
+const suite=fs.readFileSync(new URL('../salon-suite.js',import.meta.url),'utf8');
+const start=suite.indexOf('const build=fresh=>',suite.indexOf('const changeVisit='));
+const patchSource=suite.slice(start,suite.indexOf(';if(demo)',start));
+function build(current,fresh,undo){const context=vm.createContext({current,undo,millis:v=>typeof v==='number'?v:0});vm.runInContext(patchSource+';globalThis.result=build;',context);return JSON.parse(JSON.stringify(context.result(fresh)));}
+assert.deepEqual(build({lastVisitAt:20},{lastVisitAt:20,lastVisitUndo:{previousAt:10,currentAt:20}},true),{lastVisitAt:10,lastVisitUndo:null});
+assert.deepEqual(build({lastVisitAt:20},{lastVisitAt:20,lastVisitUndo:{previousAt:null,currentAt:20}},true),{lastVisitAt:null,lastVisitUndo:null});
+const cleared=build({lastVisitAt:20},{lastVisitAt:20},false);
+assert.deepEqual(cleared,{lastVisitAt:null,lastVisitUndo:{previousAt:20,currentAt:null}});
+assert.deepEqual(build(cleared,cleared,true),{lastVisitAt:20,lastVisitUndo:null});
+assert.throws(()=>build({lastVisitAt:20},{lastVisitAt:30},true),/已被其他操作更新/);
+assert.throws(()=>build({lastVisitAt:20},{lastVisitAt:20},true),/已無法撤銷/);
+console.log('PASS persisted undo restores previous or empty dates, clear is reversible, stale writes rejected');

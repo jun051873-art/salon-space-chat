@@ -1,4 +1,4 @@
-import {mountVisitCare,visitInstant,visitDate,personalCareId} from './visit-care.js?v=N69';
+import {mountVisitCare,visitInstant,visitDate,personalCareId} from './visit-care.js?v=N70';
 import {mountWeatherSettings,mountHomeWeather} from './customer-weather.js?v=N68';
 import{DEFAULT_NOTICE,noticeView}from'./notice-model.js?v=2';
 import{designerList,designerChoices,validateDesigners}from'./designers.js?v=1';
@@ -200,12 +200,13 @@ export function installSuite(ctx){
  const loading=modal('到店與關心','<p>正在讀取到店紀錄…</p>');
  try{const [record,rules,features]=await Promise.all([demo?Promise.resolve(sample):getDocFromServer(doc(db,'users',u.id)).then(s=>s.data()),demo?listOnce('broadcasts'):Promise.all(['_runtime',personalCareId(u.id,7),personalCareId(u.id,30)].map(async id=>{const s=await getDocFromServer(doc(db,'broadcasts',id));return {id,...s.data()};})),capabilities()]);if(!loading.isConnected)return;if(!record||record.adminDeleted||record.adminMergedInto)throw Error('這筆顧客資料已停用或合併，請開啟主檔');
  const runtime=rules.find(r=>r.id==='_runtime'),running=millis(runtime?.lastRun)>Date.now()-36*60*60*1000,ready=features.personalVisitCare===true&&running;
+ const changeVisit=async(current,undo)=>{let patch;const build=fresh=>{if(!fresh||fresh.adminDeleted||fresh.adminMergedInto||millis(fresh.lastVisitAt)!==millis(current.lastVisitAt))throw Error('到店日期已被其他操作更新，請關閉後重新開啟');if(undo){if(!fresh.lastVisitUndo||millis(fresh.lastVisitUndo.currentAt)!==millis(fresh.lastVisitAt))throw Error('這次登記已無法撤銷，請重新開啟後更正日期');return {lastVisitAt:fresh.lastVisitUndo.previousAt||null,lastVisitUndo:null};}return {lastVisitAt:null,lastVisitUndo:{previousAt:fresh.lastVisitAt||null,currentAt:null}};};if(demo){patch=build(sample);Object.assign(sample,patch);}else await runTransaction(db,async tx=>{const ref=doc(db,'users',u.id),snapshot=await tx.get(ref);patch=build(snapshot.data());tx.update(ref,{...patch,updatedAt:stamp()});});customersAt=0;cache.delete('users');return patch;};
  const host=document.createElement('div');loading.querySelector('p').replaceWith(host);
  mountVisitCare(host,{user:{...record,id:u.id},rules,ready,unavailable:!features.personalVisitCare?'個別 7／30 天關心需要更新雲端通知服務。目前可先登記到店日期；原有通用到店規則仍照常計算。':!running?'最近沒有雲端排程執行紀錄，暫不能啟用個別關心；仍可登記到店日期。':'',onSaveVisit:async day=>{
  const date=visitInstant(day);let patch;
- if(demo){patch={lastVisitAt:date.getTime()};Object.assign(sample,patch);}else await runTransaction(db,async tx=>{const ref=doc(db,'users',u.id),snap=await tx.get(ref),fresh=snap.data();if(!fresh||fresh.adminDeleted||fresh.adminMergedInto)throw Error('顧客資料已異動，請重新開啟');patch={lastVisitAt:visitDate(fresh.lastVisitAt)===day?fresh.lastVisitAt:Timestamp.fromDate(date)};tx.update(ref,{...patch,updatedAt:stamp()});});customersAt=0;cache.delete('users');return patch;
- },onSavePlan:async rows=>{
- if(!ready)throw Error('個別關心尚未就緒');if(demo)return;
+ if(demo){patch={lastVisitAt:date.getTime(),lastVisitUndo:{previousAt:sample.lastVisitAt||null,currentAt:date.getTime()}};Object.assign(sample,patch);}else await runTransaction(db,async tx=>{const ref=doc(db,'users',u.id),snap=await tx.get(ref),fresh=snap.data();if(!fresh||fresh.adminDeleted||fresh.adminMergedInto)throw Error('顧客資料已異動，請重新開啟');const next=Timestamp.fromDate(date);patch=visitDate(fresh.lastVisitAt)===day?{lastVisitAt:fresh.lastVisitAt,lastVisitUndo:fresh.lastVisitUndo||null}:{lastVisitAt:next,lastVisitUndo:{previousAt:fresh.lastVisitAt||null,currentAt:next}};tx.update(ref,{...patch,updatedAt:stamp()});});customersAt=0;cache.delete('users');return patch;
+ },onUndoVisit:current=>changeVisit(current,true),onClearVisit:current=>changeVisit(current,false),onSavePlan:async rows=>{
+ if(!ready&&rows.some(r=>r.enabled))throw Error('個別關心尚未就緒');if(demo)return;
  await runTransaction(db,async tx=>{const ref=doc(db,'users',u.id),snap=await tx.get(ref),fresh=snap.data();if(!fresh||fresh.adminDeleted||fresh.adminMergedInto)throw Error('顧客資料已異動，請重新開啟');tx.update(ref,{visitCareManaged:true,updatedAt:stamp()});for(const {id,...data} of rows)tx.set(doc(db,'broadcasts',id),{...data,updatedAt:stamp()},{merge:true});});customersAt=0;cache.delete('users');cache.delete('broadcasts');
  }});
  }catch(e){loading.close();fail(e);}
