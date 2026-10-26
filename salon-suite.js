@@ -1,4 +1,4 @@
-import {mountWeatherSettings,mountHomeWeather} from './customer-weather.js?v=N66';
+import {mountWeatherSettings,mountHomeWeather} from './customer-weather.js?v=N67';
 import{DEFAULT_NOTICE,noticeView}from'./notice-model.js?v=2';
 import{designerList,designerChoices,validateDesigners}from'./designers.js?v=1';
 import {customerVisible,broadcastEligible,customerDeletionPatch,olderCustomerPrimary} from './customer-management.js?v=2';

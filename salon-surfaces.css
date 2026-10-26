@@ -316,3 +316,21 @@ body dialog.effectPreviewDialog{width:calc(100% - 28px);max-width:520px;height:m
 .effectPreviewDialog header{display:flex;align-items:center;justify-content:space-between;gap:10px}.effectPreviewDialog header button{background:transparent!important;border:0!important;box-shadow:none!important;min-height:44px}.effectPreviewStatus{font-size:12px;line-height:1.6}
 .effectPreviewStage{position:relative;isolation:isolate;overflow:hidden;border-radius:20px;height:calc(100% - 105px);min-height:180px;padding:24px 16px;background:var(--salon-bg,#e7efeb)}
 .effectPreviewStage>.ambientScene{position:absolute!important;inset:0;z-index:2}.effectPreviewStage>p{position:relative;z-index:3;padding:12px;border-radius:18px;background:#fff9;font-size:14px;margin:24px 0}.effectPreviewStage>p:nth-child(2){margin-left:24px;background:#d8e8e599}
+
+/* N67: visible weather switch at the top of customer settings. */
+#preferences .weatherSettings{margin:16px 0 24px;padding:20px;border-radius:28px;background:rgba(255,255,255,.5);box-shadow:0 4px 14px rgba(40,65,58,.06)}
+.weatherSettings .weatherToggleRow{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:0;cursor:pointer;text-align:left}
+.weatherToggleCopy{display:flex;flex-direction:column;gap:6px;min-width:0}
+.weatherToggleCopy strong{font-size:19px;color:var(--ink,#283e3a);line-height:1.4}
+.weatherToggleCopy small{font-size:13px;line-height:1.6;color:#596961}
+.weatherToggleControl{display:flex;flex:0 0 60px;flex-direction:column;align-items:center;gap:5px;font-size:12px;color:#596961}
+.weatherSettings input[data-weather-enabled]{appearance:none;-webkit-appearance:none;display:block;position:relative;width:54px;height:32px;min-height:32px;padding:0;margin:0;border:1px solid #85918b;border-radius:999px;background:#d7dcd8;box-shadow:none;cursor:pointer;transition:background .15s}
+.weatherSettings input[data-weather-enabled]::after{content:"";position:absolute;left:3px;top:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 1px 4px #0002;transition:transform .15s}
+.weatherSettings input[data-weather-enabled]:checked{background:#547b6e;border-color:#547b6e}
+.weatherSettings input[data-weather-enabled]:checked::after{transform:translateX(22px)}
+.weatherSettings input[data-weather-enabled]:focus-visible{outline:2px solid #547b6e;outline-offset:4px}
+.weatherLocationDetails{margin-top:16px;border-top:1px solid #5f776425;padding-top:12px}
+.weatherLocationDetails summary{min-height:32px;color:#425c52}
+.weatherSettings [data-weather-saved]:empty{display:none}
+.weatherSettings [data-weather-saved]{font-size:13px;line-height:1.6;margin:10px 0 0}
+@media(prefers-reduced-motion:reduce){.weatherSettings input[data-weather-enabled],.weatherSettings input[data-weather-enabled]::after{transition:none}}
