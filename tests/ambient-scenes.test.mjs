@@ -19,3 +19,7 @@ let removed=false,callback,unbound=false,captions=0;const node=()=>({dataset:{},
 globalThis.document={hidden:false,documentElement:{dataset:{}},createElement:node,addEventListener:(n,f)=>callback=f,removeEventListener:()=>unbound=true};globalThis.matchMedia=()=>({matches:false});
 const cleanup=mountAmbient({append(){}},{effect:'rain',text:'新北 28°C',duration:12});document.hidden=true;callback();assert.ok(removed&&unbound);cleanup();assert.equal(captions,0);
 console.log('PASS N41: 12 skins, 28 scenes, UTC+8 solar dates, weather mapping/cache/offline, lifecycle cleanup');
+
+assert.equal(normalizeTheme({effectLoop:true}).effectLoop,true);
+assert.equal(normalizeTheme({effectLoop:'true'}).effectLoop,false);
+assert.equal(normalizeTheme({backgroundMode:'solar',randomBackground:true}).randomBackground,false,'solar must not be overridden by a saved random flag');

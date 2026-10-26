@@ -1,4 +1,4 @@
-import {scenes, cities, resolveScene, mountAmbient, sceneArtwork, randomScene} from './ambient-scenes.js?v=N65';
+import {scenes, cities, resolveScene, mountAmbient, sceneArtwork, randomScene} from './ambient-scenes.js?v=N66';
 import {icon,mountPhotoPicker} from './salon-ui.js?v=C27';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const image=v=>typeof v==='string'&&v.startsWith('data:image/')?v:'';

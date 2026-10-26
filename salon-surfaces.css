@@ -310,3 +310,9 @@ body.customerApp #inbox .homeWeather + #enterChat{margin-top:12px!important}
 html[data-reading-motion="reduced"] .weatherArt svg,html[data-reading-motion="off"] .weatherArt svg,html[data-reading-motion="reduced"] .weatherArt i,html[data-reading-motion="off"] .weatherArt i{animation:none!important}
 body .profileScene .sceneIdentity,body .profileScene.isEditing .sceneIdentity{top:clamp(120px,44%,460px);bottom:auto}
 body .profileScene .sceneStatus{max-height:4.8em;overflow:auto}
+
+.ambientScene[data-loop="true"]{animation:none!important;opacity:1}
+body dialog.effectPreviewDialog{width:calc(100% - 28px);max-width:520px;height:min(74dvh,620px);padding:16px;border:1px solid white;border-radius:26px;background:#eef4f0;overflow:hidden;color:#304a43}
+.effectPreviewDialog header{display:flex;align-items:center;justify-content:space-between;gap:10px}.effectPreviewDialog header button{background:transparent!important;border:0!important;box-shadow:none!important;min-height:44px}.effectPreviewStatus{font-size:12px;line-height:1.6}
+.effectPreviewStage{position:relative;isolation:isolate;overflow:hidden;border-radius:20px;height:calc(100% - 105px);min-height:180px;padding:24px 16px;background:var(--salon-bg,#e7efeb)}
+.effectPreviewStage>.ambientScene{position:absolute!important;inset:0;z-index:2}.effectPreviewStage>p{position:relative;z-index:3;padding:12px;border-radius:18px;background:#fff9;font-size:14px;margin:24px 0}.effectPreviewStage>p:nth-child(2){margin-left:24px;background:#d8e8e599}

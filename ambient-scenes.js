@@ -45,14 +45,14 @@ export function forecastDays(rows,now=Date.now()){
 }
 export function randomScene(key='default',rng=Math.random){const choices=Object.keys(scenes),last=read('salon-scene-last-'+key),pool=choices.filter(x=>x!==last);const effect=pool[Math.min(pool.length-1,Math.floor(rng()*pool.length))];save('salon-scene-last-'+key,effect);return effect;}
 export async function resolveScene(mode,effect,city){if(mode==='random')return {effect:randomScene(city||'default'),text:''};if(mode==='weather'){try{return await dailyWeather(city)}catch{return {effect:'none',text:'天氣暫時無法更新'}}}if(mode==='solar'){const t=currentTerm();return t?{effect:t.effect,text:`${t.name} · 二十四節氣意象（非即時天氣）`}:{effect:'none',text:'節氣日期待更新'}}return {effect,text:''};}
-export function mountAmbient(target,{effect,text='',direction='left',duration=12}={}){
- const layer=document.createElement('div');layer.className='ambientScene';layer.dataset.effect=effect;layer.dataset.direction=direction;layer.style.setProperty('--ambient-time',Math.max(5,Math.min(20,duration))+'s');
+export function mountAmbient(target,{effect,text='',direction='left',duration=12,loop=false}={}){
+ const layer=document.createElement('div');layer.className='ambientScene';layer.dataset.effect=effect;layer.dataset.loop=String(loop);layer.dataset.direction=direction;layer.style.setProperty('--ambient-time',Math.max(5,Math.min(20,duration))+'s');
  // Ambient scenes are visual only: no city, temperature or status captions.
  layer.setAttribute('aria-hidden','true');
  const entry=scenes[effect],reduced=matchMedia('(prefers-reduced-motion: reduce)').matches||document.documentElement.dataset.readingMotion==='off'||document.documentElement.dataset.readingMotion==='reduced';
  let stop=()=>{};
  if(entry&&!reduced){layer.dataset.motion='art';const canvas=document.createElement('canvas');canvas.className='atmosphereCanvas';layer.append(canvas);target.append(layer);stop=startAtmosphere(canvas,effect,{direction});}else target.append(layer);
- const remove=()=>{clearTimeout(timer);stop();layer.remove();document.removeEventListener('visibilitychange',hidden)};const hidden=()=>{if(document.hidden)remove()};const timer=setTimeout(remove,Math.max(5,Math.min(20,duration))*1000);document.addEventListener('visibilitychange',hidden);return remove;
+ const remove=()=>{clearTimeout(timer);stop();layer.remove();document.removeEventListener('visibilitychange',hidden)};const hidden=()=>{if(document.hidden)remove()};const timer=loop?null:setTimeout(remove,Math.max(5,Math.min(20,duration))*1000);document.addEventListener('visibilitychange',hidden);return remove;
 }
 
 const cloud='<path d="M23 58c-15 0-16-22-1-24 1-19 28-24 37-7 16-6 30 6 27 20 14 12 4 24-10 24H27" fill="#eaf3f4" fill-opacity=".45"/><path d="M23 58h52c17 0 18-24 1-25-5-19-33-17-37 1-18-7-30 17-16 24Z"/>';

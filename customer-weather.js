@@ -1,4 +1,4 @@
-import {cities,dailyWeather,sceneArtwork} from './ambient-scenes.js?v=N65';
+import {cities,dailyWeather,sceneArtwork} from './ambient-scenes.js?v=N66';
 const key='salon-customer-weather';
 export function weatherPreferences(){try{const p=JSON.parse(localStorage.getItem(key)||'{}');return {enabled:p.enabled===true,city:cities[p.city]?p.city:'yingge',mode:p.mode==='device'?'device':'city'};}catch{return {enabled:false,city:'yingge',mode:'city'}}}
 function locate(){return new Promise((resolve,reject)=>{if(!navigator.geolocation)return reject(Error('此裝置不支援定位，請改用手動選地區。'));navigator.geolocation.getCurrentPosition(p=>resolve({lat:p.coords.latitude,lon:p.coords.longitude}),()=>reject(Error('無法取得位置，請確認定位權限，或改用手動選地區。')),{enableHighAccuracy:false,timeout:8000,maximumAge:300000});});}
