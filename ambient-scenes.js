@@ -9,13 +9,13 @@ const pending=new Map();
 function read(key){try{return JSON.parse(localStorage.getItem(key)||'null')}catch{return null}}
 function save(key,value){try{localStorage.setItem(key,JSON.stringify(value))}catch{}}
 export function weatherScene(symbol='',temp=25,wind=0){if(/snow|sleet/.test(symbol))return 'snow';if(/rain|showers|thunder/.test(symbol))return 'rain';if(wind>=7||temp<18)return 'wind';if(/fog/.test(symbol))return 'mist';if(/night/.test(symbol))return 'moon';if(/partlycloudy|fair/.test(symbol))return 'suncloud';if(/cloud/.test(symbol))return 'clouds';return 'sun';}
-export async function dailyWeather(city='yingge'){
- if(!cities[city])city='yingge';const key='salon-weather-v2-'+city,cached=read(key),now=Date.now();
+export async function dailyWeather(city='yingge',position=null){
+ if(!cities[city])city='yingge';const located=position&&Number.isFinite(position.lat)&&Number.isFinite(position.lon)&&Math.abs(position.lat)<=90&&Math.abs(position.lon)<=180;const place=located?['本機位置',Number(position.lat.toFixed(2)),Number(position.lon.toFixed(2))]:cities[city];const requestKey=located?place[1]+','+place[2]:city;const key='salon-weather-v3-'+requestKey,cached=read(key),now=Date.now();
  if(cached?.until>now)return cached.result;
- if(pending.has(city))return pending.get(city);
+ if(pending.has(requestKey))return pending.get(requestKey);
  const job=(async()=>{const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),6000);
  try{
- const [name,lat,lon]=cities[city];
+ const [name,lat,lon]=place;
  const response=await fetch(`https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=${lat}&lon=${lon}`,{signal:ctrl.signal,credentials:'omit'});
  if(!response.ok)throw Error('天氣暫時無法更新');const data=await response.json();
  const rows=data?.properties?.timeseries||[];const current=rows.reduce((best,r)=>Math.abs(Date.parse(r.time)-now)<Math.abs(Date.parse(best.time)-now)?r:best,rows[0]);
@@ -28,9 +28,9 @@ export async function dailyWeather(city='yingge'){
  const comparison=delta===null?'昨日同時段資料尚未累積':Math.abs(delta)<0.5?'與昨日同時段預估相近':`比昨日同時段預估${delta>0?'暖':'冷'} ${Math.abs(delta)}°C`;
  old[hour]=temp;for(const k of Object.keys(old))if(k.slice(0,10)<previousDay)delete old[k];save(key+'-history',old);
  const days=forecastDays(rows,now);
- const result={days,effect:weatherScene(symbol,temp,info.wind_speed),text:`${name} · 預估 ${Math.round(temp)}°C · ${comparison} · ${new Date(current.time).toLocaleTimeString("zh-TW",{timeZone:"Asia/Taipei",hour:"2-digit",minute:"2-digit"})}`,updated:data.properties.meta.updated_at};
+ const result={days,current:{temperature:Math.round(temp),symbol,time:current.time},effect:weatherScene(symbol,temp,info.wind_speed),text:`${name} · 預估 ${Math.round(temp)}°C · ${comparison} · ${new Date(current.time).toLocaleTimeString("zh-TW",{timeZone:"Asia/Taipei",hour:"2-digit",minute:"2-digit"})}`,updated:data.properties.meta.updated_at};
  const expires=Date.parse(response.headers.get('Expires'));save(key,{until:Math.max(now+3600000,Number.isFinite(expires)?expires:0),result});return result;
- }catch(e){save(key,{until:now+300000,result:{effect:'none',text:'天氣暫時無法更新，稍後再試'}});throw e}finally{clearTimeout(timer)}})();pending.set(city,job);try{return await job}finally{pending.delete(city)}
+ }catch(e){save(key,{until:now+300000,result:{effect:'none',text:'天氣暫時無法更新，稍後再試'}});throw e}finally{clearTimeout(timer)}})();pending.set(requestKey,job);try{return await job}finally{pending.delete(requestKey)}
 }
 export function forecastDays(rows,now=Date.now()){
  const today=localDate(new Date(now));

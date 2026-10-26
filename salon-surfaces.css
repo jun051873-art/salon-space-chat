@@ -286,3 +286,27 @@ body.customerApp #profileEntry .profileEntryCopy>small{font-size:10px!important;
 .weatherDays{display:flex;gap:8px;overflow-x:auto;margin:16px 0;padding-bottom:8px;max-width:100%}
 .weatherDay{flex:0 0 92px;display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px 6px;background:rgba(255,255,255,.45);border-radius:16px;text-align:center;font-size:12px}
 .weatherDay>span{font-size:24px}.weatherDay strong{font-size:15px}.homeWeather .small{line-height:1.7;margin-bottom:0}
+
+/* Keep the portrait anchored while sheets, editing and save feedback change. */
+body .profileScene .sceneIdentity,body .profileScene.isEditing .sceneIdentity{bottom:max(150px,18%);transform:none!important;transition:none!important}
+body .profileScene.hasSheet .sceneIdentity{transform:none!important;opacity:1}
+body .profileScene .sceneBackdrop{transition:none!important}
+body .profileScene .sceneFeedback{background:transparent!important;border:0!important;box-shadow:none!important;border-radius:0!important;bottom:92px;left:20px;right:20px;padding:4px;color:white;text-shadow:0 1px 4px #000;pointer-events:none}
+body .profileScene.hasSheet .sceneFeedback{bottom:auto;top:90px}
+body dialog.profileSceneDialog{animation:portraitFade .18s ease-out!important}
+body dialog.profileSceneDialog.sceneLeaving{animation:portraitFadeOut .18s ease-in!important}
+@keyframes portraitFade{from{opacity:0}to{opacity:1}}@keyframes portraitFadeOut{to{opacity:0}}
+body.customerApp .homeWeather{margin:14px 0 18px;padding:14px 16px;border-radius:24px;background:linear-gradient(125deg,#fff9,#e3f0ef9e);overflow:hidden;contain:layout;box-shadow:0 5px 20px #354e4b09}
+.weatherNow{display:flex;align-items:center;gap:18px;min-height:86px}.weatherNowCopy{display:flex;flex-direction:column;gap:3px}.weatherNowCopy small{font-size:12px;color:#617370}.weatherNowCopy strong{font-size:28px;line-height:1.2;color:#2c4543}.weatherNowCopy>span{font-size:13px;color:#4c6763}
+.weatherArt{position:relative;flex:0 0 64px;width:64px;height:64px;color:#6c949c}.weatherArt>svg{width:56px;height:56px;animation:weatherDrift 5s ease-in-out infinite}.weatherArt i{position:absolute;left:18px;top:34px;width:2px;height:9px;border-radius:2px;background:#759da9;animation:weatherRain 1.3s linear infinite}.weatherArt i:nth-of-type(2){left:31px;animation-delay:-.8s}.weatherArt i:nth-of-type(3){left:44px;animation-delay:-.4s}
+body.customerApp .homeWeather .weatherDays{margin:8px 0 0;gap:6px;scroll-snap-type:x proximity;overscroll-behavior-x:contain}
+body.customerApp .homeWeather .weatherDay{flex:0 0 76px;min-width:0;min-height:110px;padding:10px 4px!important;border:1px solid transparent!important;box-shadow:none!important;background:#ffffff45!important;color:#34514e!important;border-radius:16px;gap:5px;scroll-snap-align:start;cursor:pointer}
+body.customerApp .homeWeather .weatherDay[aria-pressed=true]{background:#ffffffbb!important;border-color:#829d9a66!important}.weatherDay b{font-size:10px;white-space:nowrap}.weatherDay>span{width:24px;height:24px}.weatherDay svg{width:24px;height:24px}.weatherDay small{font-size:11px}.weatherDay strong{font-size:13px}.weatherSource{font-size:10px;line-height:1.6;color:#687b78;margin-top:6px}.weatherSource summary{font-size:10px!important;font-weight:400!important}.weatherMessage{font-size:12px;line-height:1.6}.weatherMessage:empty{display:none}.weatherRetry{font-size:12px;padding:6px 10px}
+@keyframes weatherDrift{50%{transform:translateY(-3px)}}@keyframes weatherRain{from{transform:translateY(0);opacity:0}25%{opacity:.7}to{transform:translateY(14px);opacity:0}}
+@media(prefers-reduced-motion:reduce){.weatherArt svg,.weatherArt i{animation:none!important}}
+body[data-reading-motion="reduced"] .weatherArt svg,body[data-reading-motion="off"] .weatherArt svg{animation:none!important}
+body.customerApp #inbox .homeWeather{max-width:620px;margin:18px auto 12px}
+body.customerApp #inbox .homeWeather + #enterChat{margin-top:12px!important}
+html[data-reading-motion="reduced"] .weatherArt svg,html[data-reading-motion="off"] .weatherArt svg,html[data-reading-motion="reduced"] .weatherArt i,html[data-reading-motion="off"] .weatherArt i{animation:none!important}
+body .profileScene .sceneIdentity,body .profileScene.isEditing .sceneIdentity{top:clamp(120px,44%,460px);bottom:auto}
+body .profileScene .sceneStatus{max-height:4.8em;overflow:auto}
