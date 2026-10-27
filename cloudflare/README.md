@@ -1,3 +1,57 @@
+# 目前部署版本：13-appointment-and-visit-care（N72）
+
+只部署本資料夾的 **worker-suite.js**，整份取代 Cloudflare 現有
+`salon-space-notify` 的程式碼。不要使用舊 worker.js；不要新增另一個 Worker。
+保留既有 secrets、bindings 與網址。這次不需要更改 Firebase 規則。
+網站前端 N72 必須同步發布（已在同一個 GitHub 更新）。
+
+## 一次完成部署
+
+1. Cloudflare → Workers & Pages → salon-space-notify → Edit code。
+2. 全選原程式碼，貼上 worker-suite.js 的完整內容 → Deploy。
+3. Settings → Triggers → Cron Triggers：將原本的排程**改成** `* * * * *`。
+   只留一個每分鐘排程，不要同時保留原本 `0 2-12 * * *` 或每日排程。
+4. 服務網址顯示 `13-appointment-and-visit-care`，並有
+   `features.appointmentReminders: true`、`features.personalVisitCare: true`。
+5. 排程變更可能需要最多 15 分鐘傳播。等第一次排程成功後，刷新店家頁面。
+6. 主頁 → 自動提醒 → 預約前提醒：勾「啟用」、選提前分鐘數、儲存範本。
+7. 訊息 → 客人 ⋯ → 預約提醒：登記日期時間 → 儲存並啟用提醒。
+   舊草稿不會自動發送，必須重新儲存。每位客人目前支援一筆待提醒預約。
+8. 到店後關心仍在「訊息 → 客人 ⋯ → 到店與關心」，手動記錄實際到店，
+   選擇 7 天、30 天或兩者。預約時間不會當作到店日期。
+
+## 排程與取消
+
+- 預約提醒每分鐘讀取已到期的佇列，每輪最多處理 2 筆提醒與 2 筆推播，
+  不每分鐘掃描所有客人。一般等待下一分鐘；大量同時到期會排隊。
+- 到店／生日／未來訊關心維持台灣每天 10:00–20:00 整點檢查。
+- 使用台灣時區計算。提醒時間已過不能新建；排程延遲超過 5 分鐘、
+  或預約時間已到則不補發過時提醒，狀態顯示已錯過。
+- 改期與取消使用版本檢查；發送前再次讀取客人、設定和預約，並原子寫入
+  訊息與已發送狀態。同一 revision 不重複建立訊息。
+- 關閉總開關時到期的預約會標為暫停，不會在重新開啟時自行補發。
+- 已送進聊天室的訊息不因取消而撤回。背景推播最多嘗試 3 次，
+  使用相同 notification tag；FCM 成功代表接受推播，不保證手機顯示。
+  網路回應遺失時，推播仍可能重送，但聊天室訊息不會重複建立。
+- 新預約排程存在 broadcasts/appointment_{uid}（僅店家可寫）。
+  使用同欄位範圍查詢，無需新增複合索引；保留預設單欄位索引。
+- readiness：後端功能旗標＋最近 10 分鐘成功的 appointment heartbeat，
+  且 cron 必須為 `* * * * *`。未就緒時只能儲存草稿。
+
+## 驗證
+
+npm test 包含到店關心與新預約提醒的模擬測試：取消競爭、重複排程、
+改期、過期、封鎖／合併／退出關懷、寫入失敗、推播重試與收件人隔離。
+瀏覽器測試涵蓋 320/390/768 寬度、啟用門檻、草稿與排程、修改和取消。
+這些不能取代正式 Cloudflare 排程與手機端通知測試。
+
+部署後以自己的測試客人，設定提前 1 分鐘、預約至少 3 分鐘之後，
+確認只收到一則；另建一筆後取消並確認不發送。測試完將提前時間改回
+30 或 60 分鐘。不要拿真實客人做測試。
+
+---
+以下保留舊版紀錄，部署請以本頁最上方 N72 步驟為準。
+
 # salon-space-notify v4
 
 Replace the source of the existing `salon-space-notify` Cloudflare Worker with `worker.js`, then deploy. Keep its existing workers.dev address and its three existing secrets unchanged:

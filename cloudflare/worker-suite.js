@@ -11,7 +11,7 @@ export default {
  async fetch(request, env, ctx) {
   const cors = {"Access-Control-Allow-Origin":SITE,"Access-Control-Allow-Methods":"GET, POST, OPTIONS","Access-Control-Allow-Headers":"Content-Type, Authorization","Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store","Vary":"Origin"};
   if(request.method === "OPTIONS") return new Response(null,{status:204,headers:cors});
-  if(request.method === "GET") return json({ok:true,service:"salon-space-notify",version:"12-personal-visit-care",authenticated:true,features:{newCustomerNotifications:true,timeReplies:true,keywordReplies:true,keywordContains:true,scheduledCare:true,visitCare:true,personalVisitCare:true}},200,cors);
+  if(request.method === "GET") return json({ok:true,service:"salon-space-notify",version:"13-appointment-and-visit-care",authenticated:true,features:{newCustomerNotifications:true,timeReplies:true,keywordReplies:true,keywordContains:true,scheduledCare:true,visitCare:true,personalVisitCare:true,appointmentReminders:true}},200,cors);
   if(request.method !== "POST") return json({ok:false,error:"METHOD_NOT_ALLOWED"},405,cors);
   try {
    if(request.headers.get("Origin") && request.headers.get("Origin") !== SITE) throw fault("ORIGIN_NOT_ALLOWED",403);
@@ -71,7 +71,7 @@ export default {
    return json({ok:false,error:e.code||"INTERNAL_ERROR"},e.status||500,cors);
   }
  },
- async scheduled(controller,env,ctx){ctx.waitUntil(runCare(env));}
+ async scheduled(controller,env,ctx){ctx.waitUntil(runScheduledReminders(env,controller));}
 };
 function fault(code,status=502){const e=new Error(code);e.code=code;e.status=status;return e;}
 async function readJSON(url,options={},stage="UPSTREAM"){
@@ -120,7 +120,7 @@ async function googleToken(env){
 function base64Url(bytes){return btoa(Array.from(bytes,b=>String.fromCharCode(b)).join("")).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");}
 function json(data,status,headers){return new Response(JSON.stringify(data),{status,headers});}
 
-// Deploy this file only with the documented once-daily Cron Trigger.
+// Deploy with ONE every-minute Cron: * * * * *. Visit care is throttled to hourly daytime runs.
 let salonConfigCache=null;
 function unpack(v){if(v==null)return null;if('stringValue'in v)return v.stringValue;if('integerValue'in v)return Number(v.integerValue);if('doubleValue'in v)return v.doubleValue;if('booleanValue'in v)return v.booleanValue;if('timestampValue'in v)return v.timestampValue;if(v.arrayValue)return(v.arrayValue.values||[]).map(unpack);if(v.mapValue)return Object.fromEntries(Object.entries(v.mapValue.fields||{}).map(([k,x])=>[k,unpack(x)]));return null;}
 function fieldsOf(d){return Object.fromEntries(Object.entries(d.fields||{}).map(([k,v])=>[k,unpack(v)]));}
@@ -224,4 +224,66 @@ async function notifyNewCustomer(env,uid){
   await readJSON(root+path,{method:'PATCH',headers,body:JSON.stringify({fields:{status:{stringValue:'sent'},leaseUntil:{integerValue:'0'}}})},'JOIN_RESULT');
   return {ok:true,success,devices:tokens.length,acceptedBy:'FCM'};
  }catch(e){try{await readJSON(root+path,{method:'PATCH',headers,body:JSON.stringify({fields:{status:{stringValue:'retry'},leaseUntil:{integerValue:'0'}}})},'JOIN_RETRY');}catch{}throw e;}
+}
+
+// v13 appointments. Firestore queue, not an open browser timer. Drafts never send.
+function packValue(v){if(v===null||v===undefined)return {nullValue:null};if(typeof v==='boolean')return {booleanValue:v};if(typeof v==='number')return {integerValue:String(v)};if(typeof v==='string')return {stringValue:v};if(Array.isArray(v))return {arrayValue:{values:v.map(packValue)}};return {mapValue:{fields:Object.fromEntries(Object.entries(v).map(([k,x])=>[k,packValue(x)]))}};}
+const packFields=x=>Object.fromEntries(Object.entries(x).map(([k,v])=>[k,packValue(v)]));
+async function appointmentDoc(root,path,token){try{return await readJSON(root+path,{headers:{Authorization:'Bearer '+token}},'APPOINTMENT_READ');}catch(e){if(e.status===404)return null;throw e;}}
+async function appointmentPatch(root,path,token,data,version){return readJSON(root+path+'?'+Object.keys(data).map(k=>'updateMask.fieldPaths='+encodeURIComponent(k)).join('&')+(version?'&currentDocument.updateTime='+encodeURIComponent(version):''),{method:'PATCH',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({fields:packFields(data)})},'APPOINTMENT_UPDATE');}
+async function dueAppointments(root,token,field,now,limit=4){const data=await readJSON(root.slice(0,-1)+':runQuery',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({structuredQuery:{from:[{collectionId:'broadcasts'}],where:{compositeFilter:{op:'AND',filters:[{fieldFilter:{field:{fieldPath:field},op:'GREATER_THAN',value:{integerValue:'0'}}},{fieldFilter:{field:{fieldPath:field},op:'LESS_THAN_OR_EQUAL',value:{integerValue:String(now)}}}]}},orderBy:[{field:{fieldPath:field},direction:'ASCENDING'}],limit}})},'APPOINTMENT_QUERY');return data.filter(x=>x.document).map(x=>x.document);}
+function appointmentDue(job,user,config,now){
+ if(job.type!=='appointmentReminder'||job.status!=='queued')return 'skip';
+ if(!/^[A-Za-z0-9_-]{1,128}$/.test(job.userId||'')||!/^[A-Za-z0-9_-]{1,80}$/.test(job.revision||'')||!Number.isFinite(job.remindAt)||!Number.isFinite(job.appointmentAt)||job.remindAt>=job.appointmentAt||typeof job.text!=='string'||!job.text.trim())return 'invalid';
+ if(job.remindAt>now)return 'future';
+ if(now>=job.appointmentAt||now-job.remindAt>5*60000)return 'expired';
+ if(config.appointmentReminder?.enabled!==true)return 'paused';
+ if(!user||user.id===ADMIN_UID||user.role==='admin'||user.adminDeleted||user.adminMergedInto||(user.status||'active')!=='active'||user.marketingOptIn===false)return 'excluded';
+ return 'send';
+}
+function appointmentCopy(job,user){const parts=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date(job.appointmentAt)).map(p=>[p.type,p.value]));return job.text.replaceAll('{姓名}',user.name||'您好').replaceAll('{預約日期}',parts.year+'/'+parts.month+'/'+parts.day).replaceAll('{預約時間}',parts.hour+':'+parts.minute).slice(0,4000);}
+async function processAppointment(env,root,token,queueDoc,now=Date.now()){
+ const path=queueDoc.name.split('/documents/')[1],fresh=await appointmentDoc(root,path,token);if(!fresh)return false;
+ const job=fieldsOf(fresh);if(job.type!=='appointmentReminder'||job.status!=='queued')return false;
+ if(!/^[A-Za-z0-9_-]{1,128}$/.test(job.userId||'')){await appointmentPatch(root,path,token,{status:'invalid',appointmentDueAt:null},fresh.updateTime);return false;}
+ const [userDoc,configDoc]=await Promise.all([appointmentDoc(root,'users/'+job.userId,token),appointmentDoc(root,'announcements/settings',token)]),user=userDoc?{...fieldsOf(userDoc),id:job.userId}:null,config=fieldsOf(configDoc||{}),decision=appointmentDue(job,user,config,now);
+ if(decision==='skip'||decision==='future')return false;
+ const base='projects/'+env.FIREBASE_PROJECT_ID+'/databases/(default)/documents/',headers={Authorization:'Bearer '+token,'Content-Type':'application/json'};
+ // REST v1 has no verify operation. Compare-and-set unchanged fields to guard both snapshots atomically.
+ const guard=(document,path,field)=>({update:{name:base+path,fields:document.fields?.[field]?{[field]:document.fields[field]}:{}},updateMask:{fieldPaths:[field]},currentDocument:{updateTime:document.updateTime}});
+ const verify=[...(userDoc?[guard(userDoc,'users/'+job.userId,'status')]:[]),...(configDoc?[guard(configDoc,'announcements/settings','appointmentReminder')]:[])];
+ const id='appointment_'+job.userId+'_'+job.revision,text=decision==='send'?appointmentCopy(job,user):'',next={...job,status:decision==='send'?'sent':decision,appointmentDueAt:null,appointmentPushDueAt:decision==='send'?now:null,deliveredTokens:[],pushAttempts:0,...(decision==='send'?{messageId:id,messageText:text,sentAt:now}: {})};
+ const writes=[...verify,{update:{name:base+path,fields:packFields(next)},currentDocument:{updateTime:fresh.updateTime}},{update:{name:base+'chats/'+job.userId,fields:packFields({appointmentReminderDraft:next,...(decision==='send'?{lastMessage:text}:{})})},updateMask:{fieldPaths:decision==='send'?['appointmentReminderDraft','lastMessage']:['appointmentReminderDraft']},...(decision==='send'?{updateTransforms:[{fieldPath:'updatedAt',setToServerValue:'REQUEST_TIME'},{fieldPath:'lastAdminMessageAt',setToServerValue:'REQUEST_TIME'}]}:{})}];
+ if(decision==='send')writes.push({update:{name:base+'chats/'+job.userId+'/messages/'+id,fields:packFields({text,senderId:ADMIN_UID,senderRole:'admin',clientMessageId:id,automatic:true})},currentDocument:{exists:false},updateTransforms:[{fieldPath:'createdAt',setToServerValue:'REQUEST_TIME'}]});
+ try{await readJSON(root.slice(0,-1)+':commit',{method:'POST',headers,body:JSON.stringify({writes})},'APPOINTMENT_COMMIT');return decision==='send';}catch(e){if(/ALREADY_EXISTS|FAILED_PRECONDITION|ABORTED/.test(e.code||''))return false;throw e;}
+}
+async function pushAppointment(env,root,token,queueDoc,now=Date.now()){
+ const path=queueDoc.name.split('/documents/')[1],fresh=await appointmentDoc(root,path,token);if(!fresh)return;
+ const job=fieldsOf(fresh);if(job.type!=='appointmentReminder'||job.status!=='sent'||!job.appointmentPushDueAt||job.appointmentPushDueAt>now)return;
+ if(now>=job.appointmentAt||Number(job.pushAttempts)>=3){await appointmentPatch(root,path,token,{appointmentPushDueAt:null,pushStatus:'expired'},fresh.updateTime);return;}
+ let lease;try{lease=await appointmentPatch(root,path,token,{appointmentPushDueAt:now+120000,pushAttempts:Number(job.pushAttempts||0)+1},fresh.updateTime);}catch(e){if(/FAILED_PRECONDITION|ABORTED/.test(e.code||''))return;throw e;}
+ const delivered=new Set(job.deliveredTokens||[]);let pending=true;
+ try{
+  const userDoc=await appointmentDoc(root,'users/'+job.userId,token),user=userDoc?fieldsOf(userDoc):null;
+  if(!user||user.adminDeleted||user.adminMergedInto||(user.status||'active')!=='active'||user.marketingOptIn===false){await appointmentPatch(root,path,token,{appointmentPushDueAt:null,pushStatus:'excluded'},lease.updateTime);return;}
+  const customerTokens=await recipientTokens(root,job.userId,token),ownerTokens=new Set(await recipientTokens(root,ADMIN_UID,token)),tokens=customerTokens.filter(t=>!ownerTokens.has(t)),config=await salonConfig(root,token);
+  const ttl=Math.max(1,Math.min(3600,Math.floor((job.appointmentAt-now)/1000)));
+  for(const device of tokens.filter(t=>!delivered.has(t)).slice(0,5)){try{await readJSON('https://fcm.googleapis.com/v1/projects/'+env.FIREBASE_PROJECT_ID+'/messages:send',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({message:{token:device,data:{title:(user.name||'客人')+'｜'+(config.name||'專屬空間'),body:job.messageText.slice(0,500),messageId:job.messageId,automatic:'true',recipientRole:'customer',tag:'salon-'+job.userId+'-'+job.messageId,url:SITE+'/salon-space-chat/customer.html'},webpush:{headers:{Urgency:'high',TTL:String(ttl)}}}})},'APPOINTMENT_PUSH');delivered.add(device);}catch(e){console.error('appointment-push',e.code);}}
+  pending=!tokens.length||tokens.some(t=>!delivered.has(t));
+ }catch(e){console.error('appointment-push-read',e.code||e.message);}
+ const exhausted=Number(job.pushAttempts||0)+1>=3;
+ await appointmentPatch(root,path,token,{deliveredTokens:[...delivered],appointmentPushDueAt:pending&&!exhausted?now+60000:null,pushStatus:pending?exhausted?'failed':'retry':'accepted'},lease.updateTime);
+}
+async function runAppointments(env,cron=''){
+ const token=await googleToken(env),root='https://firestore.googleapis.com/v1/projects/'+env.FIREBASE_PROJECT_ID+'/databases/(default)/documents/',now=Date.now();let failed=0,sent=0;
+ for(const d of await dueAppointments(root,token,'appointmentDueAt',now,2)){try{if(await processAppointment(env,root,token,d,now))sent++;}catch(e){failed++;console.error('appointment-message',e.code||e.message);}}
+ for(const d of await dueAppointments(root,token,'appointmentPushDueAt',now,2)){try{await pushAppointment(env,root,token,d,now);}catch(e){failed++;console.error('appointment-notification',e.code||e.message);}}
+ await appointmentPatch(root,'broadcasts/_runtime',token,{lastAppointmentRun:new Date().toISOString(),appointmentCron:cron,appointmentSent:sent,appointmentFailed:failed});
+}
+async function runScheduledReminders(env,controller){
+ // One every-minute schedule. Keep day-based care at 10:00–20:00 Taiwan, hourly.
+ const time=new Date(controller?.scheduledTime||Date.now()),hour=(time.getUTCHours()+8)%24;
+ const jobs=[runAppointments(env,controller?.cron||'')];
+ if(time.getUTCMinutes()===0&&hour>=10&&hour<=20)jobs.push(runCare(env));
+ const results=await Promise.allSettled(jobs);for(const r of results)if(r.status==='rejected')throw r.reason;
 }
