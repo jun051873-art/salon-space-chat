@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import {appointmentPlan,reminderSettings,appointmentLabel} from '../appointment-reminder.js';
+const now=Date.parse('2026-01-01T00:00:00+08:00');
+let plan=appointmentPlan('2026-01-30','13:00',30,now);
+assert.equal(new Date(plan.remindAt).toISOString(),'2026-01-30T04:30:00.000Z');
+plan=appointmentPlan('2026-01-30','13:00',60,now);
+assert.equal(new Date(plan.remindAt).toISOString(),'2026-01-30T04:00:00.000Z');
+assert.equal(new Date(appointmentPlan('2026-02-01','00:15',30,now).remindAt).toISOString(),'2026-01-31T15:45:00.000Z');
+assert.throws(()=>appointmentPlan('2026-02-30','13:00',30,now));
+assert.throws(()=>appointmentPlan('2026-01-30','24:00',30,now));
+assert.throws(()=>appointmentPlan('2025-01-30','13:00',30,now));
+assert.throws(()=>appointmentPlan('2026-01-30','13:00',0,now));
+assert.equal(reminderSettings().leadMinutes,30);
+assert.equal(appointmentLabel({...plan,status:'draft'}),'預約 1/30 13:00 · 草稿'.replace(' 1/',' 01/'));
+assert.equal(appointmentLabel(null),'');
+console.log('PASS appointment timing, Taiwan midnight/month boundaries, invalid/past dates and draft labels');
