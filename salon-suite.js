@@ -1,4 +1,4 @@
-import {mountAppointmentSettings,mountAppointmentReminder,appointmentLabel} from './appointment-reminder.js?v=N73';
+import {mountAppointmentSettings,mountAppointmentReminder,appointmentLabel} from './appointment-reminder.js?v=N74';
 import {mountVisitCare,visitInstant,visitDate,personalCareId} from './visit-care.js?v=N73';
 import {mountWeatherSettings,mountHomeWeather} from './customer-weather.js?v=N68';
 import{DEFAULT_NOTICE,noticeView}from'./notice-model.js?v=2';
