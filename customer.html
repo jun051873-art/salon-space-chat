@@ -64,7 +64,7 @@ setTimeout(()=>{
 <section id="featureDetail" class="card hidden" aria-label="本月主打"></section>
 <nav id="customerNav" class="bottomNav hidden" aria-label="主要導覽"><button class="navBtn active" data-customer-page="inbox"><span>◉</span>訊息</button><button class="navBtn" data-customer-page="booking"><span>▦</span>預約</button></nav>
 </div>
-<script type="module" src="./salon-layout.js?v=N52"></script><script type="module">import{releaseCoverAfter}from"./startup-cover.js?v=1";import{ensureNotificationWorker}from"./notification-worker.js?v=N6";import{mountNotificationHelp}from"./notification-help.js?v=N63";import{installSuite,messageHTML}from"./salon-suite.js?v=N72";import{pinChatBottom}from'./chat-bottom.js?v=1';import{reconcileMessages}from'./chat-render.js?v=1';let suite;let profileReady=false;let accountStatus="new";import{createDelivery}from"./chat-delivery.js?v=N36";import{createPagedFeed}from"./chat-feed.js?v=D4";const CHAT_ROLE="customer";
+<script type="module" src="./salon-layout.js?v=N52"></script><script type="module">import{releaseCoverAfter}from"./startup-cover.js?v=1";import{ensureNotificationWorker}from"./notification-worker.js?v=N6";import{mountNotificationHelp}from"./notification-help.js?v=N63";import{installSuite,messageHTML}from"./salon-suite.js?v=N76";import{pinChatBottom}from'./chat-bottom.js?v=1';import{reconcileMessages}from'./chat-render.js?v=1';let suite;let profileReady=false;let accountStatus="new",accessUnsub=null;import{createDelivery}from"./chat-delivery.js?v=N37";import{createPagedFeed}from"./chat-feed.js?v=D5";const CHAT_ROLE="customer";
 import{initializeApp}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
 import{getAuth,signInAnonymously,onAuthStateChanged,signOut,setPersistence,browserLocalPersistence}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 import{getFirestore,doc,getDoc,collection,query,orderBy,onSnapshot,limit,startAfter,getDocsFromServer}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
@@ -130,10 +130,10 @@ function renderChatView(reason="update"){
  const previousTop=v.el.scrollTop,previousHeight=v.el.scrollHeight;
  const followBottom=v.first||previousHeight-previousTop-v.el.clientHeight<100;
  v.stopBottom?.();
- const own=delivery.entries().filter(e=>e.room===v.room&&!(e.stage==='done'&&e.id.startsWith('b_')));
+ const own=delivery.entries().filter(e=>e.room===v.room&&!(e.stage==='done'&&e.id.startsWith('b_'))),ownById=new Map(own.map(e=>[e.id,e]));
  const ids=new Set(v.docs.map(d=>d.id));
- const rows=v.docs.map(d=>({id:d.id,...d.data(),pending:d.metadata.hasPendingWrites||own.some(e=>e.id===d.id&&e.stage==="queued")}));
- for(const e of own)if(!ids.has(e.id))rows.push({id:e.id,text:e.text,senderId:e.senderId,pending:e.stage==="queued",attachment:e.attachment,sticker:e.sticker});
+ const rows=v.docs.map(d=>{const e=ownById.get(d.id);return{id:d.id,...d.data(),pending:d.metadata.hasPendingWrites||e?.stage==="queued",pendingFailure:e?.stage==="queued"&&!!e.error};});
+ for(const e of own)if(!ids.has(e.id))rows.push({id:e.id,text:e.text,senderId:e.senderId,pending:e.stage==="queued",pendingFailure:e.stage==="queued"&&!!e.error,attachment:e.attachment,sticker:e.sticker});
  const moreHtml=v.more?'<button type="button" data-older '+(v.loading?'disabled':'')+' style="display:block;margin:8px auto;background:#eae4db;color:#292722;padding:9px 16px;font-size:13px">'+(v.loading?'載入中…':'查看較早訊息')+'</button>':'';
  reconcileMessages(v.el,rows,m=>messageHTML(m,v.viewer,v.peerRead||0,v.person||{}),moreHtml);
  const olderButton=v.el.querySelector('[data-older]');if(olderButton)olderButton.onclick=()=>v.feed.loadMore();
@@ -143,8 +143,11 @@ function renderChatView(reason="update"){
  if(reason!=="older"&&followBottom)pinChatBottom(v);
  if(v.docs.length)v.first=false;
  suite?.bindChat();
- const waiting=own.filter(e=>e.stage==="queued"),push=own.filter(e=>e.stage==="stored"||e.stage==="notify-error");
- $("chatWrite").textContent=waiting.length?waiting.length+" 則待傳，已保存在此裝置；重新開啟後會接續傳送。"+(waiting.find(e=>e.error)?.error?"\n原因："+waiting.find(e=>e.error).error:""):"";
+ const waiting=own.filter(e=>e.stage==="queued"),push=own.filter(e=>e.stage==="stored"||e.stage==="notify-error"),failedWrites=waiting.filter(e=>!!e.error);
+ const permissionIssue=failedWrites.some(e=>/Missing or insufficient permissions|PERMISSION_DENIED|permission-denied/i.test(e.error||''));
+ $("chatWrite").textContent=waiting.length?waiting.length+" 則待傳，已保存在此裝置。"+(permissionIssue?"\n帳號可能尚未核准或仍被封鎖；確認店家已核准／解鎖後，點訊息旁「↻ 重傳」。":failedWrites[0]?"\n原因："+failedWrites[0].error:""):"";
+ let retryAll=document.getElementById('retryPendingMessages');if(!retryAll){retryAll=document.createElement('button');retryAll.id='retryPendingMessages';retryAll.type='button';retryAll.className='retryPendingMessages';retryAll.textContent='↻ 重傳待傳訊息';retryAll.hidden=true;$('chatWrite').after(retryAll);}
+ retryAll.hidden=failedWrites.length===0;retryAll.onclick=()=>{const count=delivery.retryFailed(failedWrites.map(e=>e.id));if(!count)$('chatWrite').textContent='這些訊息已不在待傳佇列，請重新整理聊天室。';};
  const pushError=push.find(e=>e.error)?.error||"",pushCode=pushError.match(/"(?:error|code)":"([A-Z0-9_-]+)"/)?.[1]||(/逾時|TIMEOUT|AbortError/.test(pushError)?'TIMEOUT':pushError?'PUSH_FAILED':'');
  const pushExplanation=pushCode==='NO_DEVICE_TOKENS'?'對方尚未完成通知設定，請對方在使用的手機開啟通知。':/UNREGISTERED|NOT_FOUND/.test(pushCode)?'對方的通知登記已失效，請對方重新開啟通知。':pushCode==='TIMEOUT'?'通知服務回應逾時，系統會重試；訊息不會重複傳送。':pushCode?'通知未完成（'+pushCode+'），訊息已保留。':'正在確認對方手機通知…';
  $("pushStatus").textContent=push.length?'訊息已送出。'+pushExplanation:"";
@@ -240,8 +243,23 @@ async function notifyJoin(){
  const response=await fetch(url,{method:'POST',signal:controller.signal,headers:{'Content-Type':'application/json',Authorization:'Bearer '+await auth.currentUser.getIdToken()},body:JSON.stringify({action:'customer-joined',customerUid:auth.currentUser.uid})});const result=await response.json();joinNoticeSent=response.ok&&result.ok&&!result.inProgress;
  }catch{}finally{clearTimeout(timer);joinNoticeBusy=false;}
 }
-function applyAccess(data){if(data.status==='pending')void notifyJoin();accountStatus=data.status||'active';profileReady=accountStatus==='active';if(profileReady){showCustomerPage(location.hash==='#chat'?'chat':'inbox');delivery.resume();syncPush();suite?.authReady(auth.currentUser,data);}else{currentChatView?.feed.pause();suite?.stopReceipt();showCustomerPage('setup');$('customerNav').classList.add('hidden');$('setup').innerHTML='<h2>'+ (accountStatus==='pending'?'等待店家核准':'目前無法使用')+'</h2><p>'+(accountStatus==='pending'?'申請已送出，店家核准後請按下方按鈕。':'此帳號已停用，請直接聯絡店家。')+'</p><button id="checkApproval">重新確認狀態</button><button class="softBtn" data-install-guide>安裝與使用教學</button>';$('checkApproval').onclick=async()=>{const p=await getDoc(doc(db,'users',uid));if(p.exists())applyAccess(p.data());};}}
-onAuthStateChanged(auth,async user=>{if(started)return;started=true;try{if(user?.uid===ADMIN){show('setup');$('customerNav').classList.add('hidden');$('setup').innerHTML='<h2>這個瀏覽器已登入店家端</h2><p>為了保留店家登入，這裡不會切換成客人帳號，也不會建立新的顧客資料。</p><p>請讓客人用自己的手機開啟連結，先加入主畫面，再填寫資料。</p><a href="./admin.html" class="backLink" aria-label="返回店家端"><span aria-hidden="true">〈</span><span>返回</span></a>';return;}if(!auth.currentUser)await signInAnonymously(auth);uid=auth.currentUser.uid;const p=await getDoc(doc(db,'users',uid));if(p.exists())applyAccess(p.data());else showCustomerPage('setup');}catch(e){const sub=$('splash')?.querySelector('.sub');if(sub)sub.textContent='連線失敗，請重新整理';}});
+function applyAccess(data){
+ if(data.status==='pending')void notifyJoin();
+ const wasActive=profileReady;accountStatus=data.status||'active';profileReady=accountStatus==='active';
+ if(profileReady){
+  if(!wasActive){
+   showCustomerPage(location.hash==='#chat'?'chat':'inbox');
+   const queued=delivery.entries().filter(e=>e.senderId===uid&&e.stage==='queued'&&e.error).map(e=>e.id);
+   if(queued.length)delivery.retryFailed(queued);else delivery.resume();
+   syncPush();suite?.authReady(auth.currentUser,data);
+  }
+ }else{
+  currentChatView?.feed.pause();suite?.stopReceipt();showCustomerPage('setup');$('customerNav').classList.add('hidden');
+  $('setup').innerHTML='<h2>'+ (accountStatus==='pending'?'等待店家核准':'目前無法使用')+'</h2><p>'+(accountStatus==='pending'?'申請已送出，店家核准後會自動恢復訊息。':'此帳號已停用或封鎖，解除後會自動恢復。')+'</p><button id="checkApproval">重新確認狀態</button><button class="softBtn" data-install-guide>安裝與使用教學</button>';
+  $('checkApproval').onclick=async()=>{const p=await getDoc(doc(db,'users',uid));if(p.exists())applyAccess(p.data());};
+ }
+}
+onAuthStateChanged(auth,async user=>{if(started)return;started=true;try{if(user?.uid===ADMIN){show('setup');$('customerNav').classList.add('hidden');$('setup').innerHTML='<h2>這個瀏覽器已登入店家端</h2><p>為了保留店家登入，這裡不會切換成客人帳號，也不會建立新的顧客資料。</p><p>請讓客人用自己的手機開啟連結，先加入主畫面，再填寫資料。</p><a href="./admin.html" class="backLink" aria-label="返回店家端"><span aria-hidden="true">〈</span><span>返回</span></a>';return;}if(!auth.currentUser)await signInAnonymously(auth);uid=auth.currentUser.uid;const p=await getDoc(doc(db,'users',uid));if(p.exists())applyAccess(p.data());else showCustomerPage('setup');accessUnsub?.();accessUnsub=onSnapshot(doc(db,'users',uid),snap=>{if(!snap.exists())return;applyAccess(snap.data());},e=>console.warn('customer access status listener',e?.code||e?.message||e));}catch(e){const sub=$('splash')?.querySelector('.sub');if(sub)sub.textContent='連線失敗，請重新整理';}});
 $("enableNotify").onclick=async()=>{try{if(!uid)throw Error("客人身分尚未完成");if(!supportsPushAPIs()||Notification.permission==="denied"){notificationHelp.guide();return;}if(!("Notification"in window))throw Error("此裝置不支援通知");const p=Notification.permission==="granted"?"granted":await Notification.requestPermission();if(p!=="granted")throw Error("尚未允許通知");$("notifyStatus").textContent="正在設定通知…";if(!await syncPush())return;$("notifyStatus").textContent="✅ 訊息通知已開啟";$("notifyBox").classList.add("hidden")}catch(e){notificationHelp.update(false,"通知設定失敗："+e.message);$("notifyStatus").textContent="通知設定失敗："+e.message}};$("start").onclick=async()=>{try{const name=$("name").value.trim(),phone=$("phone").value.normalize("NFKC").trim(),birthMonth=Number($("birthMonth").value),birthDay=Number($("birthDay").value);if(!name||!phone)throw Error("請填寫稱呼與聯絡電話；生日可稍後補填");if((birthMonth||birthDay)&&(!Number.isInteger(birthMonth)||!Number.isInteger(birthDay)||birthMonth<1||birthMonth>12||birthDay<1||birthDay>new Date(2000,birthMonth,0).getDate()))throw Error("請確認生日月日");await delivery.api(":commit",{method:"POST",body:JSON.stringify({writes:[
  {update:{name:"projects/"+cfg.projectId+"/databases/(default)/documents/users/"+uid,fields:{name:{stringValue:name},phone:{stringValue:phone},birthMonth:{integerValue:String(birthMonth)},birthDay:{integerValue:String(birthDay)},role:{stringValue:"customer"},gender:{stringValue:$("setupGender").value},status:{stringValue:"pending"}}},updateMask:{fieldPaths:["name","phone","birthMonth","birthDay","role","gender","status"]},updateTransforms:[{fieldPath:"joinedAt",setToServerValue:"REQUEST_TIME"},{fieldPath:"createdAt",setToServerValue:"REQUEST_TIME"},{fieldPath:"updatedAt",setToServerValue:"REQUEST_TIME"}]}
  ]})});applyAccess({name,phone,birthMonth,birthDay,gender:$('setupGender').value,status:'pending'});}catch(e){if($("setupErr"))$("setupErr").textContent=e.code==="permission-denied"?"資料尚未存入，請聯絡店家確認帳號狀態；你填的內容會保留。":e.message}};

@@ -127,9 +127,9 @@ export function createDelivery({auth,projectId,role,notify,onChange,storage=loca
   const wanted=new Set(ids);
   let count=0;
   for(const e of all()){
-   if(!(['notify-error'].includes(e.stage)||(e.stage==='queued'&&e.error))||(wanted.size&&!wanted.has(e.id)))continue;
-   // Keep the same durable entry and ID. A notification retry never creates a
-   // second chat message; a failed Firestore write resumes its original entry.
+   const queuedRetry=e.stage==='queued'&&(!!e.error||wanted.has(e.id));
+   if(!(e.stage==='notify-error'||queuedRetry)||(wanted.size&&!wanted.has(e.id)))continue;
+   // Retry the same durable entry and ID; never enqueue a duplicate message.
    if(e.stage==='notify-error')e.stage='stored';
    e.attempts=0;e.nextAt=0;e.error='';e.quotaBlocked=false;save(e);count++;
   }
