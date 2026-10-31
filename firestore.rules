@@ -84,30 +84,6 @@ service cloud.firestore {
    allow create,update: if admin() || (signedIn() && active(request.auth.uid) && validChange());
    allow delete: if admin();
   }
-  // Booking/chat bridge. A customer's login alone cannot approve a relationship.
-  function linkCustomer(){return signedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.status in ['pending','active'];}
-  function linkScope(d){return d.project == 'salonsystem-71566' && d.shop == '051873預約表' && d.clientId is string && d.clientId.size() > 0 && d.clientId.size() <= 200 && d.key is string && d.key.matches('^[a-f0-9]{64}$');}
-  function linkedPair(d,other){return linkScope(d) && d.status == 'linked' && d.uid is string && d.linkId is string && d.confirmedAt == request.time && other.key == d.key && other.uid == d.uid && other.linkId == d.linkId && other.status == 'linked' && other.confirmedAt == d.confirmedAt;}
-  match /bookingLinkInvites/{token} {
-   allow get: if signedIn() && token.matches('^[a-f0-9]{64}$');
-   allow list: if admin();
-   allow create: if admin() && token.matches('^[a-f0-9]{64}$') && linkScope(request.resource.data) && request.resource.data.status == 'open' && request.resource.data.createdAt == request.time && request.resource.data.expiresAt > request.time && request.resource.data.expiresAt <= request.time + duration.value(25,'h');
-   allow update: if admin() || (linkCustomer() && resource.data.status == 'open' && resource.data.expiresAt > request.time && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status','claimedUid','claimedAt']) && request.resource.data.status == 'claimed' && request.resource.data.claimedUid == request.auth.uid && request.resource.data.claimedAt == request.time && get(/databases/$(database)/documents/bookingLinkClients/$(resource.data.key)).data.pendingToken == token);
-   allow delete: if false;
-  }
-  match /bookingLinkClients/{key} {
-   allow read: if admin();
-   allow update: if admin() && resource.data.status != 'linked' && request.resource.data.key == key && linkScope(request.resource.data) && (request.resource.data.status in ['pending','unlinked'] || linkedPair(request.resource.data,getAfter(/databases/$(database)/documents/bookingLinkAccounts/$(request.resource.data.uid)).data));
-   allow create: if admin() && request.resource.data.key == key && linkScope(request.resource.data) && (request.resource.data.status in ['pending','unlinked'] || linkedPair(request.resource.data,getAfter(/databases/$(database)/documents/bookingLinkAccounts/$(request.resource.data.uid)).data));
-   allow delete: if false;
-  }
-  match /bookingLinkAccounts/{uid} {
-   allow read: if admin() || owner(uid);
-   allow create: if admin() && request.resource.data.uid == uid && linkedPair(request.resource.data,getAfter(/databases/$(database)/documents/bookingLinkClients/$(request.resource.data.key)).data) && getAfter(/databases/$(database)/documents/bookingLinkInvites/$(request.resource.data.linkId)).data.status == 'linked' && get(/databases/$(database)/documents/bookingLinkInvites/$(request.resource.data.linkId)).data.claimedUid == uid && get(/databases/$(database)/documents/bookingLinkInvites/$(request.resource.data.linkId)).data.expiresAt > request.time;
-   // Rebinding is deliberately not available in this first release.
-   allow update,delete: if false;
-  }
-
   match /{document=**} {allow read,write: if false;}
  }
 }
