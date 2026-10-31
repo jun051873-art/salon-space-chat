@@ -284,6 +284,6 @@ const syncChatViewport=()=>window.dispatchEvent(new Event("salon:viewport"));
 function recoverCustomerView(){if(document.hidden)return;document.body.classList.add('customerApp');syncChatViewport();const id=document.body.dataset.page||'inbox';document.body.classList.toggle('conversationOpen',id==='chat');document.documentElement.classList.toggle('conversationOpen',id==='chat');if(uid&&profileReady){resumeVisibleReads();delivery.resume();}if(id==='chat'){$('chatDetails').hidden=true;$('chatOptions').setAttribute('aria-expanded','false');}}
 window.addEventListener('pageshow',recoverCustomerView);document.addEventListener('visibilitychange',recoverCustomerView);
 
-</script><script type="module" src="./booking-link-entry.js?v=1"></script></body></html>
+</script></body></html>
 
 
