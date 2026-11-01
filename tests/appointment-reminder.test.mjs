@@ -11,6 +11,6 @@ assert.throws(()=>appointmentPlan('2026-01-30','24:00',30,now));
 assert.throws(()=>appointmentPlan('2025-01-30','13:00',30,now));
 assert.throws(()=>appointmentPlan('2026-01-30','13:00',0,now));
 assert.equal(reminderSettings().leadMinutes,30);
-assert.equal(appointmentLabel({...plan,status:'draft'}),'預約 1/30 13:00 · 草稿'.replace(' 1/',' 01/'));
+assert.equal(appointmentLabel({...plan,status:'draft'}),'預約 1/30 13:00 · 尚未排程（不會發送）'.replace(' 1/',' 01/'));
 assert.equal(appointmentLabel(null),'');
 console.log('PASS appointment timing, Taiwan midnight/month boundaries, invalid/past dates and draft labels');

@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import {fourCardHTML} from '../home-mosaic.js';
+const html=fourCardHTML();
+assert.deepEqual([...html.matchAll(/<strong>(.*?)<\/strong>/g)].map(x=>x[1]),['休假','商品','主打','公告']);
+assert.equal((html.match(/<button/g)||[]).length,4);
+assert.match(html,/data-home-collection="board"/);
+assert.doesNotMatch(html,/data-home-notice|data-home-collection="events"/);
+const config={products:false,board:false};
+assert.deepEqual([...fourCardHTML(config).matchAll(/data-topic="(.*?)"/g)].map(x=>x[1]),['holidays','feature']);
+assert.deepEqual(config,{products:false,board:false});
+assert.equal((fourCardHTML(null).match(/<button/g)||[]).length,4);
+console.log('PASS four default destinations, merged announcements, empty-data entrances, explicit visibility and immutable settings');

@@ -13,3 +13,8 @@ export function homeMosaicHTML({sections={},feature,products=[],events=[],notice
  if(sections.holidays===true)tiles.push(tile('holidays','休假','為相聚留好時間','data-home-holidays'));
  return tiles.join('');
 }
+
+// N89 uses a separate config namespace so N88 layout choices remain restorable.
+export function fourCardHTML(enabled={},esc=x=>x){
+ return [['holidays','休假','看店休，也能預約','data-home-holidays'],['products','商品','日常保養小選物','data-home-products'],['feature','主打','為自己留點時間','data-home-feature'],['board','公告','店裡的新消息','data-home-collection="board"']].filter(([key])=>enabled?.[key]!==false).map(([key,title,subtitle,action])=>`<button type="button" class="homeMosaicTile topicTile topic-${key}" data-topic="${key}" ${action}><span class="mosaicCopy"><small>${esc(subtitle)}</small><strong>${esc(title)}</strong><span class="mosaicOpen">${key==='holidays'?'查看日期':'點開看看'} <b aria-hidden="true">↗</b></span></span></button>`).join('');
+}
