@@ -1,11 +1,11 @@
 export const effectOptions={none:['關閉','安靜閱讀'],rain:['雨滴','細雨向下落'],petals:['櫻花','粉色花瓣輕飄'],snow:['飄雪','柔白雪點'],sun:['暖陽','金色光暈'],fireflies:['螢光','暖綠光點浮動'],bubbles:['泡泡','透亮圓泡上升'],ripples:['水波','淡藍圓環擴散'],leaves:['秋葉','焦糖葉片飄落'],stars:['星光','淡紫星芒閃耀'],confetti:['彩紙','柔彩紙片飄落'],wind:["微風", "風紋掠過"],clouds:["流雲", "白雲緩移"],suncloud:["雲間晴光", "太陽從雲間出現"],moon:["月光", "柔和月亮"],rainbow:["彩虹", "雨後弧光"],mist:["晨霧", "輕霧經過"],lanterns:["元宵", "燈籠升起"],newyear:["新春", "紅包祝福"],fireworks:["跨年", "柔光煙火"],christmas:["聖誕", "聖誕小樹"],gifts:["禮物", "禮物飄落"],midautumn:["中秋", "月兔經過"],dragonboat:["端午", "青葉飄動"],hearts:["情人節", "愛心上升"],birthday:["生日", "氣球升起"],halloween:["萬聖節", "南瓜輕晃"],sprouts:["嫩芽", "春日萌芽"],wheat:["麥穗", "金色豐收"]};
 const presets={
- cream:{label:'奶油晨光',background:'#f5f0e7',accent:'#8c7158',secondary:'#b6c6b1',bubble:'#e7d7c1'},
- rose:{label:'玫瑰奶霜',background:'#faf1ed',accent:'#996875',secondary:'#c5b7d4',bubble:'#efd2d7'},
- rain:{label:'雨日青空',background:'#edf3f3',accent:'#557d87',secondary:'#b8c5de',bubble:'#cce4e5'},
- garden:{label:'開心果花園',background:'#f2f4e9',accent:'#697b50',secondary:'#dfbcaa',bubble:'#dce5c7'},
- lilac:{label:'紫芋糖果',background:'#f4eff8',accent:'#846d9b',secondary:'#aacdc5',bubble:'#e5d9ef'}
-, ocean:{label:'海鹽藍調',background:'#edf5f7',accent:'#356d86',secondary:'#b3d7df',bubble:'#d3eaf2'}, peach:{label:'蜜桃果凍',background:'#fff2e9',accent:'#a66455',secondary:'#f0c7ac',bubble:'#f8d9cd'}, forest:{label:'森林散步',background:'#edf2e9',accent:'#3f6555',secondary:'#abc3a4',bubble:'#cdddcd'}, ink:{label:'墨色留白',background:'#eeeeeb',accent:'#444c51',secondary:'#c0c4c5',bubble:'#d5dddf'}, lavender:{label:'薰衣草信箋',background:'#f2edf8',accent:'#78609a',secondary:'#d5c9e7',bubble:'#e2d7f1'}, sunset:{label:'夕陽暖橙',background:'#fff1e3',accent:'#9e6037',secondary:'#eac18f',bubble:'#f3d2b2'}, pearl:{label:'珍珠玻璃',background:'#f6f7f8',accent:'#637e86',secondary:'#cddcde',bubble:'#e0ecee'}
+ cream:{label:'奶油晨光',background:'#f7f4ef',accent:'#b3a28e',secondary:'#d9e1d6',bubble:'#efe6db'},
+ rose:{label:'玫瑰奶霜',background:'#faf4f3',accent:'#c5a2ab',secondary:'#d8cbe1',bubble:'#f1e2e6'},
+ rain:{label:'雨日青空',background:'#f1f6f6',accent:'#91b1ba',secondary:'#ccd5e8',bubble:'#deeeef'},
+ garden:{label:'開心果花園',background:'#f5f6ed',accent:'#9eaa85',secondary:'#e7cfc2',bubble:'#e5edd9'},
+ lilac:{label:'紫芋糖果',background:'#f5f1f8',accent:'#aa97bd',secondary:'#c7e0d9',bubble:'#e9e0f0'}
+, ocean:{label:'海鹽藍調',background:'#f0f7f8',accent:'#83aebf',secondary:'#c8e1e4',bubble:'#e1eff3'}, peach:{label:'蜜桃果凍',background:'#fff5f0',accent:'#c99584',secondary:'#ead1bd',bubble:'#f4e2d9'}, forest:{label:'森林散步',background:'#f2f6f1',accent:'#88a595',secondary:'#cedbc8',bubble:'#e1ece3'}, ink:{label:'墨色留白',background:'#f1f1ef',accent:'#929ca0',secondary:'#d0d2d2',bubble:'#e4e9e9'}, lavender:{label:'薰衣草信箋',background:'#f4f0f8',accent:'#a08db9',secondary:'#d6cde5',bubble:'#e9e0f1'}, sunset:{label:'夕陽暖橙',background:'#fff5ea',accent:'#c9956e',secondary:'#e8d0a9',bubble:'#f4e4d3'}, pearl:{label:'珍珠玻璃',background:'#f5f7f7',accent:'#8daab2',secondary:'#d2e2e3',bubble:'#e7eff0'}
 };
 const skinLayouts=['grid','list','editorial','mosaic','compact','gallery','ribbon','offset','outline','soft','wide','airy'];
 Object.values(presets).forEach((p,i)=>Object.assign(p,{layout:skinLayouts[i],density:i===4?'compact':'airy',radius:[26,32,18,36,20,28,38,24,12,30,22,34][i],glass:[48,58,42,62,50,55,65,45,30,60,52,38][i],blur:i===8?0:7,font:i===8||i===9?'serif':'sans',customerBubble:p.bubble,shopBubble:'#ffffff',buttonColor:p.accent,tagColor:p.accent,iconColor:p.accent,iconFill:p.secondary,navActiveText:p.accent,navBackground:p.background,topDroplet:p.secondary,bottomDroplet:p.bubble}));
@@ -60,7 +60,7 @@ if(typeof document!=='undefined')document.addEventListener('visibilitychange',()
 
 // Validated surface settings shared by both roles; no content or photos are changed.
 export const surfacePages={all:'全站預設',header:'頂部玻璃',nav:'底部導覽',home:'客人首頁・全部拼塊',tileFeature:'拼塊・本月主打',tileProducts:'拼塊・商品',tileEvents:'拼塊・活動',tileBoard:'拼塊・布告欄',tileNotice:'拼塊・公告',tileHolidays:'拼塊・休假表',content:'內頁・活動與布告欄',holiday:'店休月曆',info:'店家資訊',gallery:'商品與主打',booking:'預約詢問・休假表',preferences:'客人設定',profile:'個人頁・編輯面板',dialogs:'彈出視窗',adminHome:'店家主頁',chat:'聊天工具',...Object.fromEntries(Object.entries(colorPages).map(([k,v])=>['tool_'+k,'店家・'+v]))};
-const surfaceSelectors={header:'#customerHeader,.adminApp .app>h1,.shopHeader',nav:'.bottomNav',home:'#inbox',tileFeature:'.topic-feature',tileProducts:'.topic-products',tileEvents:'.topic-events',tileBoard:'.topic-board',tileNotice:'.topic-notice',tileHolidays:'.topic-holidays',content:'.boardDetailDialog,.topicCollectionDialog',holiday:'#holidays,[data-color-page=holidays]',info:'#info',gallery:'#gallery,#featureDetail,.productDetailDialog',booking:'#booking,#holidays',preferences:'#preferences',profile:'.profileSceneDialog',dialogs:'.salonDialog',adminHome:'#adminHome',chat:'#chatPanel,#adminChatPanel,.chatToolsDialog'};
+const surfaceSelectors={header:'#customerHeader,.adminApp .app>h1,.shopHeader',nav:'.bottomNav',home:'#inbox',tileFeature:'.topic-feature',tileProducts:'.topic-products',tileEvents:'.topic-events',tileBoard:'.topic-board',tileNotice:'.topic-notice',tileHolidays:'.topic-holidays',content:'.boardDetailDialog,.topicCollectionDialog',holiday:'#holidays,[data-color-page=holidays]',info:'#info',gallery:'#gallery,#featureDetail,.productDetailDialog',booking:'#booking,#holidays',preferences:'#preferences',profile:'.profileSceneDialog',dialogs:'.salonDialog',adminHome:'#adminHome',chat:'#chatPanel,#adminChatPanel,.chatToolsDialog,.salonDialog.compactTools'};
 const surfaceDefaults={start:'#f9f6f0',end:'#d8e9e5',ink:'#293e3b',opacity:78,blur:12,angle:135,radius:28,lines:true};
 export function normalizeSurfaces(raw){const result={};for(const key of Object.keys(surfacePages)){const p=raw?.[key];if(!p||typeof p!=='object')continue;result[key]={start:color(p.start,surfaceDefaults.start),end:color(p.end,surfaceDefaults.end),ink:color(p.ink,surfaceDefaults.ink),opacity:number(p.opacity,20,100,78),blur:number(p.blur,0,24,12),angle:number(p.angle,0,360,135),radius:number(p.radius,16,40,28),lines:p.lines!==false};}return result;}
 export function surfaceVars(p={}){p={...surfaceDefaults,...p};return {'--surface-start':p.start,'--surface-end':p.end,'--surface-ink':p.ink,'--surface-alpha':p.opacity+'%','--surface-blur':p.blur+'px','--surface-angle':p.angle+'deg','--surface-radius':p.radius+'px','--surface-lines':p.lines?'.45':'0'};}
@@ -84,7 +84,7 @@ function mountSurfaceEditor(host,getTheme,onChange,audience){
 const helpFor = title => {
  const rules = [
  [/店家主頁功能排列/, '只改店家主頁：雙欄小卡、直式長卡、錯落拼塊與主次卡片，客人端不受影響。'],
- [/頁面配色/, '先選要修改的頁面：主頁、商品、排休月曆等；可調卡片漸層、文字、透明度與圓角。'],
+ [/頁面配色/, '先選要修改的頁面：聊天工具快捷卡片、商品、店休月曆等；可調卡片漸層、文字、透明度與圓角。'],
  [/換膚/, '整體預設配色。已設定獨立配色的頁面會保留自己的顏色。'],
  [/自動回覆/, '聊天室內系統自動回覆的訊息外觀。'],
  [/按鈕與標籤/, '目前所選介面的按鈕及小標籤配色。'],
