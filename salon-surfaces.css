@@ -539,3 +539,6 @@ body.customerApp :is(.holidayEyebrow,.holidayIntro>p,.holidayStatus,.holidayFoot
 }
 body.customerApp #homeCards .topicTile .mosaicOpen{font-size:11px!important}
 body.customerApp #homeCards .topicTile .mosaicOpen>b{color:var(--surface-ink,#293e3b)!important}
+
+/* N87: lift only the customer holiday introduction; preserve calendar position. */
+body.customerApp #holidays .holidayIntro{position:relative!important;top:-20px!important}
