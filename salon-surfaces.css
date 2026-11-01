@@ -542,3 +542,12 @@ body.customerApp #homeCards .topicTile .mosaicOpen>b{color:var(--surface-ink,#29
 
 /* N87: lift only the customer holiday introduction; preserve calendar position. */
 body.customerApp #holidays .holidayIntro{position:relative!important;top:-20px!important}
+
+/* N88: customer glass rails use the existing per-surface controls.
+   Reduce tint and blur so scrolling content remains softly visible. */
+body.customerApp #customerHeader,
+body.customerApp #customerNav{
+ background:linear-gradient(var(--surface-angle,125deg),color-mix(in srgb,var(--surface-start,#ffffff) calc(var(--surface-alpha,78%) * .50),transparent),color-mix(in srgb,var(--surface-end,#e2efe9) calc(var(--surface-alpha,78%) * .40),transparent))!important;
+ backdrop-filter:blur(calc(var(--surface-blur,12px) * .50)) saturate(120%)!important;
+ -webkit-backdrop-filter:blur(calc(var(--surface-blur,12px) * .50)) saturate(120%)!important;
+}
