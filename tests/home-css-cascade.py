@@ -49,3 +49,25 @@ for width,height in [(320,568),(390,844),(430,932),(768,1024)]:
   assert resolved[cards]['grid-auto-rows']=='auto'
   entry=resolved[doc.get_element_by_id('enterChat')];assert entry['margin']=='0',entry
   print('PASS cascade',width,height,'marquee',bool(notice))
+
+  # Re-evaluate the same production styles for the chat state, including pointer hit targets.
+  body.set('class','customerApp conversationOpen'+notice);body.set('data-page','chat')
+  chatvals={}
+  for el in cssselect2.ElementWrapper.from_html_root(doc).iter_subtree():
+   vals={}
+   for specificity,order,pseudo,decs in matcher.match(el):
+    if pseudo:continue
+    for d in decs:
+     if d.type!='declaration':continue
+     key=(d.important,specificity,order)
+     if d.lower_name not in vals or key>=vals[d.lower_name][0]:vals[d.lower_name]=(key,tinycss2.serialize(d.value).strip())
+   chatvals[el.etree_element]={k:v[1] for k,v in vals.items()}
+  head=doc.xpath('//*[@id="chat"]//*[contains(@class,"conversationHeader")]')[0]
+  assert chatvals[head]['grid-template-columns']=='90px minmax(0,1fr) 90px'
+  action=doc.xpath('//*[@id="chat"]//*[contains(@class,"chatHeaderActions")]')[0]
+  assert chatvals[action]['pointer-events']=='auto'
+  booking=chatvals[doc.get_element_by_id('chatBooking')]
+  assert booking['width']=='90px' and booking['box-sizing']=='border-box'
+  assert booking['pointer-events']=='auto' and booking['max-width']=='100%'
+  assert chatvals[doc.get_element_by_id('chatCustomerName')]['text-overflow']=='ellipsis'
+  print('PASS chat symmetry, bounded booking and clickable actions',width,height)
