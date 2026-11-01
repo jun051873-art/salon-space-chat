@@ -518,3 +518,24 @@ body.customerApp .customerPageHead{margin:0 0 18px!important}
 body.customerApp .holidayIntro{text-align:center!important}
 body.customerApp .salonDialog.compactTools .chatToolGrid button{justify-content:center!important;align-items:center!important;text-align:center!important}
 body.customerApp .salonDialog.compactTools .chatToolGrid button span{flex:0 1 auto!important}
+
+/* N86: customer secondary text and a more compact holiday heading. */
+body.customerApp{--customer-secondary-ink:#818786}
+body.customerApp #holidays>.pageBack{margin-bottom:2px!important}
+body.customerApp #holidays .holidayIntro{padding:0 4px 16px!important;margin-top:0!important}
+body.customerApp #holidays .holidayIntro h2{margin:6px 0!important}
+body.customerApp #customerHeader .headerActions button::after,
+body.customerApp #customerHeader .notificationIndicator::after{
+ color:var(--customer-secondary-ink)!important;font-size:9px!important;font-weight:400!important;
+}
+body.customerApp #customerHeader #profileEntry .profileEntryCopy>small{
+ color:var(--customer-secondary-ink)!important;font-size:10px!important;font-weight:400!important;
+}
+body.customerApp #homeCards .topicTile .mosaicCopy>small,
+body.customerApp #homeCards .topicTile .mosaicOpen,
+body.customerApp #enterChat .conversationCopy>small,
+body.customerApp :is(.holidayEyebrow,.holidayIntro>p,.holidayStatus,.holidayFootnote,.sectionIntro,.attachmentHint){
+ color:var(--customer-secondary-ink)!important;font-size:12px!important;font-weight:400!important;
+}
+body.customerApp #homeCards .topicTile .mosaicOpen{font-size:11px!important}
+body.customerApp #homeCards .topicTile .mosaicOpen>b{color:var(--surface-ink,#293e3b)!important}
