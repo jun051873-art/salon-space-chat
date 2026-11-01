@@ -1,0 +1,14 @@
+// Touch-only pull gesture; never reloads the document or clears local drafts.
+export function mountPullRefresh({enabled,refresh,doc=document}){
+ const win=doc.defaultView;let start=null,distance=0,busy=false,hideTimer;
+ const hint=doc.createElement('div');hint.className='pullRefreshHint';hint.hidden=true;hint.setAttribute('role','status');hint.setAttribute('aria-live','polite');hint.innerHTML='<span class="pullRefreshArrow" aria-hidden="true">↻</span><span class="pullRefreshText"></span>';doc.body.append(hint);
+ const arrow=hint.querySelector('.pullRefreshArrow'),label=hint.querySelector('.pullRefreshText');
+ function display(text,pull=0){clearTimeout(hideTimer);hint.hidden=false;label.textContent=text;arrow.style.transform=`rotate(${Math.min(pull,100)*3.6}deg)`;}
+ function reset(){start=null;distance=0;if(!busy)hint.hidden=true;}
+ function atTop(target){for(let el=target;el&&el!==doc.body;el=el.parentElement)if(el.scrollTop>1)return false;return (doc.scrollingElement?.scrollTop||0)<=1&&(win.scrollY||0)<=1;}
+ function begin(e){if(busy||!enabled()||e.touches.length!==1||doc.querySelector('dialog[open]')||doc.activeElement?.matches('input,textarea,select,[contenteditable="true"]')||e.target.closest('input,textarea,select,button,a,[contenteditable="true"]')||!atTop(e.target))return;start={x:e.touches[0].clientX,y:e.touches[0].clientY,target:e.target};distance=0;}
+ function move(e){if(!start)return;if(!enabled()||e.touches.length!==1||!atTop(start.target)){reset();return;}const dx=e.touches[0].clientX-start.x,dy=e.touches[0].clientY-start.y;if(dy<0||Math.abs(dx)>Math.abs(dy)){reset();return;}if(dy<8)return;if(e.cancelable)e.preventDefault();distance=Math.min(110,dy*.55);display(distance>=64?'放開更新':'下拉更新',distance);}
+ async function end(){const ready=start&&distance>=64&&enabled();start=null;if(!ready){reset();return;}busy=true;hint.classList.add('isRefreshing');display('正在更新…');const timer=setTimeout(()=>display('更新較久，請確認網路…'),12000);try{await refresh();display('已更新');}catch(e){display('更新失敗，請確認網路後再下拉');}finally{clearTimeout(timer);busy=false;distance=0;hint.classList.remove('isRefreshing');hideTimer=setTimeout(()=>hint.hidden=true,2200);}}
+ doc.addEventListener('touchstart',begin,{passive:true});doc.addEventListener('touchmove',move,{passive:false});doc.addEventListener('touchend',end,{passive:true});doc.addEventListener('touchcancel',reset,{passive:true});
+ return ()=>{clearTimeout(hideTimer);doc.removeEventListener('touchstart',begin);doc.removeEventListener('touchmove',move);doc.removeEventListener('touchend',end);doc.removeEventListener('touchcancel',reset);hint.remove();};
+}
