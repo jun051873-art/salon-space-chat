@@ -551,3 +551,10 @@ body.customerApp #customerNav{
  backdrop-filter:blur(calc(var(--surface-blur,12px) * .50)) saturate(120%)!important;
  -webkit-backdrop-filter:blur(calc(var(--surface-blur,12px) * .50)) saturate(120%)!important;
 }
+
+/* N95: clearer owner-only top/bottom glass; existing surface sliders remain effective. */
+body.adminApp .app>h1.adminNotificationHeader,body.adminApp .bottomNav{
+ background:linear-gradient(var(--surface-angle),color-mix(in srgb,var(--surface-start) calc(var(--surface-alpha) * .40),transparent),color-mix(in srgb,var(--surface-end) calc(var(--surface-alpha) * .28),transparent))!important;
+ backdrop-filter:blur(calc(var(--surface-blur) * .5)) saturate(120%)!important;
+ -webkit-backdrop-filter:blur(calc(var(--surface-blur) * .5)) saturate(120%)!important;
+}
