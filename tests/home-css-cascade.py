@@ -13,6 +13,7 @@ for width,height in [(320,568),(390,844),(430,932),(768,1024)]:
  for notice in ['', ' hasNotice']:
   doc=lxml.html.fromstring(source);body=doc.find('body');body.set('class','customerApp'+notice);body.set('data-page','inbox')
   inbox=doc.get_element_by_id('inbox');inbox.set('class','')
+  weather=lxml.html.fragment_fromstring('<section class="homeWeather"><div class="weatherNow"></div><div class="weatherDays"><button class="weatherDay"></button></div></section>');inbox.append(weather)
   cards=lxml.html.fragment_fromstring('<div id="homeCards" data-layout="mosaic" data-arrangement="four">'+''.join('<button class="homeMosaicTile topicTile topic-'+key+'">'+key+'</button>' for key in ['holidays','products','feature','board'])+'</div>');inbox.insert(0,cards)
   matcher=cssselect2.Matcher();order=0
   def rules(tokens):
@@ -41,6 +42,10 @@ for width,height in [(320,568),(390,844),(430,932),(768,1024)]:
      for name in names:
       if name not in vals or key>=vals[name][0]:vals[name]=(key,value)
    resolved[el.etree_element]={k:v[1] for k,v in vals.items()}
+  w=resolved[weather];assert w['width']=='100%' and w['box-sizing']=='border-box' and w['flex']=='0 0 auto',w
+  assert resolved[inbox]['max-height']=='none'
+  rail=resolved[weather[1]];assert rail['width']=='100%' and rail['overflow-x']=='auto',rail
+  assert resolved[weather[1][0]]['flex']=='0 0 64px'
   header=resolved[doc.get_element_by_id('customerHeader')];assert header['transform']=='none',header
   shell=resolved[doc.get_element_by_id('customerAppShell')];assert '140px' not in shell['padding-top'],shell
   for card in cards:
