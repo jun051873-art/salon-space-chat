@@ -69,6 +69,8 @@ for width,height in [(320,568),(390,844),(430,932),(768,1024)]:
    chatvals[el.etree_element]={k:v[1] for k,v in vals.items()}
   head=doc.xpath('//*[@id="chat"]//*[contains(@class,"conversationHeader")]')[0]
   assert chatvals[head]['grid-template-columns']=='90px minmax(0,1fr) 90px'
+  assert chatvals[head]['width']=='100%' and chatvals[head]['max-width']=='100%'
+  assert chatvals[head]['margin']=='0 auto -4px' and chatvals[head]['box-sizing']=='border-box'
   action=doc.xpath('//*[@id="chat"]//*[contains(@class,"chatHeaderActions")]')[0]
   assert chatvals[action]['pointer-events']=='auto'
   booking=chatvals[doc.get_element_by_id('chatBooking')]
