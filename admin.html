@@ -71,7 +71,7 @@ body.chatMode #adminNav{display:none!important}body.chatMode .app{padding-bottom
 #adminChat .composer{flex-shrink:0!important}#adminChat #pushStatus{display:none!important}
 @media(max-width:600px){#adminChat .conversationHeader{min-width:0}#adminChat .chatSalonPill{min-width:0;max-width:48vw;overflow:hidden;text-overflow:ellipsis}}
 
-</style><link rel="stylesheet" href="./salon.css?v=S5.3"><link rel="stylesheet" href="./salon-refine.css?v=C9"><link rel="stylesheet" href="./salon-theme.css?v=N43"><link rel="stylesheet" href="./salon-layout.css?v=N45"><link rel="stylesheet" href="./salon-upgrade.css?v=N48.1"><link rel="stylesheet" href="./salon-header-n47.css?v=N48.1"><link rel="stylesheet" href="./salon-surfaces.css?v=N95"><meta name="salon-release" content="N96"><link rel="stylesheet" href="./pull-refresh.css?v=N96"></head><body class="adminApp"><div id="bootSplash" style="position:fixed;inset:0;z-index:9999;background:#f5f1ea;display:flex;align-items:center;justify-content:center;font-family:system-ui;color:#292722"><div style="text-align:center"><div style="font-size:30px;font-weight:800">專屬空間 SALON</div><div style="margin-top:12px;font-size:15px;opacity:.55">店家管理</div></div></div><script>
+</style><link rel="stylesheet" href="./salon.css?v=S5.3"><link rel="stylesheet" href="./salon-refine.css?v=C9"><link rel="stylesheet" href="./salon-nav-jelly.css?v=N97"><link rel="stylesheet" href="./salon-theme.css?v=N43"><link rel="stylesheet" href="./salon-layout.css?v=N45"><link rel="stylesheet" href="./salon-upgrade.css?v=N48.1"><link rel="stylesheet" href="./salon-header-n47.css?v=N48.1"><link rel="stylesheet" href="./salon-surfaces.css?v=N95"><meta name="salon-release" content="N97"><link rel="stylesheet" href="./pull-refresh.css?v=N96"></head><body class="adminApp"><div id="bootSplash" style="position:fixed;inset:0;z-index:9999;background:#f5f1ea;display:flex;align-items:center;justify-content:center;font-family:system-ui;color:#292722"><div style="text-align:center"><div style="font-size:30px;font-weight:800">專屬空間 SALON</div><div style="margin-top:12px;font-size:15px;opacity:.55">店家管理</div></div></div><script>
 // Runs before the modules so a stalled login or module import has a way out.
 setTimeout(()=>{
  const splash=document.getElementById('bootSplash');if(!splash)return;
@@ -269,7 +269,7 @@ function showAdminPage(id){
  $("adminNav")?.classList.remove("hidden");
  document.querySelectorAll("#adminNav [data-admin-page]").forEach(b=>b.classList.toggle("active",b.dataset.adminPage===id));
 }
-$("adminNav")?.addEventListener("click",e=>{const b=e.target.closest("#adminNav [data-admin-page]");if(!b)return;e.preventDefault();e.stopPropagation();showAdminPage(b.dataset.adminPage)});
+const adminNav=$("adminNav");let adminNavJellyTimer=0;adminNav?.addEventListener("click",e=>{const b=e.target.closest("#adminNav [data-admin-page]");if(!b)return;e.preventDefault();e.stopPropagation();const tabs=[...adminNav.querySelectorAll(".navBtn")],from=Math.max(0,tabs.findIndex(tab=>tab.classList.contains("active")));adminNav.style.setProperty("--nav-from",from);adminNav.classList.remove("navJelly");showAdminPage(b.dataset.adminPage);void adminNav.offsetWidth;adminNav.classList.add("navJelly");clearTimeout(adminNavJellyTimer);adminNavJellyTimer=setTimeout(()=>adminNav.classList.remove("navJelly"),700)});
 const TOOL_NAMES={broadcast:"群發訊息",welcome:"新客歡迎",autoreply:"自動回覆",notice:"公告・休假",gallery:"商品管理",customers:"客戶管理",tags:"標籤分類",settings:"設定",phrases:"常用訊息設定"};
 function openTool(key){
  adminFeed?.pause();closeChatListener();
