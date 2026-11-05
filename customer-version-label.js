@@ -2,7 +2,7 @@
 (() => {
  if(!document.body.classList.contains('customerApp'))return;
  const build=new URL(location.href).searchParams.get('appBuild');
- const versions={'5':'1.0.4','6':'1.0.5','7':'1.0.6','8':'1.0.7','9':'1.0.8'};
+ const versions={'5':'1.0.4','6':'1.0.5','7':'1.0.6','8':'1.0.7','9':'1.0.8','10':'1.0.9'};
  const installed=/Android/i.test(navigator.userAgent)&&/^[1-9]\d*$/.test(build||'');
  const packageLabel=installed?(versions[build]?'App '+versions[build]:'App 組建 '+build):'網頁版';
  const release=document.querySelector('meta[name="salon-release"]')?.content||'未標示';
