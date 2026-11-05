@@ -9,7 +9,7 @@ import {customerVisible,broadcastEligible,customerDeletionPatch,olderCustomerPri
 import{bindPhotoViewer,openPhotoViewer}from'./photo-viewer.js?v=N44.1';
 import{openProfileScene}from'./profile-scene.js?v=N91-N66';
 import{saveCustomerProfile}from'./customer-profile.js?v=N43';
-import{syncNotificationBrand,notificationColor,notificationIcon}from'./notification-brand.js?v=N3';
+import{syncNotificationBrand,notificationColor,notificationIcon}from'./notification-brand.js?v=N4';
 import{bindLongPress,readPreview}from'./chat-preview.js?v=C24';
 import{setupGlassSwitches,resumeNotice}from'./salon-header.js?v=C16';
 import{inquiryTimes,inquiryText}from'./booking-inquiry.js?v=C12';
