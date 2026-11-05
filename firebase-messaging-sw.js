@@ -1,4 +1,4 @@
-importScripts('./push-presentation.js?v=N5');
+importScripts('./push-presentation.js?v=N6');
 const NOTIFICATION_VERSION='N6';
 const BRAND_CACHE='salon-notification-brand-v1';
 const BRAND_URL='/salon-space-chat/__notification_brand__';

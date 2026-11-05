@@ -15,7 +15,7 @@
   function notification(data,branding,origin){
     const url=destination(data.url,origin),role=url.pathname.endsWith('/admin.html')?'admin':'customer';
     const brand=branding?.[role]||{};
-    const icon=new URL(iconPath(role,brand.color),origin+'/salon-space-chat/').href;
+    const icon=new URL(role==='customer'?'./icons/customer-es-512.png':iconPath(role,brand.color),origin+'/salon-space-chat/').href;
     const originalTitle=String(data.title||brand.name||'沙龍訊息');
     const parts=originalTitle.split(/[｜|]/);
     const compactTitle=parts.length>1?(role==='admin'?parts[0]:parts.slice(1).join('｜')).trim():originalTitle.trim();
@@ -31,7 +31,7 @@
       // Keep sender/shop identity in the title. Repeating it in the body makes
       // iOS Lock Screen previews noisy and duplicates the same line.
       body:body||'您有一則新訊息',icon,
-      badge:new URL('./icons/'+role+'-badge.png',origin+'/salon-space-chat/').href,
+      badge:new URL(role==='customer'?'./icons/customer-es-badge.png':'./icons/'+role+'-badge.png',origin+'/salon-space-chat/').href,
       tag:data.tag||('salon-message-'+Date.now()),renotify:true,requireInteraction:false,
       silent:false,timestamp:Date.now(),data:{url:url.href},
     }};
