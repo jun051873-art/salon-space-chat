@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+const {createChatPresence}=await import('data:text/javascript;base64,'+Buffer.from(fs.readFileSync('admin-chat-presence.js')).toString('base64'));
+let visible=true,tick,events=[];
+const p=createChatPresence({write:async(room,active)=>events.push([room,active]),isVisible:()=>visible,setTimer:fn=>(tick=fn,1),clearTimer:()=>tick=null});
+p.enter('A');await p.settled();assert.deepEqual(events,[['A',true]]);
+tick();await p.settled();assert.deepEqual(events.at(-1),['A',true]);
+p.enter('B');await p.settled();assert.deepEqual(events.slice(-2),[['A',false],['B',true]]);
+visible=false;p.visibility();await p.settled();assert.deepEqual(events.at(-1),['B',false]);assert.equal(tick,null);
+visible=true;p.visibility();await p.settled();assert.deepEqual(events.at(-1),['B',true]);
+p.leave();await p.settled();assert.deepEqual(events.at(-1),['B',false]);assert.equal(tick,null);
+p.visibility();await p.settled();assert.deepEqual(events.at(-1),['B',false]);
+const html=fs.readFileSync('admin.html','utf8');assert(!html.includes('salon-admin-simple.js'));assert(html.includes('salon-admin-icons.css'));assert(html.includes('chatPresence.enter(uidToOpen)'));assert(html.includes('chatPresence.leave()'));
+console.log('PASS chat enter/switch/background/resume/leave and restored homepage');

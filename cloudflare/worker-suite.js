@@ -11,7 +11,7 @@ export default {
  async fetch(request, env, ctx) {
   const cors = {"Access-Control-Allow-Origin":SITE,"Access-Control-Allow-Methods":"GET, POST, OPTIONS","Access-Control-Allow-Headers":"Content-Type, Authorization","Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store","Vary":"Origin"};
   if(request.method === "OPTIONS") return new Response(null,{status:204,headers:cors});
-  if(request.method === "GET") return json({ok:true,service:"salon-space-notify",version:"13-appointment-and-visit-care",authenticated:true,features:{newCustomerNotifications:true,timeReplies:true,keywordReplies:true,keywordContains:true,scheduledCare:true,visitCare:true,personalVisitCare:true,appointmentReminders:true}},200,cors);
+  if(request.method === "GET") return json({ok:true,service:"salon-space-notify",version:"14-active-chat-autoreply",authenticated:true,features:{activeChatAutoReplySuppression:true,newCustomerNotifications:true,timeReplies:true,keywordReplies:true,keywordContains:true,scheduledCare:true,visitCare:true,personalVisitCare:true,appointmentReminders:true}},200,cors);
   if(request.method !== "POST") return json({ok:false,error:"METHOD_NOT_ALLOWED"},405,cors);
   try {
    if(request.headers.get("Origin") && request.headers.get("Origin") !== SITE) throw fault("ORIGIN_NOT_ALLOWED",403);
@@ -151,7 +151,19 @@ function timeReply(config,instant,holiday=false){
  const rule=config.timeReplies?.[kind];
  return rule?.enabled===true&&typeof rule.text==='string'&&rule.text.trim()?{kind,answer:rule.text.trim().slice(0,2000)}:null;
 }
+// Only the owner can write customerNotes. A crashed/closed app cannot leave a permanent pause.
+function hasActiveAdminChat(notes,now=Date.now()){
+ return Object.values(notes?.adminChatPresence||{}).some(value=>{
+  const at=typeof value==='string'?Date.parse(value):NaN;
+  return Number.isFinite(at)&&now-at>=0&&now-at<45000;
+ });
+}
+async function adminViewingChat(root,token,uid){
+ try{return hasActiveAdminChat(fieldsOf(await readJSON(root+'customerNotes/'+encodeURIComponent(uid),{headers:{Authorization:'Bearer '+token}},'ADMIN_PRESENCE')));}
+ catch(e){if(e.status===404)return false;throw e;}
+}
 async function automaticReply(env,root,token,uid,sourceId,text,sourceTime){
+ if(await adminViewingChat(root,token,uid))return;
  const config=await salonConfig(root,token,true);
  let reply=config.keywordRepliesEnabled===true?findReply(config.quickReplies,text):null;
  if(!reply&&Object.values(config.timeReplies||{}).some(r=>r?.enabled===true)){
@@ -163,6 +175,7 @@ async function automaticReply(env,root,token,uid,sourceId,text,sourceTime){
  if(!reply)return;
  const customer=fieldsOf(await readJSON(root+'users/'+uid,{headers:{Authorization:'Bearer '+token}},'CUSTOMER'));
  if((customer.status||'active')!=='active')return;
+ if(await adminViewingChat(root,token,uid))return;
  await systemMessage(env,root,token,uid,'auto_'+sourceId,reply.answer,customer,config.name||'專屬空間');
 }
 async function scanCollection(root,path,token){let page='',rows=[];do{const result=await readJSON(root+path+'?pageSize=300'+(page?'&pageToken='+encodeURIComponent(page):''),{headers:{Authorization:'Bearer '+token}},'CARE_SCAN');rows.push(...(result.documents||[]).map(d=>({id:d.name.split('/').pop(),...fieldsOf(d)})));page=result.nextPageToken||'';if(rows.length>5000)throw fault('CARE_CUSTOMER_LIMIT',400);}while(page);return rows;}

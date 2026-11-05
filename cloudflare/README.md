@@ -1,3 +1,22 @@
+# N100 待部署：14-active-chat-autoreply
+
+網站 N100 已恢復店家原本主頁並加入聊天室在線狀態；必須另外部署本目錄的
+`worker-suite.js` 到既有 `salon-space-notify`，自動回覆抑制才會生效。
+保留原 secrets、bindings、Cron 與服務網址。GET 應回報
+`version: 14-active-chat-autoreply` 和 `features.activeChatAutoReplySuppression: true`。
+
+- 店家前景正在查看某客人的聊天室，停止對該客人建立關鍵字／營業時間自動回覆。
+- 離開聊天室或切背景後，新的客人訊息照原設定自動回覆；不補發之前略過的訊息。
+- 多裝置只要一台仍在查看，就不自動回覆。手動已讀設定不受影響。
+- 在線狀態獨立存在僅店家可寫的 customerNotes；不需更改 Firestore 規則。
+- 每 15 秒更新一次在線狀態；斷網或強制關閉導致離線寫入失敗時，最多約 45 秒租期失效。
+- 不改生日、到店關心、預約提醒，也不移除過往自動回覆。
+
+驗證：node tests/admin-chat-presence.test.mjs 和 node tests/worker-suite.test.mjs。
+正式部署後，需用兩支手機確認前景、離開、背景與強制關閉情境。
+
+---
+
 # 目前部署版本：13-appointment-and-visit-care（N72）
 
 只部署本資料夾的 **worker-suite.js**，整份取代 Cloudflare 現有

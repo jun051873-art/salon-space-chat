@@ -6,13 +6,14 @@ const admin='HcFJGmzHw6MYoWbFmtq9IyFSjvL2';
 const env={FIREBASE_PROJECT_ID:'test',FIREBASE_CLIENT_EMAIL:'test',FIREBASE_PRIVATE_KEY:'test'};
 const root='https://firestore.googleapis.com/v1/projects/test/databases/(default)/documents/';
 const pack=x=>typeof x==='string'?{stringValue:x}:typeof x==='boolean'?{booleanValue:x}:typeof x==='number'?{integerValue:String(x)}:Array.isArray(x)?{arrayValue:{values:x.map(pack)}}:{mapValue:{fields:Object.fromEntries(Object.entries(x).map(([k,v])=>[k,pack(v)]))}};
-function harness({users=[],chats=[],rules=[],settings={},holiday=false,caller="c1",sourceMessage={senderId:"c1",text:"預約"},sharedDevice=false,failMessage=false}={}){
+function harness({presence=null,users=[],chats=[],rules=[],settings={},holiday=false,caller="c1",sourceMessage={senderId:"c1",text:"預約"},sharedDevice=false,failMessage=false}={}){
  const calls=[],payloads=[],messages=new Map();let writes=0,pushes=0;
  const doc=(id,x)=>({name:root+id,fields:pack(x).mapValue.fields});
  const context=vm.createContext({Response,Request,URLSearchParams,AbortController,TextEncoder,Uint8Array,atob,btoa,setTimeout,clearTimeout,console,fetch:async(url,opt={})=>{
   calls.push(String(url));const u=String(url),body=opt.body?JSON.parse(opt.body):null;
   const ok=x=>Response.json(x);
   if(u.includes('accounts:lookup'))return ok({users:[{localId:caller}]});
+  if(u===root+'customerNotes/c1')return presence?ok(doc('c1',presence)):Response.json({error:{status:'NOT_FOUND'}},{status:404});
   if(u===root+'announcements/settings')return ok(doc('settings',settings));
   if(u.startsWith(root+'holidays/'))return holiday?ok(doc('holiday',{closed:true})):Response.json({error:{status:'NOT_FOUND'}},{status:404});
   if(u===root+'users/c1')return ok(doc('c1',users.find(x=>x.id==='c1')||{}));
@@ -132,3 +133,12 @@ assert.equal(checkPersonal(personalRules[0],{...one,visitCareManaged:false},{},a
 for(const patch of [{status:'blocked'},{status:'pending'},{marketingOptIn:false},{adminDeleted:true},{adminMergedInto:'old'},{lastVisitAt:null},{lastVisitAt:'2026-11-01T12:00:00+08:00'}])assert.equal(checkPersonal(personalRules[0],{...one,...patch},{},at),null,JSON.stringify(patch));
 const noPersonal=harness({users:personalUsers,rules:[{id:'general',type:'automation',kind:'visit',days:7,enabled:true,text:'通用關心'},...personalRules.map(r=>({...r,enabled:false}))]});await noPersonal.api.runCare(env);assert.equal(noPersonal.messages.size,1,'personal off must not fall back to generic visit care');
 console.log('PASS per-customer 7/30-day isolation, legacy exclusion, opt-out, missing dates, new visits and retry deduplication');
+
+const autoSettings={keywordRepliesEnabled:true,quickReplies:[{title:'預約',answer:'請稍候'}]};
+for(const [label,presence,expected]of [
+ ['visible chat',{adminChatPresence:{phone:new Date().toISOString()}},0],
+ ['another active device',{adminChatPresence:{phone:new Date(Date.now()-90000).toISOString(),tablet:new Date().toISOString()}},0],
+ ['closed chat',{adminChatPresence:{}},2],
+ ['crashed app lease expires',{adminChatPresence:{phone:new Date(Date.now()-46000).toISOString()}},2]
+]){const h=harness({presence,settings:autoSettings});await h.api.automaticReply(env,root,'test','c1','source','預約');assert.equal(h.writes,expected,label);}
+console.log('PASS active-room auto-reply suppression, multiple devices, closed room, expired lease');
