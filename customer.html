@@ -226,6 +226,8 @@ document.querySelectorAll("[data-customer-page]").forEach(b=>b.onclick=()=>{page
 function listen(){if(!profileReady)return;watchChat(uid,$("msgs"),uid)}
 function escapeHtml(s){return s.replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
 const notificationHelp=mountNotificationHelp($("inbox"),()=>$("enableNotify").onclick(),"customer");
+import {mountCustomerNotificationOnboarding} from "./customer-notification-onboarding.js?v=1.0.2";
+const notificationOnboarding=mountCustomerNotificationOnboarding({host:$("inbox"),enable:()=>$("enableNotify").onclick(),guide:()=>notificationHelp.guide()});
 function updateNotifyUI(){if(globalThis.Notification?.permission!=="granted")notificationHelp.update(false);const b=$("notifyBox");if(!b)return;if(!supportsPushAPIs()||Notification.permission==="granted")b.classList.add("hidden");else b.classList.remove("hidden")}let pushSyncPending=null;function syncPush(){if(pushSyncPending)return pushSyncPending;pushSyncPending=performPushSync().finally(()=>pushSyncPending=null);return pushSyncPending;}async function performPushSync(){
  try{
   if(!supportsPushAPIs()||Notification.permission!=="granted"){updateNotifyUI();return false;}
@@ -256,9 +258,10 @@ function applyAccess(data){
    showCustomerPage(location.hash==='#chat'?'chat':'inbox');
    const queued=delivery.entries().filter(e=>e.senderId===uid&&e.stage==='queued'&&e.error).map(e=>e.id);
    if(queued.length)delivery.retryFailed(queued);else delivery.resume();
-   syncPush();suite?.authReady(auth.currentUser,data);
+   syncPush().finally(()=>notificationOnboarding.setActive(profileReady));suite?.authReady(auth.currentUser,data);
   }
  }else{
+  notificationOnboarding.setActive(false);
   currentChatView?.feed.pause();suite?.stopReceipt();showCustomerPage('setup');$('customerNav').classList.add('hidden');
   $('setup').innerHTML='<h2>'+ (accountStatus==='pending'?'等待店家核准':'目前無法使用')+'</h2><p>'+(accountStatus==='pending'?'申請已送出，店家核准後會自動恢復訊息。':'此帳號已停用或封鎖，解除後會自動恢復。')+'</p><button id="checkApproval">重新確認狀態</button><button class="softBtn" data-install-guide>安裝與使用教學</button>';
   $('checkApproval').onclick=async()=>{const p=await getDoc(doc(db,'users',uid));if(p.exists())applyAccess(p.data());};
