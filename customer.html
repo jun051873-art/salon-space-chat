@@ -25,13 +25,14 @@ button{padding:14px 18px;border:0;border-radius:16px;background:#292722;color:#f
 .bottomNav{border-radius:24px 24px 0 0;box-shadow:0 -8px 30px rgba(70,58,42,.08)}.navBtn span{width:30px;height:30px;margin:0 auto 4px;display:grid;place-items:center;border-radius:10px;font-size:17px;background:rgba(41,39,34,.06)}.navBtn.active span{background:rgba(255,255,255,.15)}
 .quickPills{display:flex;gap:8px;overflow-x:auto;padding:4px 0 10px}.quickPills button{flex:0 0 auto;background:#eee9e2;color:#292722;border-radius:999px;padding:8px 13px;font-size:13px;font-weight:650}.quickPills::-webkit-scrollbar{display:none}</style><link rel="stylesheet" href="./salon.css?v=S5.3"><link rel="stylesheet" href="./customer-chat.css?v=C28"><link rel="stylesheet" href="./salon-refine.css?v=C9"><link rel="stylesheet" href="./salon-theme.css?v=N43"><link rel="stylesheet" href="./salon-layout.css?v=N45"><link rel="stylesheet" href="./salon-upgrade.css?v=N48.1"><link rel="stylesheet" href="./salon-header-n47.css?v=N48.2"><link rel="stylesheet" href="./salon-surfaces.css?v=N95"><link rel="stylesheet" href="./customer-home-n89.css?v=N95"><meta name="salon-release" content="N96"><link rel="stylesheet" href="./pull-refresh.css?v=N96"><script defer src="./salon-version-label.js?v=1"></script></head>
 <body class="customerApp">
-<div id="splash"><div><div class="logo">專屬空間</div><div class="sub" role="status">正在為您開啟空間…</div><p class="startupHelp">若等候較久，請先確認網路。<br>若畫面一直沒有反應，請將應用程式從最近使用的畫面滑掉，再重新開啟。</p></div></div>
+<div id="splash"><div><div class="logo">專屬空間</div><div class="sub" role="status">正在為您開啟空間…</div><p class="startupHelp" hidden>若等候較久，請先確認網路。<br>若畫面一直沒有反應，請將應用程式從最近使用的畫面滑掉，再重新開啟。</p></div></div>
 <script>
 // Keep recovery available even when an imported module fails before startup runs.
 setTimeout(()=>{
  const splash=document.getElementById('splash');if(!splash)return;
  const sub=splash.querySelector('.sub');if(!sub)return;
  sub.textContent='連線尚未完成，請確認網路後重試。';sub.style.opacity='1';
+ splash.querySelector('.startupHelp')?.remove();
  if(splash.querySelector('[data-retry]'))return;
  const retry=document.createElement('button');retry.type='button';retry.dataset.retry='';retry.textContent='重新連線';retry.style.marginTop='20px';
  retry.onclick=()=>{const url=new URL(location.href);url.searchParams.set('retry',String(Date.now()));location.replace(url.href)};
@@ -221,7 +222,7 @@ function watchPageLoad(task,isCurrent){
  Promise.resolve(task).catch(()=>undefined).finally(()=>{clearTimeout(timer);if(isCurrent())document.getElementById('pageRecovery')?.remove();});return timer;
 }
 let pageGeneration=0;
-function showCustomerPage(id,options={}){const generation=++pageGeneration;document.getElementById("pageRecovery")?.remove();if(!profileReady&&id!=="setup")id="setup";const splash=$("splash");if(!options.back)pageTrail.visit(id,Math.max(window.scrollY||0,document.querySelector(".app").scrollTop||0));if(["inbox","chat"].includes(id))delete document.body.dataset.returnToChat;else if(document.body.dataset.page==="chat")document.body.dataset.returnToChat="true";show(id,{keepSplash:!!splash});document.querySelector(".app").scrollTop=0;document.body.dataset.page=id;document.body.classList.toggle("detailOpen",["info","profile","preferences","featureDetail","holidays"].includes(id));document.body.classList.toggle("conversationOpen",id==="chat");document.documentElement.classList.toggle("conversationOpen",id==="chat");if(id==="chat"){if(uid)listen();}else{currentChatView?.feed.pause();suite?.stopReceipt();}const rendered=suite?.page(id);watchPageLoad(rendered,()=>generation===pageGeneration);if(splash?.isConnected)void releaseCoverAfter(rendered,splash,()=>generation===pageGeneration&&document.body.dataset.page===id);const ready=Promise.resolve(rendered).catch(()=>undefined).then(()=>{if(generation===pageGeneration&&document.body.dataset.page===id){const y=options.scroll||0;document.querySelector(".app").scrollTop=y;window.scrollTo(0,y);}});document.querySelectorAll("[data-customer-page]").forEach(b=>b.classList.toggle("active",b.dataset.customerPage===(id==="chat"?"inbox":id)));return ready;}
+function showCustomerPage(id,options={}){const generation=++pageGeneration;document.getElementById("pageRecovery")?.remove();if(!profileReady&&id!=="setup")id="setup";const splash=$("splash");if(!options.back)pageTrail.visit(id,Math.max(window.scrollY||0,document.querySelector(".app").scrollTop||0));if(["inbox","chat"].includes(id))delete document.body.dataset.returnToChat;else if(document.body.dataset.page==="chat")document.body.dataset.returnToChat="true";show(id,{keepSplash:!!splash});document.querySelector(".app").scrollTop=0;document.body.dataset.page=id;document.body.classList.toggle("detailOpen",["info","profile","preferences","featureDetail","holidays"].includes(id));document.body.classList.toggle("conversationOpen",id==="chat");document.documentElement.classList.toggle("conversationOpen",id==="chat");if(id==="chat"){if(uid)listen();}else{currentChatView?.feed.pause();suite?.stopReceipt();}const rendered=suite?.page(id);watchPageLoad(rendered,()=>generation===pageGeneration);if(splash?.isConnected)void releaseCoverAfter(id==="chat"?undefined:rendered,splash,()=>generation===pageGeneration&&document.body.dataset.page===id);const ready=Promise.resolve(rendered).catch(()=>undefined).then(()=>{if(generation===pageGeneration&&document.body.dataset.page===id){const y=options.scroll||0;document.querySelector(".app").scrollTop=y;window.scrollTo(0,y);}});document.querySelectorAll("[data-customer-page]").forEach(b=>b.classList.toggle("active",b.dataset.customerPage===(id==="chat"?"inbox":id)));return ready;}
 document.querySelectorAll("[data-customer-page]").forEach(b=>b.onclick=()=>{pageTrail.reset();showCustomerPage(b.dataset.customerPage)});
 function listen(){if(!profileReady)return;watchChat(uid,$("msgs"),uid)}
 function escapeHtml(s){return s.replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
@@ -278,7 +279,7 @@ suite=installSuite({auth,db,role:CHAT_ROLE,delivery,getChat:()=>currentChatView,
 $("enterChat").onclick=()=>{history.pushState({salonChat:true},"","#chat");showCustomerPage("chat")};
 $("leaveChat").onclick=()=>{history.replaceState(null,"",location.pathname+location.search);showCustomerPage("inbox")};
 function restoreNotificationRoute(){if(uid&&profileReady)showCustomerPage(location.hash==="#chat"?"chat":"inbox");}
-function requestNotificationChat(){history.replaceState(null,"","#inbox");if(uid&&profileReady)showCustomerPage("inbox");}
+function requestNotificationChat(){history.replaceState(null,"","#chat");if(uid&&profileReady){showCustomerPage("chat");resumeVisibleReads(true);}}
 window.addEventListener("popstate",restoreNotificationRoute);
 window.addEventListener("hashchange",restoreNotificationRoute);
 window.addEventListener('salon:open-notification',requestNotificationChat);
@@ -293,5 +294,6 @@ function recoverCustomerView(){if(document.hidden)return;document.body.classList
 window.addEventListener('pageshow',recoverCustomerView);document.addEventListener('visibilitychange',recoverCustomerView);
 
 </script></body></html>
+
 
 
