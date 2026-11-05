@@ -5,6 +5,7 @@ const doc=x=>({fields:pack(x).mapValue.fields});const saved=new Map(),jobs=new M
 const context=vm.createContext({Response,Request,URLSearchParams,AbortController,TextEncoder,Uint8Array,atob,btoa,setTimeout,clearTimeout,console,fetch:async(url,opt={})=>{const u=String(url),body=opt.body?JSON.parse(opt.body):{},ok=x=>Response.json(x),missing=()=>Response.json({error:{status:'NOT_FOUND'}},{status:404});
  if(u.includes('accounts:lookup'))return ok({users:[{localId:body.idToken}]});
  if(u===root+'announcements/settings')return ok(doc({keywordRepliesEnabled:true,quickReplies:[{title:'預約',answer:'請留下方便的時間'}]}));
+ if(u.startsWith(root+'customerNotes/'))return missing();
  if(u.startsWith(root+'users/'))return ok(doc({name:'測試',status:u.includes('/pending')?'pending':u.includes('/blocked')?'blocked':'active'}));
  if(u.includes('/notificationJobs/')){const key=u.split('?')[0];if(!opt.method)return jobs.has(key)?ok({...jobs.get(key),updateTime:'2026-01-01T00:00:00Z'}):missing();if(u.includes('exists=false')&&jobs.has(key))return Response.json({error:{status:'ALREADY_EXISTS'}},{status:409});jobs.set(key,body);return ok(body);}
  if(u.includes('/devices?'))return ok({documents:[doc({token:u.split('/pushTokens/')[1].split('/')[0]})]});

@@ -3,3 +3,18 @@ body.adminApp #adminHome .toolItem>span{border:1px solid rgba(255,255,255,.85)!i
 body.adminApp #adminHome .toolItem>span svg{width:27px!important;height:27px!important;stroke-width:1.45;stroke-linecap:round;stroke-linejoin:round}
 body.adminApp #adminHome .toolItem>span svg path,body.adminApp #adminHome .toolItem>span svg circle,body.adminApp #adminHome .toolItem>span svg rect{vector-effect:non-scaling-stroke}
 body.adminApp .bottomNav .salonIcon{stroke-width:1.5}
+/* Quiet pearl surfaces and consistent fine-line symbols, owner side only. */
+body.adminApp #adminHome .toolItem>span{background:linear-gradient(145deg,#ffffffd9,#e9efedb3)!important;color:#536661!important}
+body.adminApp dialog.roomOptions .menuCard,body.adminApp dialog.roomOptions .roundActions button,body.adminApp dialog.roomOptions #saveRoomDesigner{background:linear-gradient(145deg,rgba(255,255,255,.88),rgba(231,238,235,.72))!important;color:#354741!important;border:1px solid rgba(255,255,255,.92)!important;box-shadow:0 4px 14px #344c4310,inset 0 1px 0 #fff!important;border-radius:22px!important;min-height:64px}
+body.adminApp dialog.roomOptions .menuCard{display:flex;align-items:center;gap:12px;width:100%;margin:10px 0;padding:14px 18px;text-align:left}
+body.adminApp dialog.roomOptions .menuCard>span:last-child{margin-left:auto}
+body.adminApp dialog.roomOptions .menuCard small{display:block;font-size:12px;color:#73817b;font-weight:400;margin-top:3px}
+body.adminApp dialog.roomOptions .roundActions{gap:12px}
+body.adminApp dialog.roomOptions .roundActions button{min-height:98px;padding:16px 8px;gap:10px;font-weight:500}
+body.adminApp dialog.roomOptions svg{width:25px;height:25px;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+body.adminApp dialog.roomOptions #roomBlock{color:#855f5b!important}
+body.adminApp dialog.roomOptions{max-height:85dvh;overflow-y:auto}
+body.adminApp .designerFilter{display:grid;grid-template-columns:auto minmax(100px,1fr);gap:8px 12px;align-items:center;font-size:14px;color:#536661;padding:8px 0}
+body.adminApp .designerFilter small{grid-column:1/-1;font-size:12px;color:#77847f}
+body.adminApp .designerFilter select,body.adminApp .roomOptions select{width:100%;min-height:44px;border:1px solid #d7e0db;border-radius:14px;background:#ffffffbc;color:#354741;padding:8px 12px}
+body.adminApp .assignedDesigner{display:block;font-size:11px;line-height:1.5;color:#71847a;font-weight:400}

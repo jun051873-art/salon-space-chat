@@ -1,0 +1,12 @@
+import fs from 'node:fs';import assert from 'node:assert/strict';
+const mod=await import('data:text/javascript;base64,'+Buffer.from(fs.readFileSync('admin-designers.js','utf8')).toString('base64'));
+const rows=[{id:'a',assignedDesignerId:'tao',lastCustomerMessageAt:{seconds:10},updatedAt:999999},{id:'b',assignedDesignerId:'nana',lastAdminMessageAt:20000},{id:'c',lastCustomerMessageAt:30000},{id:'d',assignedDesignerId:'tao',lastCustomerMessageAt:40000}];
+assert.deepEqual(mod.filterDesignerRooms(rows).map(x=>x.id),['d','c','b','a']);
+assert.deepEqual(mod.filterDesignerRooms(rows,'tao').map(x=>x.id),['d','a']);
+assert.deepEqual(mod.filterDesignerRooms(rows,'').map(x=>x.id),['c']);
+assert.equal(mod.assignedDesignerLabel(rows[2]),'未指定');
+assert.equal(mod.assignedDesignerLabel(rows[0],{designers:[{id:'tao',name:'小桃'}]}),'小桃');
+assert(mod.designerFilterOptions({},rows).some(x=>x.id==='nana'));
+assert.deepEqual(rows.map(x=>x.id),['a','b','c','d'],'sorting cannot mutate source');
+const source=fs.readFileSync('salon-suite.js','utf8');assert(source.includes('tx.update(ref,patch)'));assert(source.includes("d.classList.add('roomOptions')"));
+console.log('PASS designer assignment, unassigned, filters, latest-message ordering, deleted designer retention, no source mutation');

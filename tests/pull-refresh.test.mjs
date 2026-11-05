@@ -1,6 +1,6 @@
 import fs from 'node:fs';import assert from 'node:assert/strict';
 const {mountPullRefresh}=await import('data:text/javascript;base64,'+Buffer.from(fs.readFileSync('pull-refresh.js')).toString('base64'));
-const handlers={},arrow={style:{}},label={},hint={hidden:true,setAttribute(){},classList:{add(){},remove(){}},querySelector(s){return s.includes('Arrow')?arrow:label},remove(){}};
+const handlers={},arrow={style:{}},label={},hint={style:{setProperty(){}},hidden:true,setAttribute(){},classList:{add(){},remove(){},toggle(){}},querySelector(s){return s.includes('Arrow')?arrow:label},remove(){}};
 let allowed=true,dialog=false,refreshes=0,resolve,prevented=0;
 const body={},doc={body:{append(){}},defaultView:{scrollY:0},scrollingElement:{scrollTop:0},createElement:()=>hint,querySelector:()=>dialog?{}:null,addEventListener(n,f){handlers[n]=f},removeEventListener(n){delete handlers[n]}};
 const stop=mountPullRefresh({doc,enabled:()=>allowed,refresh:()=>{refreshes++;return new Promise(r=>resolve=r)}});

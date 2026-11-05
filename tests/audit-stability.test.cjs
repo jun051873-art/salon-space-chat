@@ -15,7 +15,7 @@ vm.runInContext(source.slice(start,end),c);
  await assert.rejects(c.reviseMessage({room:'a'},'m',{text:' '}),/1–4000/);
  console.log('PASS edits/retractions: permission, existing retraction, payload allowlist, stable room, latest preview race');
  // Execute the actual startup tail with its removed guide absent. The regression used to throw before listeners registered.
- const html=fs.readFileSync('customer.html','utf8'),tail=html.slice(html.indexOf('$("closeGuideRibbon")'),html.indexOf('</script></body>'));
+ const html=fs.readFileSync('customer.html','utf8'),tail=html.slice(html.indexOf('$("closeGuideRibbon")'),html.indexOf('</script>',html.indexOf('$("closeGuideRibbon")')));
  const events=[],ctx=vm.createContext({$:()=>null,document:{addEventListener:n=>events.push(n)},window:{addEventListener:n=>events.push(n)},sessionStorage:{getItem:()=>null}});
  vm.runInContext(tail,ctx);assert(events.includes('pageshow'));assert(events.includes('visibilitychange'));
  console.log('PASS absent guide does not abort background recovery setup');
