@@ -3,9 +3,9 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('nod
  const html=fs.readFileSync('customer.html','utf8'),handlers={},swHandlers={},pages=[];
  const ctx={resumeVisibleReads(){},uid:undefined,profileReady:false,location:{hash:''},history:{replaceState:(_,__,hash)=>ctx.location.hash=hash},showCustomerPage:p=>pages.push(p),window:{addEventListener:(n,f)=>handlers[n]=f},navigator:{serviceWorker:{addEventListener:(n,f)=>swHandlers[n]=f}}};
  vm.runInNewContext(html.slice(html.indexOf('function restoreNotificationRoute()'),html.indexOf('$("chatShortcuts").onclick')),ctx);
- swHandlers.message({data:{type:'OPEN_NOTIFICATION_URL'}});assert.equal(ctx.location.hash,'#inbox');assert.equal(pages.length,0,'not accessible before auth');
- ctx.uid='test';ctx.profileReady=true;handlers.hashchange();assert.deepEqual(pages,['inbox']);
- ctx.location.hash='';handlers.hashchange();assert.equal(pages.at(-1),'inbox');handlers['salon:open-notification']();assert.equal(pages.at(-1),'inbox');
+ swHandlers.message({data:{type:'OPEN_NOTIFICATION_URL'}});assert.equal(ctx.location.hash,'#chat');assert.equal(pages.length,0,'not accessible before auth');
+ ctx.uid='test';ctx.profileReady=true;handlers.hashchange();assert.deepEqual(pages,['chat']);
+ ctx.location.hash='';handlers.hashchange();assert.equal(pages.at(-1),'inbox');handlers['salon:open-notification']();assert.equal(pages.at(-1),'chat');
  const sw=fs.readFileSync('firebase-messaging-sw.js','utf8'),events={},calls=[];let pending;
  const origin='https://example.test',url=origin+'/salon-space-chat/customer.html#chat';
  const client={url:origin+'/salon-space-chat/customer.html',navigate:async dest=>{calls.push(['navigate',dest]);return client},postMessage:m=>calls.push(['message',m.url]),focus:async()=>calls.push(['focus'])};
@@ -14,6 +14,8 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('nod
  const click=()=>events.notificationclick({notification:{close(){},data:{url}},stopImmediatePropagation(){},waitUntil:p=>pending=p});click();await pending;assert.deepEqual(calls,[['navigate',url],['message',url],['focus']]);
  calls.length=0;client.url=url;click();await pending;assert.deepEqual(calls,[['message',url],['focus']],'existing chat wakes without reload');client.url=origin+'/salon-space-chat/customer.html';
  calls.length=0;client.navigate=async()=>{throw Error('unavailable')};click();await pending;assert.deepEqual(calls,[['message',url],['focus']]);
+ calls.length=0;sc.self.navigator.userAgent='Android';click();await pending;assert.deepEqual(calls,[['message',url],['focus']],'Android resumes existing customer window');
+ calls.length=0;client.focus=async()=>{throw Error('discarded')};click();await pending;assert.deepEqual(calls,[['message',url],['open',url]],'focus rejection falls back to opening chat');
  calls.length=0;sc.self.clients.matchAll=async()=>[];click();await pending;assert.deepEqual(calls,[['open',url]]);
  console.log('PASS notification route: loading auth retains intent, hash resume, iPhone existing-window URL, navigation fallback, cold launch');
 })().catch(e=>{console.error(e);process.exit(1)});
@@ -43,3 +45,13 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('nod
  await handler({data:{automatic:'true',recipientRole:'admin'}});assert.equal(shown,2);
  console.log('PASS notification inbox routing and automatic-owner suppression; customer messages preserved');
 })().catch(e=>{console.error(e);process.exit(1)});
+
+
+// Chat shell is available after access validation; quick replies must not hold the cover.
+{
+ const html=fs.readFileSync('customer.html','utf8');
+ assert.ok(html.includes('releaseCoverAfter(id==="chat"?undefined:rendered,splash,'));
+ assert.ok(html.includes('<p class="startupHelp" hidden>'));
+ assert.ok(html.includes("showCustomerPage(location.hash==='#chat'?'chat':'inbox')"));
+ console.log('PASS cold chat route and nonblocking chat cover; startup recovery remains available');
+}

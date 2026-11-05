@@ -1,4 +1,4 @@
-importScripts('./push-presentation.js?v=N3');
+importScripts('./push-presentation.js?v=N4');
 const NOTIFICATION_VERSION='N6';
 const BRAND_CACHE='salon-notification-brand-v1';
 const BRAND_URL='/salon-space-chat/__notification_brand__';
@@ -18,7 +18,8 @@ self.addEventListener('notificationclick',event=>{
   const destination=SalonPush.destination(event.notification?.data?.url,self.location.origin);
   const list=await self.clients.matchAll({type:'window',includeUncontrolled:true});
   const isApple=/iPhone|iPad|iPod|Macintosh/i.test(self.navigator?.userAgent||'');
-  if(isApple){for(const client of list){
+  const customerTarget=destination.pathname==='/salon-space-chat/customer.html';
+  if(isApple||customerTarget){for(const client of list){
    const current=new URL(client.url);
    if(current.origin===destination.origin && current.pathname===destination.pathname){
     // Keep the target in the URL even if auth is still loading or a suspended
@@ -26,7 +27,7 @@ self.addEventListener('notificationclick',event=>{
     let target=client;
     try{if(current.href!==destination.href&&client.navigate)target=await client.navigate(destination.href)||client;}catch{}
     target.postMessage({type:'OPEN_NOTIFICATION_URL',url:destination.href});
-    if('focus' in target)return target.focus();
+    if('focus' in target){try{return await target.focus();}catch{/* A discarded window must fall back to a fresh launch. */}}
    }
   }}
   return self.clients.openWindow?.(destination.href);
@@ -51,4 +52,5 @@ messaging.onBackgroundMessage(async payload=>{
  const {title,options}=SalonPush.notification(d,brand,self.location.origin);
  try{await self.registration.showNotification(title,options);await saveDiag({stage:"shown",data:d}).catch(()=>{});}catch(e){await saveDiag({stage:"show-error",error:String(e),data:d}).catch(()=>{});}
 });
+
 
