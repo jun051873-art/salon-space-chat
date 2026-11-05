@@ -1,9 +1,9 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 (async()=>{
  const html=fs.readFileSync('customer.html','utf8'),handlers={},swHandlers={},pages=[];
- const ctx={resumeVisibleReads(){},uid:undefined,profileReady:false,location:{hash:''},history:{replaceState:(_,__,hash)=>ctx.location.hash=hash},showCustomerPage:p=>pages.push(p),window:{addEventListener:(n,f)=>handlers[n]=f},navigator:{serviceWorker:{addEventListener:(n,f)=>swHandlers[n]=f}}};
+ const ctx={document:{documentElement:{dataset:{}}},resumeVisibleReads(){},uid:undefined,profileReady:false,location:{hash:''},history:{replaceState:(_,__,hash)=>ctx.location.hash=hash},showCustomerPage:p=>pages.push(p),window:{addEventListener:(n,f)=>handlers[n]=f},navigator:{serviceWorker:{addEventListener:(n,f)=>swHandlers[n]=f}}};
  vm.runInNewContext(html.slice(html.indexOf('function restoreNotificationRoute()'),html.indexOf('$("chatShortcuts").onclick')),ctx);
- swHandlers.message({data:{type:'OPEN_NOTIFICATION_URL'}});assert.equal(ctx.location.hash,'#chat');assert.equal(pages.length,0,'not accessible before auth');
+ swHandlers.message({data:{type:'OPEN_NOTIFICATION_URL'}});assert.equal(ctx.location.hash,'#chat');assert.equal(ctx.document.documentElement.dataset.notificationChat,'pending');assert.equal(pages.length,0,'not accessible before auth');
  ctx.uid='test';ctx.profileReady=true;handlers.hashchange();assert.deepEqual(pages,['chat']);
  ctx.location.hash='';handlers.hashchange();assert.equal(pages.at(-1),'inbox');handlers['salon:open-notification']();assert.equal(pages.at(-1),'chat');
  const sw=fs.readFileSync('firebase-messaging-sw.js','utf8'),events={},calls=[];let pending;
