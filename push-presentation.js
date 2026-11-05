@@ -19,7 +19,7 @@
     const originalTitle=String(data.title||brand.name||'沙龍訊息');
     const parts=originalTitle.split(/[｜|]/);
     const compactTitle=parts.length>1?(role==='admin'?parts[0]:parts.slice(1).join('｜')).trim():originalTitle.trim();
-    const title=role==='customer'?'店家回覆':compactTitle||'客人新訊息';
+    const title=role==='customer'?'專屬空間':compactTitle||'客人新訊息';
     let body=String(data.body||'您有一則新訊息').trim();
     // Older Worker builds included the notification title as the first line
     // of the body. Strip that line so existing deployments still look clean.
@@ -38,6 +38,7 @@
   }
   root.SalonPush={palette,iconPath,destination,notification};
 })(globalThis);
+
 
 
 

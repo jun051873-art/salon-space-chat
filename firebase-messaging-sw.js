@@ -1,4 +1,4 @@
-importScripts('./push-presentation.js?v=N6');
+importScripts('./push-presentation.js?v=N7');
 const NOTIFICATION_VERSION='N6';
 const BRAND_CACHE='salon-notification-brand-v1';
 const BRAND_URL='/salon-space-chat/__notification_brand__';
@@ -52,6 +52,7 @@ messaging.onBackgroundMessage(async payload=>{
  const {title,options}=SalonPush.notification(d,brand,self.location.origin);
  try{await self.registration.showNotification(title,options);await saveDiag({stage:"shown",data:d}).catch(()=>{});}catch(e){await saveDiag({stage:"show-error",error:String(e),data:d}).catch(()=>{});}
 });
+
 
 
 
