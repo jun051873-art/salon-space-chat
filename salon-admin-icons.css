@@ -1,10 +1,10 @@
 /* Restore original homepage layout; only refine existing icon artwork. */
-body.adminApp #adminHome .toolItem>span{border:1px solid rgba(255,255,255,.85)!important;box-shadow:inset 0 1px 2px rgba(255,255,255,.85),0 3px 9px rgba(68,55,80,.035)!important}
+body.adminApp #adminHome .toolItem>span:not(.countBadge){border:1px solid rgba(255,255,255,.85)!important;box-shadow:inset 0 1px 2px rgba(255,255,255,.85),0 3px 9px rgba(68,55,80,.035)!important}
 body.adminApp #adminHome .toolItem>span svg{width:27px!important;height:27px!important;stroke-width:1.45;stroke-linecap:round;stroke-linejoin:round}
 body.adminApp #adminHome .toolItem>span svg path,body.adminApp #adminHome .toolItem>span svg circle,body.adminApp #adminHome .toolItem>span svg rect{vector-effect:non-scaling-stroke}
 body.adminApp .bottomNav .salonIcon{stroke-width:1.5}
 /* Quiet pearl surfaces and consistent fine-line symbols, owner side only. */
-body.adminApp #adminHome .toolItem>span{background:linear-gradient(145deg,#ffffffd9,#e9efedb3)!important;color:#536661!important}
+body.adminApp #adminHome .toolItem>span:not(.countBadge){background:linear-gradient(145deg,#ffffffd9,#e9efedb3)!important;color:#536661!important}
 body.adminApp dialog.roomOptions .menuCard,body.adminApp dialog.roomOptions .roundActions button,body.adminApp dialog.roomOptions #saveRoomDesigner{background:linear-gradient(145deg,rgba(255,255,255,.88),rgba(231,238,235,.72))!important;color:#354741!important;border:1px solid rgba(255,255,255,.92)!important;box-shadow:0 4px 14px #344c4310,inset 0 1px 0 #fff!important;border-radius:22px!important;min-height:64px}
 body.adminApp dialog.roomOptions .menuCard{display:flex;align-items:center;gap:12px;width:100%;margin:10px 0;padding:14px 18px;text-align:left}
 body.adminApp dialog.roomOptions .menuCard>span:last-child{margin-left:auto}
@@ -18,3 +18,9 @@ body.adminApp .designerFilter{display:grid;grid-template-columns:auto minmax(100
 body.adminApp .designerFilter small{grid-column:1/-1;font-size:12px;color:#77847f}
 body.adminApp .designerFilter select,body.adminApp .roomOptions select{width:100%;min-height:44px;border:1px solid #d7e0db;border-radius:14px;background:#ffffffbc;color:#354741;padding:8px 12px}
 body.adminApp .assignedDesigner{display:block;font-size:11px;line-height:1.5;color:#71847a;font-weight:400}
+
+/* Badges are alerts, never themed icon backgrounds. */
+body.adminApp #adminHome .toolItem>span.countBadge,body.adminApp .countBadge{background:#c63935!important;color:#fff!important;border:2px solid #fff!important;box-shadow:0 2px 7px #822c3030!important}
+body.adminApp #newCustomerAlert{background:#fff0ef!important;color:#a82e2c!important;border:1px solid #edc1bd!important}
+body.adminApp #newCustomerAlert[hidden],body.adminApp .countBadge[hidden]{display:none!important}
+.mergedRoomRow{display:flex;gap:8px;align-items:center;margin:8px 0}.mergedRoomRow>button:first-child{flex:1}.mergedRoomRow .linkBtn{font-size:13px}
