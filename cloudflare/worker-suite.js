@@ -11,7 +11,7 @@ export default {
  async fetch(request, env, ctx) {
   const cors = {"Access-Control-Allow-Origin":SITE,"Access-Control-Allow-Methods":"GET, POST, OPTIONS","Access-Control-Allow-Headers":"Content-Type, Authorization","Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store","Vary":"Origin"};
   if(request.method === "OPTIONS") return new Response(null,{status:204,headers:cors});
-  if(request.method === "GET") return json({ok:true,service:"salon-space-notify",version:"14-active-chat-autoreply",authenticated:true,features:{activeChatAutoReplySuppression:true,newCustomerNotifications:true,timeReplies:true,keywordReplies:true,keywordContains:true,scheduledCare:true,visitCare:true,personalVisitCare:true,appointmentReminders:true}},200,cors);
+  if(request.method === "GET") return json({ok:true,service:"salon-space-notify",version:"15-unified-conversations",authenticated:true,features:{unifiedConversations:true,activeChatAutoReplySuppression:true,newCustomerNotifications:true,timeReplies:true,keywordReplies:true,keywordContains:true,scheduledCare:true,visitCare:true,personalVisitCare:true,appointmentReminders:true}},200,cors);
   if(request.method !== "POST") return json({ok:false,error:"METHOD_NOT_ALLOWED"},405,cors);
   try {
    if(request.headers.get("Origin") && request.headers.get("Origin") !== SITE) throw fault("ORIGIN_NOT_ALLOWED",403);
@@ -42,9 +42,11 @@ export default {
    const message = msg.fields?.text?.stringValue;
    if(typeof message !== "string") throw fault("MESSAGE_NOT_READY",409);
    const customer=fieldsOf(await readJSON(docRoot+'users/'+encodeURIComponent(room),{headers:{Authorization:'Bearer '+accessToken}},'CUSTOMER'));
-   if((customer.status||'active')!=='active')throw fault('CUSTOMER_INACTIVE',403);
+   if(toAdmin&&((customer.status||'active')!=='active'||customer.adminDeleted))throw fault('CUSTOMER_INACTIVE',403);
+   if(!toAdmin&&!customer.conversationId&&(customer.status||'active')!=='active')throw fault('CUSTOMER_INACTIVE',403);
+   if(toAdmin&&customer.conversationId){const g=fieldsOf(await readJSON(docRoot+'conversations/'+encodeURIComponent(customer.conversationId),{headers:{Authorization:'Bearer '+accessToken}},'CONVERSATION'));if(g.blocked||g.state!=='active'||!g.memberIds?.includes(user.localId))throw fault('CUSTOMER_INACTIVE',403);}
    if(toAdmin){const job=automaticReply(env,docRoot,accessToken,room,body.messageId,message,msg.fields?.createdAt?.timestampValue).catch(e=>console.error("auto-reply",e.code||e.message));if(ctx?.waitUntil)ctx.waitUntil(job);else await job;}
-   const tokens = await recipientTokens(docRoot,recipient,accessToken);
+   const tokens = toAdmin?await recipientTokens(docRoot,recipient,accessToken):await conversationTokens(docRoot,recipient,accessToken);
    if(!tokens.length) return json({ok:false,error:"NO_DEVICE_TOKENS",target:toAdmin?"admin":"customer",devices:0,success:0,failed:0},404,cors);
    const url = SITE+"/salon-space-chat/"+(toAdmin?"admin.html?chat="+encodeURIComponent(room):"customer.html");
    const configuration=await salonConfig(docRoot,accessToken),shopName=configuration.name||'專屬空間';
@@ -99,6 +101,22 @@ async function recipientTokens(root,uid,accessToken){
  try{const d=await readJSON(root+"pushTokens/"+encodeURIComponent(uid),{headers},"LEGACY_DEVICE");const t=d.fields?.token?.stringValue;if(t)tokens.add(t);}catch(e){if(e.status!==404)throw e;}
  return [...tokens];
 }
+async function conversationTokens(root,uid,token){
+ const headers={Authorization:'Bearer '+token};
+ const user=fieldsOf(await readJSON(root+'users/'+encodeURIComponent(uid),{headers},'CUSTOMER'));
+ if(!user.conversationId)return (user.status||'active')==='active'&&!user.adminDeleted?recipientTokens(root,uid,token):[];
+ const group=fieldsOf(await readJSON(root+'conversations/'+encodeURIComponent(user.conversationId),{headers},'CONVERSATION'));
+ if(group.blocked)return [];
+ if(group.state!=='active'||!Array.isArray(group.memberIds)||group.memberIds.length>20||!group.memberIds.includes(uid)||!group.historyRoomIds?.includes(uid))throw fault('CONVERSATION_NOT_READY',409);
+ const tokens=new Set();
+ for(const member of group.memberIds){
+  if(typeof member!=='string'||member.includes('/')||member===ADMIN_UID)throw fault('INVALID_CONVERSATION',409);
+  const account=fieldsOf(await readJSON(root+'users/'+encodeURIComponent(member),{headers},'MEMBER'));
+  if(account.role!=='customer'||account.status!=='active'||account.adminDeleted||account.conversationId!==user.conversationId)continue;
+  for(const value of await recipientTokens(root,member,token))tokens.add(value);
+ }
+ return [...tokens];
+}
 async function googleToken(env){
  if(!env.FIREBASE_PROJECT_ID || !env.FIREBASE_CLIENT_EMAIL || !env.FIREBASE_PRIVATE_KEY)throw fault("MISSING_FIREBASE_ENV",500);
  const cacheKey=env.FIREBASE_PROJECT_ID+":"+env.FIREBASE_CLIENT_EMAIL;
@@ -132,7 +150,7 @@ async function systemMessage(env,root,token,uid,id,text,customer={},shopName='�
  catch(e){if(e.code?.includes('ALREADY_EXISTS')||e.code?.includes('FAILED_PRECONDITION'))return false;throw e;}
  // Shared browser tokens may be registered under both customer and owner accounts.
  // Automatic messages remain in the conversation, but never alert an owner device.
- const [customerTokens,ownerTokens]=await Promise.all([recipientTokens(root,uid,token),recipientTokens(root,ADMIN_UID,token)]);
+ const [customerTokens,ownerTokens]=await Promise.all([conversationTokens(root,uid,token),recipientTokens(root,ADMIN_UID,token)]);
  const ownerDevices=new Set(ownerTokens);
  const tokens=customerTokens.filter(device=>!ownerDevices.has(device));
  const customerName=customer.name||'客人';
@@ -159,8 +177,13 @@ function hasActiveAdminChat(notes,now=Date.now()){
  });
 }
 async function adminViewingChat(root,token,uid){
- try{return hasActiveAdminChat(fieldsOf(await readJSON(root+'customerNotes/'+encodeURIComponent(uid),{headers:{Authorization:'Bearer '+token}},'ADMIN_PRESENCE')));}
- catch(e){if(e.status===404)return false;throw e;}
+ const direct=async id=>{try{return hasActiveAdminChat(fieldsOf(await readJSON(root+'customerNotes/'+encodeURIComponent(id),{headers:{Authorization:'Bearer '+token}},'ADMIN_PRESENCE')));}catch(e){if(e.status===404)return false;throw e;}};
+ if(await direct(uid))return true;
+ const user=fieldsOf(await readJSON(root+'users/'+encodeURIComponent(uid),{headers:{Authorization:'Bearer '+token}},'CUSTOMER'));
+ if(!user.conversationId)return false;
+ const group=fieldsOf(await readJSON(root+'conversations/'+encodeURIComponent(user.conversationId),{headers:{Authorization:'Bearer '+token}},'CONVERSATION'));
+ if(group.state!=='active'||!Array.isArray(group.historyRoomIds)||group.historyRoomIds.length>40)return false;
+ return (await Promise.all(group.historyRoomIds.filter(id=>id!==uid).map(direct))).some(Boolean);
 }
 async function automaticReply(env,root,token,uid,sourceId,text,sourceTime){
  if(await adminViewingChat(root,token,uid))return;
@@ -279,7 +302,7 @@ async function pushAppointment(env,root,token,queueDoc,now=Date.now()){
  try{
   const userDoc=await appointmentDoc(root,'users/'+job.userId,token),user=userDoc?fieldsOf(userDoc):null;
   if(!user||user.adminDeleted||user.adminMergedInto||(user.status||'active')!=='active'||user.marketingOptIn===false){await appointmentPatch(root,path,token,{appointmentPushDueAt:null,pushStatus:'excluded'},lease.updateTime);return;}
-  const customerTokens=await recipientTokens(root,job.userId,token),ownerTokens=new Set(await recipientTokens(root,ADMIN_UID,token)),tokens=customerTokens.filter(t=>!ownerTokens.has(t)),config=await salonConfig(root,token);
+  const customerTokens=await conversationTokens(root,job.userId,token),ownerTokens=new Set(await recipientTokens(root,ADMIN_UID,token)),tokens=customerTokens.filter(t=>!ownerTokens.has(t)),config=await salonConfig(root,token);
   const ttl=Math.max(1,Math.min(3600,Math.floor((job.appointmentAt-now)/1000)));
   for(const device of tokens.filter(t=>!delivered.has(t)).slice(0,5)){try{await readJSON('https://fcm.googleapis.com/v1/projects/'+env.FIREBASE_PROJECT_ID+'/messages:send',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({message:{token:device,data:{title:(user.name||'客人')+'｜'+(config.name||'專屬空間'),body:job.messageText.slice(0,500),messageId:job.messageId,automatic:'true',recipientRole:'customer',tag:'salon-'+job.userId+'-'+job.messageId,url:SITE+'/salon-space-chat/customer.html'},webpush:{headers:{Urgency:'high',TTL:String(ttl)}}}})},'APPOINTMENT_PUSH');delivered.add(device);}catch(e){console.error('appointment-push',e.code);}}
   pending=!tokens.length||tokens.some(t=>!delivered.has(t));

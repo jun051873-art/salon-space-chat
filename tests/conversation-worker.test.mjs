@@ -1,0 +1,13 @@
+import fs from 'node:fs';import vm from 'node:vm';import assert from 'node:assert/strict';
+const source=fs.readFileSync('cloudflare/worker-suite.js','utf8');
+const accounts={old:{role:'customer',status:'active',conversationId:'g'},new:{role:'customer',status:'active',conversationId:'g'},blocked:{role:'customer',status:'blocked',conversationId:'g'},mismatch:{role:'customer',status:'active',conversationId:'wrong'},deleted:{role:'customer',status:'active',adminDeleted:true,conversationId:'g'}};
+const group={state:'active',memberIds:Object.keys(accounts),historyRoomIds:Object.keys(accounts)};
+let deviceReads=[];
+const c=vm.createContext({console,setTimeout,clearTimeout,TextEncoder,Uint8Array,URLSearchParams,Response,fetch:()=>{throw Error('Unexpected network');}});
+vm.runInContext(source.replace('export default {','const worker={')+'\nglobalThis.api={conversationTokens,packValue};',c);
+c.readJSON=async url=>{const field=x=>Object.fromEntries(Object.entries(x).map(([k,v])=>[k,c.api.packValue(v)]));if(url.includes('users/'))return{fields:field(accounts[url.split('/').pop()])};if(url.includes('conversations/'))return{fields:field(group)};throw Error('unexpected '+url);};
+c.recipientTokens=async(root,uid)=>{deviceReads.push(uid);return [uid+'-device','shared-device'];};
+const tokens=await c.api.conversationTokens('https://test/','old','token');
+assert.deepEqual([...tokens].sort(),['new-device','old-device','shared-device']);assert.deepEqual(deviceReads,['old','new']);
+group.state='prepared';await assert.rejects(c.api.conversationTokens('https://test/','old','token'),/CONVERSATION_NOT_READY/);
+console.log('PASS Worker shared devices: deduplicated tokens, excludes revoked/deleted/mismatched members, inactive group rejected');
