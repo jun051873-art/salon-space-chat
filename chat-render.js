@@ -20,12 +20,12 @@ export function mergeOutboxRows(rows, entries) {
  const ids=new Set(rows.map(r=>r.id));
  const time=v=>typeof v==='number'?v:(v?.toMillis?.()??(v?.seconds*1000+(v.nanoseconds||0)/1e6))||0;
  const result=[...rows];
- const times=rows.map(r=>time(r.createdAt)).filter(t=>t>0);
- const oldest=times.length?Math.min(...times):0;
  for(const e of entries){
   if(ids.has(e.id))continue;
-  // A confirmed cloud message outside this window belongs to older pages.
-  if(e.stage!=='queued'&&(e.observed||oldest&&e.at<oldest))continue;
+  // Only unsent writes are optimistic messages. Notification retries are not
+  // messages: their cloud document may have been edited, retracted or paged out.
+  // Keep the durable retry record, but never resurrect its original text here.
+  if(e.stage!=='queued')continue;
   result.push({id:e.id,text:e.text,senderId:e.senderId,senderRole:e.role,createdAt:e.at,pending:e.stage==='queued',pendingFailure:e.stage==='queued'&&!!e.error,attachment:e.attachment,sticker:e.sticker});
  }
  return result.sort((a,b)=>time(a.createdAt)-time(b.createdAt));
