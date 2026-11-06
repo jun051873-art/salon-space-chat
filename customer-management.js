@@ -16,3 +16,19 @@ export function inboxRoomVisible(room,archived=false){
  const at=createdMillis(room.lastCustomerMessageAt);
  return !room.adminDeleted&&(archived?room.adminArchived===true:!room.adminArchived||at>Number(room.readAdminMs||0));
 }
+
+// Group only records explicitly mapped by the owner, never names or phone numbers.
+export function groupConversationRows(rows){
+ const groups=new Map();
+ for(const row of rows){const key=row.conversationId||row.id;const prior=groups.get(key);
+  if(!prior){groups.set(key,{...row,memberRows:[row],name:row.conversationName||row.name});continue;}
+  prior.memberRows.push(row);
+  const latest=createdMillis(row.updatedAt)>createdMillis(prior.updatedAt)?row:prior;
+  const members=prior.memberRows;groups.set(key,{...latest,memberRows:members,name:row.conversationName||prior.name});
+ }
+ return [...groups.values()].map(row=>{
+  if(!row.conversationId)return row;
+  const unread=row.memberRows.some(x=>createdMillis(x.lastCustomerMessageAt)>Number(x.readAdminMs||0));
+  return {...row,adminDeleted:row.memberRows.every(x=>x.adminDeleted),adminArchived:row.memberRows.every(x=>x.adminArchived),groupUnread:unread,readAdminMs:unread?0:Math.max(...row.memberRows.map(x=>Number(x.readAdminMs||0))),lastCustomerMessageAt:Math.max(...row.memberRows.map(x=>createdMillis(x.lastCustomerMessageAt)))};
+ });
+}

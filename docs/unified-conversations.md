@@ -1,87 +1,81 @@
-# Unified conversations — implementation contract, not enabled
+# Unified conversations — N115 rollout
 
-User decision (2026-11-06): the owner and customer must both see one combined
-conversation after the owner verifies and merges duplicate customer accounts.
-Removing an old card must not remove messages or invalidate the remaining
-conversation. Never merge on name or phone alone.
+Implementation replaces the original non-runtime prototype proposal. No production
+customer records are migrated automatically. Names and phones are candidate
+searches only; the owner must confirm both identities and existing groups.
 
-## Verified current constraints
+## Storage and compatibility
 
-- `chats/{uid}/messages` and `files` use the Firebase Auth UID as the room ID.
-- Existing `adminMergedInto`/`customerNotes.linkedCustomerIds` merely connect
-  owner-side cards. Customer security rules do not grant access to other UIDs.
-- Notification Worker v14 validates customerUid against authenticated UID and
-  reads a message from that UID's room. Changing a client room ID alone breaks
-  both notification authorization and Firestore authorization.
-- Main N114 remains enabled. This draft has NO production imports, no rule
-  modifications, no cloud deployment and no account/data mutations.
+`conversations/{id}` is the stable group identity. It holds owner-managed member
+UIDs, historical room IDs, primary card identity, revision and blocking state.
+Every account mapping and group record is changed in one Firestore transaction,
+with an owner-only audit record. Prior groups become redirects; account mappings
+are updated atomically. Maximum 20 accounts / 40 historical rooms per group.
 
-## Intended contract
+Messages and attachments remain at their ORIGINAL UID paths. New writes also use
+the authenticated customer's original room, or the room opened by the owner.
+This intentionally replaces the prototype's proposed new central message path:
+old app instances and offline queues keep writing their original authorized
+paths, and the shared reader sees those writes directly. There is no copy/delete
+migration, server bridge, or duplicate auto-reply caused by copying records.
 
-Create a stable, server-owned conversation identity independent of any member
-Auth UID. Keep customer-provided profiles separate from owner-private notes.
-Membership is explicitly approved by the owner; both account-side mapping and
-conversation membership must agree before any customer read is allowed.
+Each source has its own 30-message realtime window and pagination cursor. The
+combined timeline keys each message by source room and message ID, so identical
+IDs in two rooms cannot overwrite each other. Attachment reads, edits and
+retractions use original paths. Customers may edit only messages sent by their
+currently authenticated UID, even when their older messages appear on their side.
+Receipts are written separately to each loaded source room. Customer unread
+indicators watch all sources; owner inbox rows and unread counts group by the
+explicit owner-managed conversation ID.
 
-The owner sees one card per conversation. Each verified active customer member
-sees the same combined timeline. Card display identity can change while the
-conversation ID remains fixed. Hiding a card is separate from disabling an
-account; blocked/revoked/pending/deleted accounts cannot read shared history or
-receive notifications. A newly registered UID requires owner approval again.
+Hiding a linked entry never removes membership, history or login authorization.
+Merged secondary cards are hidden by their primary mapping. The single primary
+card is retained instead of allowing the user to accidentally remove their last
+entry. Block on the merged profile additionally blocks the shared group; previously
+revoked individual accounts are not activated by a merge or by group unblock.
 
-Store new messages in the stable conversation. Maintain server-owned aliases
-for old notification links. Keep old message/file paths as historical sources;
-render them in one time-ordered timeline with source-qualified identifiers.
-Never use message ID alone across historical rooms. Editing, retracting,
-downloading and receipts must operate on each message's original source.
-Do not expose owner-private notes, admin nicknames, unrelated bookings or other
-customer records through the conversation membership grant.
+## Authorization and notifications
 
-Push delivery must validate the authenticated sender's current membership and
-the actual stored message. Owner replies notify all currently active, verified
-member installations with token deduplication; blocked/revoked members are
-excluded. Customer messages notify the owner once. Conversation-based tags,
-click targets, unread counts and per-account receipts must agree on this ID.
+Only the owner writes groups, membership mappings and merge audit records.
+Shared readers must have an active customer account, not be deleted, and have
+both a matching account mapping and membership in an active, unblocked group.
+Private customerNotes and other users' profile documents stay owner-only/own-only.
+Shared access grants reads of conversation source data plus monotonic customer
+receipts, not arbitrary writes to another UID's room or messages.
 
-## Preparation / activation / recovery
+Worker v15 retains original per-UID authenticated message verification. Owner
+replies and automatic/reminder replies collect devices from active matching
+members and deduplicate tokens. Revoked, deleted and mismatched accounts are
+excluded. Existing old notification URLs retain their original room IDs; the
+updated reader resolves that room's group, so old links open the same timeline.
+Owner presence in any historical source suppresses automatic replies.
 
-1. Read authoritative account, chat, group and note documents, including prior
-   explicitly merged aliases. Resolve the full group; fail on cycles, missing
-   membership, inconsistent mappings or concurrent revision changes.
-2. Prepare an owner-only operation record, original mappings and expected
-   revisions. Read-only checks verify historical room/file access. Do not alter
-   live routing, statuses or existing messages in preparation.
-3. Deploy and test server membership authorization and the new Worker capability
-   before any client can activate a prepared group. Preserve v14 auto-reply,
-   presence suppression and reminder features.
-4. Implement the shared web client timeline, list grouping, receipts, attachment
-   source routing and old-notification aliases. APK/TWA loads this web code.
-   Do not treat rollout as complete merely because the HTML was deployed.
-5. Activation must atomically validate revisions and publish the group/mappings.
-   For merges larger than one transaction, stage data with an inactive operation
-   ID; readers must ignore it until an atomic activation pointer is committed.
-6. Old clients/queued messages need server bridging while they continue writing
-   old UID paths. Bridging must be idempotent, preserve server timestamps and
-   source identity, and avoid duplicate auto-replies, pushes and receipts.
-7. Rollback must preserve any new messages: freeze further merge changes, keep
-   the readable combined view or verified bridge, and only then revert mappings.
-   Never simply restore mappings after new shared messages exist.
+## Validation performed locally
 
-## Remaining work before release
+- Existing `npm test` regression suite.
+- `npm run test:conversations`: source-ID collisions, independent pagination,
+  stale callbacks on membership changes, pause/resume and Worker token filtering.
+- `npm run test:conversation-rules`: actual Firestore emulator tests for legacy
+  behavior, approved shared history/files, outsider isolation, forged membership,
+  blocked/revoked/deleted accounts, group blocking, owner merge atomicity/audit,
+  retained histories and owner/customer bidirectional live snapshots.
 
-This PR supplies only the executable model and tests, not the integrated feature.
-The following are outstanding and must not be represented as completed:
+## Rollout order (not yet deployed)
 
-- Access to the deployed Firebase project/rules and current Cloudflare Worker.
-- Server-owned groups, transactional merge endpoint, audit/rollback persistence.
-- Actual Firestore emulator tests for cross-member access, outsiders, removed
-  members, group forgery, files, reads, writes and private-note isolation.
-- Idempotent legacy message bridging and full historical pagination.
-- Shared client integration for list, timeline, edits/files, receipts and auth.
-- Push recipient and click routing, token deduplication and unread/badge behavior.
-- iOS owner/customer real-device tests: visible, background, home screen and
-  notification click; then Android web and installed APK regression testing.
+1. Apply the additive Firestore rules after retaining the current version.
+2. Deploy `cloudflare/worker-suite.js` as the existing salon-space-notify Worker.
+   Keep all environment secrets and existing Cron settings unchanged. GET must
+   report version `15-unified-conversations` and `unifiedConversations: true`.
+3. Release the complete N115 web change together. APK/TWA loads the same web
+   content; its native Android version stays 1.0.10, separate from web N115.
+4. Reload both owner and customer clients. Use two test accounts first. Verify
+   both histories, new messages in both directions, original attachments,
+   per-source read receipts, notification opening and badges. Then test iOS
+   home-screen/locked/background and Android APK. Actual device push delivery
+   has NOT been verified by local tests.
+5. Only then merge real duplicate customers after identity confirmation.
 
-Model validation: `node tests/conversation-merge-model.test.mjs`.
-Existing production behavior is intentionally unchanged until those dependencies
-can be connected and verified together.
+The merge UI refuses to activate groups unless the Worker advertises support.
+Missing rules fail the atomic transaction without changing accounts. Do not roll
+back to old clients after enabling groups: old clients see only their own source.
+Preserve rules, group mappings and messages while diagnosing any rollout problem.
