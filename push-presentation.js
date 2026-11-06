@@ -8,7 +8,12 @@
       const url=new URL(value||'./customer.html',origin+'/salon-space-chat/');
       if(url.origin!==origin || !/^\/salon-space-chat\/(admin|customer)\.html$/.test(url.pathname))throw Error('invalid destination');
       if(url.pathname.endsWith('/customer.html')){url.searchParams.set('openChat','1');url.hash='chat';}
-      else if(url.searchParams.has('chat')||url.hash.startsWith('#chat')){url.searchParams.delete('chat');url.searchParams.set('view','messages');url.hash='';}
+      else if(url.searchParams.has('chat')||url.hash.startsWith('#chat')){
+        const target=url.searchParams.get('chat')||decodeURIComponent(url.hash.slice(6));
+        if(target&&target.length<=128&&!/[\/\s?#\x00-\x1f]/.test(target)){url.searchParams.set('chat',target);url.searchParams.delete('view');}
+        else{url.searchParams.delete('chat');url.searchParams.set('view','messages');}
+        url.hash='';
+      }
       return url;
     }catch{return new URL('/salon-space-chat/customer.html?openChat=1#chat',origin);}
   }

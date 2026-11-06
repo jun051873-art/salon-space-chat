@@ -1,5 +1,5 @@
-importScripts('./push-presentation.js?v=N7');
-const NOTIFICATION_VERSION='N6';
+importScripts('./push-presentation.js?v=N113');
+const NOTIFICATION_VERSION='N113';
 const BRAND_CACHE='salon-notification-brand-v1';
 const BRAND_URL='/salon-space-chat/__notification_brand__';
 async function readBrand(){try{const response=await (await caches.open(BRAND_CACHE)).match(BRAND_URL);return response?await response.json():{};}catch{return {};}}
@@ -17,19 +17,20 @@ self.addEventListener('notificationclick',event=>{
  event.waitUntil((async()=>{
   const destination=SalonPush.destination(event.notification?.data?.url,self.location.origin);
   const list=await self.clients.matchAll({type:'window',includeUncontrolled:true});
-  const isApple=/iPhone|iPad|iPod|Macintosh/i.test(self.navigator?.userAgent||'');
-  const customerTarget=destination.pathname==='/salon-space-chat/customer.html';
-  if(isApple||customerTarget){for(const client of list){
+  for(const client of list){
    const current=new URL(client.url);
    if(current.origin===destination.origin && current.pathname===destination.pathname){
     // Keep the target in the URL even if auth is still loading or a suspended
     // page misses postMessage. Navigation keeps this installed app's identity.
+    // Preserve the installed customer's native-settings/version context.
+    const build=current.searchParams.get('appBuild');
+    if(destination.pathname.endsWith('/customer.html')&&/^[1-9]\d*$/.test(build||''))destination.searchParams.set('appBuild',build);
     let target=client;
     try{if(current.href!==destination.href&&client.navigate)target=await client.navigate(destination.href)||client;}catch{}
     target.postMessage({type:'OPEN_NOTIFICATION_URL',url:destination.href});
     if('focus' in target){try{return await target.focus();}catch{/* A discarded window must fall back to a fresh launch. */}}
    }
-  }}
+  }
   return self.clients.openWindow?.(destination.href);
  })());
 });
