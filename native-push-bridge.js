@@ -12,9 +12,14 @@ export function createNativePushBridge(env=globalThis){
  }
  env.addEventListener('message',e=>{
   if(!isNativePushApp(env)||e.origin!==env.location.origin||!e.ports?.[0])return;
-  let d;try{d=JSON.parse(e.data);}catch{return;}
-  if(d.protocol!=='SALON_NATIVE_PUSH'||d.type!=='HELLO')return;
-  port?.close?.();port=e.ports[0];port.onmessage=e=>receive(e.data);port.start?.();receive(d);
+  // Chrome transfers the port in an EMPTY bootstrap message. HELLO follows
+  // on that port; requiring JSON here discards the channel before registration.
+  let d=null;
+  if(e.data!==''){try{d=JSON.parse(e.data);}catch{return;}
+   if(d?.protocol!=='SALON_NATIVE_PUSH'||d.type!=='HELLO')return;
+  }
+  port?.close?.();port=e.ports[0];port.onmessage=e=>receive(e.data);port.start?.();
+  if(d)receive(d);
  });
  return {
   register(account){
