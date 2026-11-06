@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import {canReplaceSession,isReviewCustomer} from '../customer-review-policy.mjs';
+assert.equal(canReplaceSession(null,false),true);
+assert.equal(canReplaceSession({isAnonymous:true},false),true);
+assert.equal(canReplaceSession({isAnonymous:true},true),false);
+assert.equal(canReplaceSession({isAnonymous:false},false),false);
+assert.equal(canReplaceSession({isAnonymous:true},undefined),false);
+const good={role:'customer',status:'active',reviewAccess:true};
+assert.equal(isReviewCustomer('review',good,'admin'),true);
+for(const profile of [undefined,{}, {...good,status:'pending'},{...good,status:'blocked'},{...good,role:'admin'},{...good,reviewAccess:false}])assert.equal(isReviewCustomer('review',profile,'admin'),false);
+assert.equal(isReviewCustomer('admin',good,'admin'),false);
+console.log('Review session and profile boundaries passed');
