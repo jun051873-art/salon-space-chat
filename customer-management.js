@@ -10,3 +10,9 @@ export function olderCustomerPrimary(current,candidate){
  return candidateAt&&currentAt?candidateAt<currentAt?candidate:current:candidateAt&&!currentAt?candidate:current;
 }
 
+
+// Archived rooms with unread incoming messages must remain reachable in the inbox.
+export function inboxRoomVisible(room,archived=false){
+ const at=createdMillis(room.lastCustomerMessageAt);
+ return !room.adminDeleted&&(archived?room.adminArchived===true:!room.adminArchived||at>Number(room.readAdminMs||0));
+}

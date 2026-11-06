@@ -22,3 +22,12 @@ const {normalizeTheme}=await load('salon-theme.js');
 for(const direction of ['top','left','right'])assert.equal(normalizeTheme({greetingDirection:direction}).greetingDirection,direction);
 assert.equal(normalizeTheme({greetingDirection:'invalid'}).greetingDirection,'left');
 console.log('PASS: reversible removal, approval gating, broadcast exclusions, unread exclusion and greeting direction validation');
+
+const {inboxRoomVisible}=await load('customer-management.js');
+assert.equal(inboxRoomVisible({adminArchived:true,lastCustomerMessageAt:200,readAdminMs:100}),true);
+assert.equal(inboxRoomVisible({adminArchived:true,lastCustomerMessageAt:{seconds:2},readAdminMs:1000}),true);
+assert.equal(inboxRoomVisible({adminArchived:true,lastCustomerMessageAt:200,readAdminMs:200}),false);
+assert.equal(inboxRoomVisible({adminArchived:true},true),true);
+assert.equal(inboxRoomVisible({adminDeleted:true,lastCustomerMessageAt:200}),false);
+assert.equal(inboxRoomVisible({}),true);
+console.log('PASS unread archived/merged rooms remain reachable without restoring deleted identities');
