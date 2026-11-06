@@ -7,7 +7,7 @@ import {mountVisitCare,visitInstant,visitDate,personalCareId} from './visit-care
 import {mountWeatherSettings,mountHomeWeather} from './customer-weather.js?v=N68';
 import{DEFAULT_NOTICE,noticeView}from'./notice-model.js?v=2';
 import{designerList,designerChoices,validateDesigners}from'./designers.js?v=1';
-import {customerVisible,broadcastEligible,customerDeletionPatch,olderCustomerPrimary,inboxRoomVisible,groupConversationRows} from './customer-management.js?v=N115';
+import {customerVisible,broadcastEligible,customerDeletionPatch,olderCustomerPrimary,inboxRoomVisible,groupConversationRows,mergeCandidateVisible} from './customer-management.js?v=N116';
 import{bindPhotoViewer,openPhotoViewer}from'./photo-viewer.js?v=N44.1';
 import{openProfileScene}from'./profile-scene.js?v=N91-N66';
 import{saveCustomerProfile}from'./customer-profile.js?v=N43';
@@ -99,10 +99,11 @@ export function installSuite(ctx){
  }));
  }
  async function duplicateCustomer(u){
+  if(!demo){const fresh=await getDocFromServer(doc(db,'users',u.id));if(!fresh.exists())throw Error('找不到這筆顧客資料，請重新開啟');u={...u,...ownerView(fresh.data()),id:u.id};}
   let matches=(customers||[]).filter(x=>x.id!==u.id&&((x.phone&&x.phone.replace(/\D/g,'')===(u.phone||'').replace(/\D/g,''))||x.name===u.name));
   if(!demo){const values=[['phone',u.customerProvided?.phone||u.phone],['name',u.customerProvided?.name||u.name]].filter(([,v])=>v);for(const[k,v]of values){const result=await getDocsFromServer(query(collection(db,'users'),where(k,'==',v),limit(10)));matches.push(...result.docs.filter(d=>d.id!==u.id&&d.id!==ADMIN_UID).map(d=>({id:d.id,...ownerView(d.data())})));}}
-  matches=[...new Map(matches.map(x=>[x.id,x])).values()].filter(x=>!x.adminDeleted);
-  const d=modal('核對重複顧客',`<p class="simpleHelp">同名或同電話只是提醒，請先向本人確認。確認後會保留較早建立的舊檔作為主檔；新加入的資料會連結在舊檔下。確認合併後，兩邊會共用同一個對話畫面，保留所有歷史訊息。已合併的帳號群組也會一併納入。</p>${matches.map(x=>`<div class="suiteRow"><div class="grow"><b>${esc(x.name)}</b><small>${esc(x.phone||'')} · ${fmt(x.createdAt)}</small></div><button data-link-customer="${esc(x.id)}">合併管理</button></div>`).join('')||'<p>沒有找到完全相同姓名或電話的其他帳號。不同電話格式可在顧客列表搜尋核對。</p>'}`);
+  matches=[...new Map(matches.map(x=>[x.id,x])).values()].filter(x=>mergeCandidateVisible(u,x));
+  const d=modal('核對重複顧客',`<p class="simpleHelp">同名或同電話只是提醒，請先向本人確認。確認後會保留較早建立的舊檔作為主檔；新加入的資料會連結在舊檔下。確認合併後，兩邊會共用同一個對話畫面，保留所有歷史訊息。已合併的帳號群組也會一併納入。</p>${matches.map(x=>`<div class="suiteRow"><div class="grow"><b>${esc(x.name)}</b><small>${esc(x.phone||'')} · ${fmt(x.createdAt)}</small></div><button data-link-customer="${esc(x.id)}">合併管理</button></div>`).join('')||'<p>沒有尚未合併的同名或同電話帳號。已合併的帳號不會重複列出。</p>'}`);
   d.querySelectorAll('[data-link-customer]').forEach(button=>task(button,async()=>{
    const other=matches.find(x=>x.id===button.dataset.linkCustomer);if(!other)return;
    const primary=olderCustomerPrimary(u,other),secondary=primary.id===u.id?other:u;
@@ -112,7 +113,7 @@ export function installSuite(ctx){
     if(!ready.features?.unifiedConversations)throw Error('雲端共用聊天室服務尚未更新，這次沒有變更資料');
     await mergeConversations({db,doc,runTransaction,stamp,primaryUid:primary.id,secondaryUid:secondary.id});
    }
-   await loadCustomers(true);toast('已統一對話，歷史訊息完整保留');d.close();
+   await loadCustomers(true);toast('已統一對話，歷史訊息完整保留');d.close();if(activeTool==='customers'&&$('toolBody'))await customerPage($('toolBody'));
   }));
  }
  let stickerCache=null,stickerAt=0;
@@ -492,7 +493,7 @@ $('appointmentSettings').onclick=()=>appointmentSettings().catch(fail);const edi
   if(demo){body.textContent='操作範例不讀取真實對話。';return;}
   const recent=await getDocsFromServer(query(collection(db,'chats',v.room,'messages'),orderBy('createdAt','desc'),limit(1)));
   const latest=recent.docs[0]?.data();
-  body.innerHTML='<b>'+ (admin?'店家端':'客人端')+' · N114</b><p style="overflow-wrap:anywhere">聊天室：'+esc(v.room)+'</p><p>雲端最新訊息：'+esc(latest?(latest.retracted?'訊息已收回':latest.text||'附件'):'目前沒有訊息')+'<br>'+esc(latest?fmt(latest.createdAt):'')+'</p><p>此頁直接讀取雲端，不會傳訊或標記已讀。</p><button data-refresh-chat>重新連接這個聊天室</button>';
+  body.innerHTML='<b>'+ (admin?'店家端':'客人端')+' · N116</b><p style="overflow-wrap:anywhere">聊天室：'+esc(v.room)+'</p><p>雲端最新訊息：'+esc(latest?(latest.retracted?'訊息已收回':latest.text||'附件'):'目前沒有訊息')+'<br>'+esc(latest?fmt(latest.createdAt):'')+'</p><p>此頁直接讀取雲端，不會傳訊或標記已讀。</p><button data-refresh-chat>重新連接這個聊天室</button>';
   body.querySelector('[data-refresh-chat]').onclick=()=>{if(getChat()!==v)return;v.feed.pause();v.feed.start();d.close();};
   if(!admin)return;
   const note=(await getDocFromServer(doc(db,'customerNotes',v.room))).data()||{};

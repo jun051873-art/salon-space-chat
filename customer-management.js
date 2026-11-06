@@ -32,3 +32,6 @@ export function groupConversationRows(rows){
   return {...row,adminDeleted:row.memberRows.every(x=>x.adminDeleted),adminArchived:row.memberRows.every(x=>x.adminArchived),groupUnread:unread,readAdminMs:unread?0:Math.max(...row.memberRows.map(x=>Number(x.readAdminMs||0))),lastCustomerMessageAt:Math.max(...row.memberRows.map(x=>createdMillis(x.lastCustomerMessageAt)))};
  });
 }
+
+// Existing members of the same conversation are not merge candidates.
+export function mergeCandidateVisible(current,candidate){return candidate.id!==current.id&&!candidate.adminDeleted&&!(current.conversationId&&current.conversationId===candidate.conversationId);}
