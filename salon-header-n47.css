@@ -81,3 +81,11 @@ body.customerApp #enterChat .conversationCopy small{font-size:11px!important}
 body.customerApp #enterChat .conversationEnter{font-size:12px!important;padding:11px 12px!important}
 body.customerApp #customerNav,body.adminApp .bottomNav{background:linear-gradient(120deg,rgba(255,255,255,.48),rgba(233,242,240,.24),rgba(230,231,243,.34))!important;backdrop-filter:blur(14px) saturate(135%)!important;-webkit-backdrop-filter:blur(14px) saturate(135%)!important}
 @media(max-width:360px){body.customerApp #customerHeader .headerActions button,body.customerApp #customerHeader .notificationIndicator{width:34px!important;min-width:34px!important;flex-basis:34px!important}body.customerApp #enterChat{gap:8px!important;padding:14px 10px!important}body.customerApp #enterChat .conversationEnter{padding:10px!important;font-size:11px!important}}
+
+/* N112: reserve action space; long profile names stay within their own column. */
+body.customerApp #customerHeader .profileSwitch{flex:1 1 0%!important;min-width:0!important;max-width:none!important;margin-right:8px!important}
+body.customerApp #customerHeader #profileEntry{width:100%!important;min-width:0!important;max-width:100%!important;overflow:hidden!important}
+body.customerApp #customerHeader #profileEntry>svg,body.customerApp #customerHeader #profileEntry>.miniAvatar{flex-shrink:0!important}
+body.customerApp #customerHeader #profileEntry>span:last-child{flex:1 1 0%!important;min-width:0!important;max-width:100%!important;overflow:hidden!important}
+body.customerApp #customerHeader #profileEntry .profileEntryCopy>span{display:block!important;max-width:100%!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
+body.customerApp #customerHeader .headerActions,body.customerApp #customerHeader .notificationIndicator{flex-shrink:0!important}
