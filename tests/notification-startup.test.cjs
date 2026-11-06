@@ -28,7 +28,7 @@ const {JSDOM}=require('jsdom');
  const a=suite.indexOf('async function writeSharedReceipt('),b=suite.indexOf('function receiptIssue',a);vm.runInContext(suite.slice(a,b),rc);
  const c=suite.indexOf('async function writeReceipt('),d=suite.indexOf('async function reviseMessage',c);vm.runInContext(suite.slice(c,d),rc);
  await rc.writeReceipt();await rc.writeReceipt(true);await rc.writeSharedReceipt({},false);assert.equal(touched,0);
- const badgeCalls=[];const bc={navigator:{setAppBadge:n=>{badgeCalls.push(n);return Promise.resolve()},clearAppBadge:()=>{badgeCalls.push(0);return Promise.resolve()}}};vm.createContext(bc);vm.runInContext(fs.readFileSync('salon-unread.js','utf8').replaceAll('export ',''),bc);
+ const badgeCalls=[];const bc={clearCustomerNotifications:async()=>{},navigator:{setAppBadge:n=>{badgeCalls.push(n);return Promise.resolve()},clearAppBadge:()=>{badgeCalls.push(0);return Promise.resolve()}}};vm.createContext(bc);vm.runInContext(fs.readFileSync('salon-unread.js','utf8').replace(/^import .*\n/,'').replaceAll('export ',''),bc);
  bc.appPending(0);bc.appDot(0,false);assert.deepEqual(badgeCalls,[],'unconfirmed empty cache must not erase push badge');bc.appDot(2,true);bc.appPending(0);assert.deepEqual(badgeCalls,[2,2]);bc.appDot(0,true);assert.equal(badgeCalls.at(-1),0,'server-confirmed read may clear badge');
  dom.window.close();console.log('PASS real owner chat DOM: cold notification removes cover with stalled identity fetch; duplicate opens retain typing; 100 customer events do not reopen; covered chats never mark read');
 })().catch(e=>{console.error(e);process.exitCode=1});
