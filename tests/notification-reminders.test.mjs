@@ -47,3 +47,7 @@ console.log('PASS reminders: install/denied/unsupported states, saved-token read
 assert.ok(!panel.children.some(x=>x.textContent==='測試手機提示'),'customer has no test button in DOM');
 Notification.permission='granted';const ownerHost=new Element('main');const ownerHelp=mountNotificationHelp(ownerHost,async()=>{},'admin');ownerHelp.update(true);
 assert.ok(ownerHost.children[0].children.some(x=>x.textContent==='測試手機提示'&&!x.hidden),'admin retains testing');
+
+assert.equal(notificationState({...base,native:true,supported:false,permission:'denied',ready:true}),'ready','Native saved registration is independent of browser permission');
+assert.equal(notificationState({...base,native:true,permission:'granted',ready:false}),'enable','Native permission alone is not registration');
+assert.equal(notificationState({...base,native:true,nativeBlocked:true,ready:true}),'denied','Native permission blocked must never show success');
