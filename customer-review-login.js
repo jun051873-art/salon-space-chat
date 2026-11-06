@@ -3,6 +3,9 @@ import {getAuth, initializeAuth, inMemoryPersistence, browserLocalPersistence, s
 import {getFirestore, doc, getDoc} from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
 import {canReplaceSession, isReviewCustomer} from './customer-review-policy.mjs';
 const cfg={apiKey:"AIzaSyBS-lHTp1YPhhFOKriBRSrwdSomT3ZGw0c",authDomain:"salon-space-chat.firebaseapp.com",projectId:"salon-space-chat",storageBucket:"salon-space-chat.firebasestorage.app",messagingSenderId:"103245363547",appId:"1:103245363547:web:3f19674918bbf257a4c27e"};
+const appBuild=Number(new URL(location.href).searchParams.get('appBuild')||0);
+const customerTarget='./customer.html'+(Number.isSafeInteger(appBuild)&&appBuild>=5?'?appBuild='+appBuild:'');
+document.querySelector('a[href="./customer.html"]').href=customerTarget;
 const ADMIN='HcFJGmzHw6MYoWbFmtq9IyFSjvL2';
 const app=initializeApp(cfg), auth=getAuth(app), db=getFirestore(app);
 const form=document.getElementById('login'), button=document.getElementById('submit'), status=document.getElementById('status');
@@ -40,7 +43,7 @@ form.addEventListener('submit',async event=>{
     await setPersistence(auth,browserLocalPersistence);
     await signInWithCredential(auth,EmailAuthProvider.credential(email,password));
     document.getElementById('password').value='';
-    location.replace('./customer.html');
+    location.replace(customerTarget);
   }catch(error){showError(error);button.disabled=false;}
   finally{if(candidate){await signOut(getAuth(candidate)).catch(()=>{});await deleteApp(candidate);}}
 });
