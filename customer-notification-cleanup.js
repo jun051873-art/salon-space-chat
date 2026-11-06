@@ -1,4 +1,4 @@
-import {nativePushBridge,isNativePushApp} from './native-push-bridge.js?v=N125';
+import {nativePushBridge,isNativePushApp} from './native-push-bridge.js?v=N127';
 // Only clear notifications after the server confirms this customer has no unread messages.
 export async function clearCustomerNotifications(cutoff,stillRead,env=globalThis){
  if(!/Android/i.test(env.navigator.userAgent)||!stillRead())return;

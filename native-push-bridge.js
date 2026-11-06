@@ -5,12 +5,12 @@ export function createNativePushBridge(env=globalThis){
  const post=data=>port?.postMessage(JSON.stringify({protocol:'SALON_NATIVE_PUSH',...data}));
  function receive(raw){let d;try{d=typeof raw==='string'?JSON.parse(raw):raw;}catch{return;}
   if(d?.protocol!=='SALON_NATIVE_PUSH')return;
-  if(d.type==='HELLO'){phase='已連接 App，等待通知識別碼';if(pending)post({type:'REGISTER',uid});return;}
+  if(d.type==='HELLO'){post({type:'READY'});phase='已連接 App，等待通知識別碼';if(pending)post({type:'REGISTER',uid});return;}
   if(!pending||d.uid!==uid)return;
   if(d.type==='ERROR'){pending.reject(Error(d.value||'原生通知設定失敗'));return;}
   if(d.type==='TOKEN'&&typeof d.value==='string'&&d.value.length>20&&d.value.length<4096){last=d;pending.resolve({token:d.value,allowed:d.allowed===true});}
  }
- env.addEventListener('message',e=>{
+ const accept=e=>{
   if(!isNativePushApp(env)||e.origin!==env.location.origin||!e.ports?.[0])return;
   // Chrome transfers the port in an EMPTY bootstrap message. HELLO follows
   // on that port; requiring JSON here discards the channel before registration.
@@ -18,9 +18,11 @@ export function createNativePushBridge(env=globalThis){
   if(e.data!==''){try{d=JSON.parse(e.data);}catch{return;}
    if(d?.protocol!=='SALON_NATIVE_PUSH'||d.type!=='HELLO')return;
   }
-  phase='已收到連線通道，等待 App 回應';port?.close?.();port=e.ports[0];port.onmessage=e=>receive(e.data);port.start?.();
+  phase='已收到連線通道，等待 App 回應';port?.close?.();port=e.ports[0];port.onmessage=e=>receive(e.data);port.start?.();post({type:'READY'});
   if(d)receive(d);
- });
+ };
+ if(env.__salonNativeChannel){const inbox=env.__salonNativeChannel;inbox.accept=accept;if(inbox.pending){accept(inbox.pending);inbox.pending=null;}}
+ else env.addEventListener('message',accept);
  return {
   register(account){
    if(pending)return pending.promise;
@@ -35,4 +37,4 @@ export function createNativePushBridge(env=globalThis){
   settings(){post({type:'SETTINGS'});}
  };
 }
-export const nativePushBridge=typeof window==='undefined'?null:createNativePushBridge(window);
+export const nativePushBridge=typeof window==='undefined'?null:(window.__salonNativePushBridge ||= createNativePushBridge(window));
