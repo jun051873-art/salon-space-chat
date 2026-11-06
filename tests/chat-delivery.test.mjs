@@ -28,5 +28,5 @@ const retryStorage=new Storage(),retryKey='salon-outbox-v3:test-project:customer
 retryStorage.setItem(retryKey,JSON.stringify({id:'campaign-message',room:'customer-test',text:'already stored',senderId:'customer-test',role:'customer',at:1,stage:'notify-error',attempts:3,nextAt:999999,error:'push failed'}));
 let retryPushes=0,retryWrites=0;
 const rd=createDelivery({auth,projectId:'test-project',role:'customer',notify:async()=>{retryPushes++;},storage:retryStorage,request:async()=>{retryWrites++;throw Error('a notification retry must not write chat again')}});
-assert.equal(rd.retryFailed(['campaign-message']),1);await tick();assert.equal(retryPushes,1);assert.equal(retryWrites,0);assert.equal(rd.entries()[0].stage,'done');rd.stop();
+rd.acknowledge(['campaign-message']);assert.equal(rd.entries()[0].observed,true);assert.equal(rd.retryFailed(['campaign-message']),1);await tick();assert.equal(retryPushes,1);assert.equal(retryWrites,0);assert.equal(rd.entries().length,0,'confirmed and delivered entry is cleaned up');rd.stop();
 console.log('PASS failed broadcast retry reuses stored outbox entry and never duplicates the chat write.');

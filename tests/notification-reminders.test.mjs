@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-const load=async path=>import('data:text/javascript;base64,'+Buffer.from(await readFile(new URL(path,import.meta.url),'utf8')).toString('base64'));
+const load=async path=>import(new URL(path,import.meta.url));
 const {notificationState,mountNotificationHelp}=await load('../notification-help.js');
 const base={apple:false,standalone:false,supported:true,permission:'default',ready:false};
 assert.equal(notificationState(base),'enable');
@@ -27,6 +27,7 @@ class Element {
  setAttribute(){}
 }
 globalThis.window=globalThis;
+globalThis.location={href:'https://example.test/customer.html?appBuild=14'};
 globalThis.Notification={permission:'default'};
 globalThis.PushManager=function(){};
 globalThis.matchMedia=()=>({matches:false});

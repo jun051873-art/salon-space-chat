@@ -32,7 +32,7 @@ export function createDelivery({auth,projectId,role,notify,onChange,storage=loca
   }
   return entries.sort((a,b)=>a.at-b.at||a.id.localeCompare(b.id));
  }
- function save(e){storage.setItem(key(e),JSON.stringify(e));emit();}
+ function save(e){if(seen.has(e.id))e.observed=true;storage.setItem(key(e),JSON.stringify(e));emit();}
  function timeout(p,ms=15000){let t;return Promise.race([p,new Promise((_,reject)=>{t=setTimeout(()=>reject(Error("連線逾時，訊息仍保存在此裝置")),ms);})]).finally(()=>clearTimeout(t));}
  async function api(path,options={}){
   const user=auth.currentUser;if(!user)throw Error("尚未登入");
@@ -152,7 +152,7 @@ export function createDelivery({auth,projectId,role,notify,onChange,storage=loca
   if(!defer)void flush();return hydrate(e);
  }
  function enqueueMany(jobs){const added=[];try{for(const job of jobs){const existed=job.id&&storage.getItem(prefix+job.senderId+':'+job.id);const e=enqueue({...job,defer:true});if(!existed)added.push(e);}}catch(error){for(const e of added)storage.removeItem(key(e));collectAssets();throw error;}void flush();return added;}
- function acknowledge(ids){for(const id of ids)seen.add(id);for(const e of all())cleanup(e);}
+ function acknowledge(ids){for(const id of ids)seen.add(id);for(const e of all()){if(seen.has(e.id)&&!e.observed){e.observed=true;save(e);}cleanup(e);}}
  function pruneCampaign(campaignId){if(typeof campaignId!=='string'||!/^[A-Za-z0-9_-]{1,120}$/.test(campaignId))return 0;const start='b_'+campaignId+'_';let removed=0;for(const e of all()){if(e.id.startsWith(start)&&e.stage==='done'){storage.removeItem(key(e));removed++;}}if(removed)emit();return removed;}
  return {saveDraft,readDraft,enqueue,enqueueMany,flush,entries:all,acknowledge,api,retryFailed,
   pruneCampaign,

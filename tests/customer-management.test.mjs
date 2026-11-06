@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-const load=async file=>import('data:text/javascript;base64,'+Buffer.from(await readFile(new URL('../'+file,import.meta.url))).toString('base64'));
+const load=async file=>import(new URL('../'+file,import.meta.url));
 const {customerVisible,broadcastEligible,customerDeletionPatch}=await load('customer-management.js');
 const a={id:'customer',status:'active'};
 assert.equal(broadcastEligible(a,'owner'),true);
