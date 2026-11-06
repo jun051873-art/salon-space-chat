@@ -1,6 +1,6 @@
 // Bounded live window + explicit cursor pages. No writes, polling or offsets.
 export function createPagedFeed({subscribe,fetchPage,field,pageSize=30,onChange,onError,requestTimeout=15000}) {
- let docs=new Map(),liveIds=new Set(),cursor=null,more=false,ready=false;
+ let docs=new Map(),liveIds=new Set(),cursor=null,more=false,ready=false,paged=false;
  let unsubscribe=null,loading=false,epoch=0,pageEpoch=0,retryTimer=null,retryAttempts=0;
  function reconnect(){if(retryTimer)return;const delay=Math.min(30000,500*2**Math.min(retryAttempts++,6));retryTimer=setTimeout(()=>{retryTimer=null;start();},delay);}
  const compare=(a,b)=>{
@@ -19,7 +19,7 @@ export function createPagedFeed({subscribe,fetchPage,field,pageSize=30,onChange,
    retryAttempts=0;
    const incoming=new Set(s.docs.map(d=>d.id));
    const disconnectedGap=liveIds.size&&s.docs.length===pageSize&&!s.docs.some(d=>liveIds.has(d.id));
-   if(!ready||disconnectedGap){docs.clear();cursor=null;more=s.docs.length===pageSize;++pageEpoch;}
+   if(!ready||disconnectedGap){docs.clear();cursor=null;paged=false;more=s.docs.length===pageSize;++pageEpoch;}
    const boundary=s.docs[s.docs.length-1];
    // A document removed inside the current window was deleted; older evictions
    // stay visible without adding an unbounded realtime listener.
@@ -29,15 +29,14 @@ export function createPagedFeed({subscribe,fetchPage,field,pageSize=30,onChange,
    }
    for(const d of s.docs)docs.set(d.id,d);
    liveIds=incoming;ready=true;
-   if(!cursor)cursor=boundary||null;
-   if(s.docs.length<pageSize)more=false;
+   if(!paged){cursor=boundary||null;more=s.docs.length===pageSize;}
    emit(disconnectedGap?'reset':'live');
   },e=>{if(generation===epoch){++epoch;const stop=unsubscribe;unsubscribe=null;stop?.();onError(e);reconnect();}});
  }
  function pause(){++epoch;clearTimeout(retryTimer);retryTimer=null;unsubscribe?.();unsubscribe=null;}
  async function loadMore(){
   if(loading||!ready||!more||!cursor)return;
-  loading=true;emit('loading');const generation=pageEpoch,after=cursor;
+  paged=true;loading=true;emit('loading');const generation=pageEpoch,after=cursor;
   let timeoutId;
   try{
    const s=await Promise.race([fetchPage(after),new Promise((_,reject)=>{timeoutId=setTimeout(()=>reject(Error('載入較早訊息逾時，請再試一次')),requestTimeout);})]);

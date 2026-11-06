@@ -17,3 +17,11 @@ feed.destroy();assert.equal(active,0);next(snapshot(source));assert.equal(feed.e
 // Equal timestamps: snapshot cursor, deterministic document ID order, no timestamp-only paging.
 let tied;const f=createPagedFeed({field:'createdAt',subscribe:n=>{tied=n;return()=>{}},fetchPage:async()=>snapshot([]),onChange:s=>state=s,onError:e=>{throw e}});f.start();tied(snapshot([doc(2,1),doc(1,1)]));assert.deepEqual(state.docs.map(d=>d.id),['0002','0001']);f.destroy();
 console.log('PASS: 30-document live window, single listener, explicit 30-document pages, concurrent click suppression, new-message eviction retention, deletion, equal timestamps, stop/stale-callback isolation, reconnect gap recovery.');
+
+// A room opened empty must enable pagination when its live window fills.
+let growingNext,growingState,growingSource=[],pageCursor;
+const growing=createPagedFeed({field:'createdAt',subscribe:n=>{growingNext=n;return()=>{}},fetchPage:async c=>{pageCursor=c;return snapshot(growingSource.filter(d=>d.data().createdAt.seconds<c.data().createdAt.seconds).slice(0,30));},onChange:s=>growingState=s,onError:e=>{throw e}});
+growing.start();growingNext(snapshot([]));growingNext(snapshot([doc(1)]));
+growingSource=Array.from({length:60},(_,i)=>doc(60-i));growingNext(snapshot(growingSource.slice(0,30)));
+assert.equal(growingState.more,true);await growing.loadMore();assert.equal(pageCursor.id,'0031');assert.equal(growingState.docs.length,60);growing.destroy();
+console.log('PASS initially empty room grows beyond live window without losing pagination');

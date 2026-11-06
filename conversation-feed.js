@@ -1,4 +1,6 @@
-import {createPagedFeed} from './chat-feed.js?v=D5';
+// Cached documents must still emit the metadata-only server confirmation.
+export function watchServerDocument(subscribe,ref,next,error){return subscribe(ref,{includeMetadataChanges:true},snapshot=>{if(!snapshot.metadata.fromCache)next(snapshot.data());},error);}
+import {createPagedFeed} from './chat-feed.js?v=N117';
 // Every historical room retains its own cursor and original document path.
 export function createConversationFeed({room,watchAccount,watchGroup,makeSource,onGroup=()=>{},onChange,onError}) {
  let accountStop=null,groupStop=null,feeds=new Map(),states=new Map(),running=false,dead=false,generation=0,groupId=null,signature='';
