@@ -142,3 +142,9 @@ for(const [label,presence,expected]of [
  ['crashed app lease expires',{adminChatPresence:{phone:new Date(Date.now()-46000).toISOString()}},2]
 ]){const h=harness({presence,settings:autoSettings});await h.api.automaticReply(env,root,'test','c1','source','預約');assert.equal(h.writes,expected,label);}
 console.log('PASS active-room auto-reply suppression, multiple devices, closed room, expired lease');
+
+assert.equal(renamed.payloads.at(-1).android.priority,"HIGH");
+assert.equal(renamed.payloads.at(-1).android.ttl,"86400s");
+assert.equal(timedHarness.payloads[0].android.priority,"HIGH");
+assert.equal(named.payloads.at(-1).android,undefined);
+console.log("PASS Android native high priority for manual/automatic customer push; owner web payload unchanged");

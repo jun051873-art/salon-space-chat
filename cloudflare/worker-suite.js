@@ -11,7 +11,7 @@ export default {
  async fetch(request, env, ctx) {
   const cors = {"Access-Control-Allow-Origin":SITE,"Access-Control-Allow-Methods":"GET, POST, OPTIONS","Access-Control-Allow-Headers":"Content-Type, Authorization","Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store","Vary":"Origin"};
   if(request.method === "OPTIONS") return new Response(null,{status:204,headers:cors});
-  if(request.method === "GET") return json({ok:true,service:"salon-space-notify",version:"15-unified-conversations",authenticated:true,features:{unifiedConversations:true,activeChatAutoReplySuppression:true,newCustomerNotifications:true,timeReplies:true,keywordReplies:true,keywordContains:true,scheduledCare:true,visitCare:true,personalVisitCare:true,appointmentReminders:true}},200,cors);
+  if(request.method === "GET") return json({ok:true,service:"salon-space-notify",version:"16-native-android-push",authenticated:true,features:{androidNativePush:true,unifiedConversations:true,activeChatAutoReplySuppression:true,newCustomerNotifications:true,timeReplies:true,keywordReplies:true,keywordContains:true,scheduledCare:true,visitCare:true,personalVisitCare:true,appointmentReminders:true}},200,cors);
   if(request.method !== "POST") return json({ok:false,error:"METHOD_NOT_ALLOWED"},405,cors);
   try {
    if(request.headers.get("Origin") && request.headers.get("Origin") !== SITE) throw fault("ORIGIN_NOT_ALLOWED",403);
@@ -77,6 +77,13 @@ export default {
 };
 function fault(code,status=502){const e=new Error(code);e.code=code;e.status=status;return e;}
 async function readJSON(url,options={},stage="UPSTREAM"){
+ if(url.startsWith('https://fcm.googleapis.com/v1/projects/')&&options.body){
+  const payload=JSON.parse(options.body),m=payload.message;
+  if(m?.data?.url?.startsWith(SITE+'/salon-space-chat/customer.html')){
+   m.android={...m.android,priority:'HIGH',ttl:String(m.webpush?.headers?.TTL||86400)+'s'};
+   options={...options,body:JSON.stringify(payload)};
+  }
+ }
  const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),8000);
  try{
   const r=await fetch(url,{...options,signal:ctrl.signal});
