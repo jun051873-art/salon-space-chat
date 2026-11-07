@@ -5,7 +5,7 @@ import {filterDesignerRooms,designerFilterOptions,assignedDesignerLabel,hasDupli
 import {mountPullRefresh} from './pull-refresh.js?v=N96';
 import {mountAppointmentSettings,mountAppointmentReminder,appointmentLabel} from './appointment-reminder.js?v=N75';
 import {mountVisitCare,visitInstant,visitDate,personalCareId} from './visit-care.js?v=N73';
-import {mountWeatherSettings,mountHomeWeather} from './customer-weather.js?v=N68';
+import {mountWeatherSettings,mountHomeWeather} from './customer-weather.js?v=N130';
 import{DEFAULT_NOTICE,noticeView}from'./notice-model.js?v=2';
 import{designerList,designerChoices,validateDesigners}from'./designers.js?v=1';
 import {customerVisible,broadcastEligible,customerDeletionPatch,olderCustomerPrimary,inboxRoomVisible,groupConversationRows,mergeCandidateVisible} from './customer-management.js?v=N116';

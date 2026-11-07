@@ -1,0 +1,7 @@
+const {JSDOM}=require('jsdom');const fs=require('fs'),assert=require('assert/strict');
+(async()=>{const dom=new JSDOM('<main><button id="enterChat">對話</button></main>',{url:'https://salon.test',runScripts:'outside-only'}),w=dom.window;
+let src=fs.readFileSync('customer-weather.js','utf8').replace(/^import .*;\n/,'').replaceAll('export ','');
+w.eval("const cities={yingge:['鶯歌']},sceneArtwork=()=>'<svg></svg>',dailyWeather=async()=>({current:{temperature:25,symbol:'fair'},days:Array.from({length:7},(_,i)=>({date:'2026-11-'+String(7+i).padStart(2,'0'),symbol:'fair',available:true,min:20,max:26}))});\n"+src);
+w.localStorage.setItem('salon-customer-weather',JSON.stringify({enabled:true}));await w.mountHomeWeather(w.document.querySelector('main'));
+const c=w.document.querySelector('.homeWeather');assert.equal(c.tagName,'DETAILS');assert.equal(c.open,false);assert.equal(c.querySelectorAll('.weatherDay').length,7);assert.equal(c.querySelector('[data-temperature]').textContent,'25°C');c.open=true;c.querySelectorAll('.weatherDay')[2].click();assert.match(c.querySelector('[data-place]').textContent,/11\/09/);c.open=false;
+w.localStorage.setItem('salon-customer-weather','{}');await w.mountHomeWeather(w.document.querySelector('main'));assert.equal(w.document.querySelector('.homeWeather'),null);dom.window.close();console.log('PASS compact weather defaults closed, seven days selectable, disabled removes card');})().catch(e=>{console.error(e);process.exitCode=1});

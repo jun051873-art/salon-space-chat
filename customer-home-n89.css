@@ -126,3 +126,12 @@ body.customerApp[data-page="inbox"] #customerAppShell .homeWeather .weatherDay>s
 body.customerApp[data-page="inbox"] #customerAppShell .homeWeather .weatherDay small{font-size:10px!important;line-height:1.3!important}
 body.customerApp[data-page="inbox"] #customerAppShell .homeWeather .weatherDay strong{font-size:11px!important;line-height:1.3!important}
 body.customerApp[data-page="inbox"] #customerAppShell .homeWeather .weatherSource{margin-top:4px!important}
+
+/* Compact optional weather; keep seven-day swipe without a heavy scrollbar. */
+body.customerApp .homeWeather>.weatherNow{cursor:pointer;list-style:none}
+body.customerApp .homeWeather>.weatherNow::-webkit-details-marker{display:none}
+body.customerApp .homeWeather .weatherDays{scrollbar-width:none;-ms-overflow-style:none}
+body.customerApp .homeWeather .weatherDays::-webkit-scrollbar{display:none}
+body.customerApp .weatherExpand{font-size:20px;transition:transform .15s}
+body.customerApp .homeWeather[open] .weatherExpand{transform:rotate(180deg)}
+body.customerApp .notificationIndicator[hidden]{display:none!important}
