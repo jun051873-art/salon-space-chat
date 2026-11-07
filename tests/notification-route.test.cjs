@@ -56,7 +56,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('nod
  await ctx.routeNotification({url:ctx.location.href+'?view=approvals'});assert.equal(pages.at(-1),'approvals');
  const sw=fs.readFileSync('firebase-messaging-sw.js','utf8');let handler,shown=0,badges=0,owner=true;
  const sc={messaging:{onBackgroundMessage:f=>handler=f},readBrand:async()=>({ownerDevice:owner}),self:{navigator:{setAppBadge:async()=>badges++},location:{origin:'https://example.test'},registration:{showNotification:async()=>shown++}},SalonPush:{notification:()=>({title:'test',options:{}})},saveDiag:async()=>{},String};
- vm.runInNewContext(sw.slice(sw.indexOf('messaging.onBackgroundMessage')),sc);
+ sc.URL=URL;vm.runInNewContext(fs.readFileSync('admin-notification-visibility.js','utf8'),sc); vm.runInNewContext(sw.slice(sw.indexOf('messaging.onBackgroundMessage')),sc);
  await handler({data:{automatic:'true',recipientRole:'customer'}});assert.equal(shown,0);assert.equal(badges,0,'automated reply does not create owner unread badge');
  await handler({data:{body:'customer message'}});assert.equal(shown,1);
  owner=false;await handler({data:{automatic:'true',recipientRole:'customer'}});assert.equal(shown,2,'customer still receives automatic replies');
