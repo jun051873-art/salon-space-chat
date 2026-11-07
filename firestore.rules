@@ -9,6 +9,9 @@ service cloud.firestore {
    return user.get('status','active') == 'active' && (user.get('conversationId','') == '' ||
     get(/databases/$(database)/documents/conversations/$(user.conversationId)).data.get('blocked',false) == false);
   }
+  function customerIdentity(){return ['name','phone','birthMonth','birthDay','gender','avatar','profileCover','statusText','profileEffect','profileWeatherCity','profileEffectDirection','profileRandom','marketingOptIn'];}
+  function salonProfileUpdate(uid){return admin() && (owner(uid) || (!request.resource.data.diff(resource.data).affectedKeys().hasAny(customerIdentity()) && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['adminProfile','adminName']) || !request.resource.data.keys().hasAny(['adminProfile','adminName']))));}
+  function salonChatUpdate(){return admin() && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['adminName']) || !request.resource.data.keys().hasAny(['adminName']));}
   function profileFields(){return ['name','phone','birthMonth','birthDay','gender','avatar','profileCover','statusText','profileEffect','profileWeatherCity','profileEffectDirection','profileRandom','role','status','createdAt','joinedAt','updatedAt','marketingOptIn'];}
   function validProfileScene(){return request.resource.data.get('profileRandom',false) is bool && request.resource.data.get('statusText','') is string && request.resource.data.get('statusText','').size() <= 120 && request.resource.data.get('profileEffect','none') in ["none", "sakura", "weather", "solar", "rain", "petals", "snow", "sun", "fireflies", "bubbles", "ripples", "leaves", "stars", "confetti", "wind", "clouds", "suncloud", "moon", "rainbow", "mist", "lanterns", "newyear", "fireworks", "christmas", "gifts", "midautumn", "dragonboat", "hearts", "birthday", "halloween", "sprouts", "wheat"] && request.resource.data.get('profileWeatherCity','yingge') in ['yingge','taipei','keelung','taoyuan','taichung','tainan','kaohsiung','hualien'] && request.resource.data.get('profileEffectDirection','left') in ['left','right','stay'];}
   // Only owner-approved, active accounts can share historical conversation data.
@@ -32,14 +35,14 @@ service cloud.firestore {
   }
   match /users/{uid} {
    allow read: if admin() || owner(uid);
-   allow create: if admin() || (owner(uid) && validProfileScene() && request.resource.data.keys().hasOnly(profileFields()) && request.resource.data.role == 'customer' && request.resource.data.get('status','') == 'pending');
-   allow update: if admin() || (owner(uid) && validProfileScene() && resource.data.get('status','active') == 'active' && request.resource.data.diff(resource.data).affectedKeys().hasOnly(profileFields()) && request.resource.data.role == 'customer' && request.resource.data.get('status','active') == 'active');
-   allow delete: if admin();
+   allow create: if (admin() && owner(uid)) || (owner(uid) && validProfileScene() && request.resource.data.keys().hasOnly(profileFields()) && request.resource.data.role == 'customer' && request.resource.data.get('status','') == 'pending');
+   allow update: if salonProfileUpdate(uid) || (owner(uid) && !admin() && validProfileScene() && resource.data.get('status','active') == 'active' && request.resource.data.diff(resource.data).affectedKeys().hasOnly(profileFields()) && request.resource.data.role == 'customer' && request.resource.data.get('status','active') == 'active');
+   allow delete: if admin() && owner(uid);
   }
   match /chats/{uid} {
    allow read: if admin() || (owner(uid) && active(uid)) || (signedIn() && sharedRoom(uid));
-   allow create: if admin() || (owner(uid) && active(uid) && request.resource.data.keys().hasOnly(['userId','name','phone','status','lastMessage','updatedAt','lastCustomerMessageAt']) && request.resource.data.get('status','active') == 'active');
-   allow update: if admin() || (owner(uid) && active(uid) && (
+   allow create: if (admin() && !request.resource.data.keys().hasAny(['adminName'])) || (owner(uid) && active(uid) && request.resource.data.keys().hasOnly(['userId','name','phone','status','lastMessage','updatedAt','lastCustomerMessageAt']) && request.resource.data.get('status','active') == 'active');
+   allow update: if salonChatUpdate() || (owner(uid) && active(uid) && (
     (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['readCustomerMs']) && request.resource.data.readCustomerMs is number && request.resource.data.readCustomerMs >= resource.data.get('readCustomerMs',0) && request.resource.data.readCustomerMs <= request.time.toMillis()) ||
     (resource.data.get('status','active') != 'blocked' && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name','phone','userId','status','lastMessage','updatedAt','lastCustomerMessageAt']) && request.resource.data.get('status','active') == 'active')
    ));
@@ -116,3 +119,4 @@ service cloud.firestore {
   match /{document=**} {allow read,write: if false;}
  }
 }
+
