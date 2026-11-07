@@ -1,0 +1,17 @@
+/* N131: constrain native iOS date controls to the same grid as other fields. */
+.adminApp dialog.salonDialog{max-width:min(600px,calc(100vw - 24px));box-sizing:border-box}
+.adminApp dialog.salonDialog label,
+.adminApp dialog.salonDialog .split > *{min-width:0;max-width:100%;box-sizing:border-box}
+.adminApp dialog.salonDialog .split{grid-template-columns:repeat(2,minmax(0,1fr))}
+.adminApp dialog.salonDialog input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]):not([type=hidden]),
+.adminApp dialog.salonDialog select,
+.adminApp dialog.salonDialog textarea{
+ box-sizing:border-box;width:100%;max-width:100%;min-width:0;margin-left:0;margin-right:0;
+}
+.adminApp dialog.salonDialog input[type=date],
+.adminApp dialog.salonDialog input[type=time],
+.adminApp dialog.salonDialog input[type=datetime-local]{
+ -webkit-appearance:none;appearance:none;display:block;min-inline-size:0;max-inline-size:100%;overflow:hidden;
+}
+.adminApp dialog.salonDialog input::-webkit-date-and-time-value{min-width:0;text-align:left}
+.adminApp dialog.salonDialog input::-webkit-datetime-edit{min-width:0;padding:0}

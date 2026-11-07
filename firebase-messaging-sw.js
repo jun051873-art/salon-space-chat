@@ -1,5 +1,6 @@
 importScripts('./push-presentation.js?v=N113');
-const NOTIFICATION_VERSION='N113';
+importScripts('./admin-notification-visibility.js?v=N131');
+const NOTIFICATION_VERSION='N131';
 const BRAND_CACHE='salon-notification-brand-v1';
 const BRAND_URL='/salon-space-chat/__notification_brand__';
 async function readBrand(){try{const response=await (await caches.open(BRAND_CACHE)).match(BRAND_URL);return response?await response.json():{};}catch{return {};}}
@@ -47,6 +48,7 @@ self.addEventListener("install",event=>event.waitUntil(self.skipWaiting()));
 self.addEventListener("activate",event=>event.waitUntil(self.clients.claim()));
 messaging.onBackgroundMessage(async payload=>{
  const d=payload.data||{};
+ if(await SalonAdminNotification.visibleChat(d,self.clients,self.location.origin)){await saveDiag({stage:'active-admin-chat-suppressed'}).catch(()=>{});return;}
  const brand=await readBrand();
  if((d.automatic===true||d.automatic==='true')&&(brand.ownerDevice||d.recipientRole==='admin'||String(d.url||'').includes('/admin.html'))){await saveDiag({stage:'automatic-owner-suppressed'}).catch(()=>{});return;}
  try{await self.navigator.setAppBadge?.(1);}catch{}
