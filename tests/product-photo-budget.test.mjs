@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import {fitProductPhotos} from '../product-photo-budget.js';
+let calls=0;
+const encode=async(src,budget)=>{calls++;return src.slice(0,budget)};
+assert.deepEqual(await fitProductPhotos(['x'.repeat(440000)],encode),['x'.repeat(440000)]);
+assert.equal(calls,0);
+const five=await fitProductPhotos(Array(5).fill('x'.repeat(440000)),encode);
+assert.ok(five.reduce((n,s)=>n+s.length,0)+five[0].length<=880000);
+assert.equal(five.length,5);
+assert.deepEqual(await fitProductPhotos([],encode),[]);
+await assert.rejects(fitProductPhotos(['x'.repeat(500000)],async s=>s));
+console.log('PASS product photos preserve single-image detail and bound multi-photo document size including cover');
