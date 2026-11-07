@@ -1,5 +1,10 @@
 // Native tokens are supplied only over Chrome's origin-validated TWA channel.
 export const isNativePushApp=(env=globalThis)=>Number(new URL(env.location.href).searchParams.get('appBuild')||0)>=15;
+// Chromium serializes the verified app source as android-app://<verified host>.
+export function trustedNativeOrigin(origin,env=globalThis){
+ const site=new URL(env.location.href);
+ return origin===site.origin||origin==='android-app://'+site.hostname||origin==='android-app://'+site.hostname+'/com.jun051873.salonspace';
+}
 export function createNativePushBridge(env=globalThis){
  let port=null,pending=null,uid='',last=null,receipt=null,phase='尚未收到 App 連線';
  const post=data=>port?.postMessage(JSON.stringify({protocol:'SALON_NATIVE_PUSH',...data}));
@@ -11,7 +16,7 @@ export function createNativePushBridge(env=globalThis){
   if(d.type==='TOKEN'&&typeof d.value==='string'&&d.value.length>20&&d.value.length<4096){last=d;pending.resolve({token:d.value,allowed:d.allowed===true});}
  }
  const accept=e=>{
-  if(!isNativePushApp(env)||e.origin!==env.location.origin||!e.ports?.[0])return;
+  if(!isNativePushApp(env)||!trustedNativeOrigin(e.origin,env)||!e.ports?.[0])return;
   // Chrome transfers the port in an EMPTY bootstrap message. HELLO follows
   // on that port; requiring JSON here discards the channel before registration.
   let d=null;
