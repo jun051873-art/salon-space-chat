@@ -1,0 +1,32 @@
+/* Pointer return focus must not draw a page-sized ring; keyboard focus stays visible. */
+body[data-input-modality=pointer] :is(button,a,summary,[tabindex],[role=button]):focus{outline:none!important;outline-offset:0!important}
+body[data-input-modality=keyboard] :is(button,a,summary,input,textarea,select,[role=button]):focus-visible{outline:2px solid var(--salon-accent,#557d73)!important;outline-offset:3px!important}
+body :is(section,main,div,dialog)[tabindex="-1"]:focus{outline:none!important}
+body.adminApp dialog.customerProfileDialog{padding:22px;max-width:560px;background:linear-gradient(145deg,#f8faf7,#e9f0ed);color:#263b36;border:1px solid #fff;box-shadow:0 24px 80px #152d322b}
+.customerProfileDialog .dialogHead{margin:0 0 20px;padding:0 0 16px;border-radius:0;background:transparent;box-shadow:none;border:0;border-bottom:1px solid #294c3e12}
+.customerProfileDialog .dialogHead h2{font-size:22px;letter-spacing:.03em}
+.customerIdentity{padding:20px;border-radius:24px;background:#ffffffb8;border:1px solid #fff}
+.customerIdentityTop{display:flex;align-items:center;gap:16px;min-width:0}
+.customerIdentityTop .avatar{display:grid!important;place-items:center;width:64px!important;height:64px!important;flex:0 0 64px;border-radius:50%;overflow:hidden;background:#e4eae5;color:#526b61;font-size:25px;border:3px solid white}
+.customerIdentityTop .avatar img{display:block;width:100%;height:100%;object-fit:cover}
+.customerIdentityTop h3{margin:4px 0 8px;font-size:24px;line-height:1.3;overflow-wrap:anywhere}
+.customerEyebrow{font-size:11px;letter-spacing:.1em;color:#718078}
+.customerReadonlyBadge{display:inline-block;font-size:11px;color:#5f746a;background:#edf2ee;padding:4px 9px;border-radius:999px}
+.customerCover{width:100%;max-height:180px;object-fit:cover;border-radius:16px;margin-top:16px;-webkit-touch-callout:none;-webkit-user-drag:none}
+.customerFacts{display:grid;grid-template-columns:1fr 1fr;gap:0 18px;margin:18px 0 0}
+.customerFacts>div{min-width:0;padding:12px 0;border-top:1px solid #304f4014}
+.customerFacts>div:first-child{grid-column:1/-1}
+.customerFacts dt{font-size:12px;color:#718078;margin:0 0 5px}
+.customerFacts dd{font-size:16px;font-weight:500;margin:0;overflow-wrap:anywhere;line-height:1.4}
+.customerPrivacyNote{margin:6px 0 0;font-size:11px;color:#748079;line-height:1.6}
+.customerPrivateHeading{margin:24px 0 16px}
+.customerPrivateHeading h3{font-size:16px;margin:0 0 5px}
+.customerPrivateHeading p{font-size:12px;margin:0;color:#748079}
+.customerProfileDialog label{font-size:12px;color:#60736b}
+.customerProfileDialog input[type=date]{min-height:48px}
+.customerProfileDialog textarea{min-height:96px}
+.customerProfileDialog .settingsGroup{padding:16px!important;border:1px solid #fff!important;background:#ffffff70!important;border-radius:20px!important;box-shadow:none!important}
+.customerProfileDialog .toolbar{gap:8px;flex-wrap:wrap}
+.customerProfileDialog .toolbar button{min-height:44px}
+.customerProfileDialog #pfSave{flex:1 0 100%}
+@media(max-width:420px){body.adminApp dialog.customerProfileDialog{padding:18px;width:calc(100% - 24px);border-radius:26px}.customerIdentity{padding:16px}.customerIdentityTop h3{font-size:22px}}
