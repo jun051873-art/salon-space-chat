@@ -3,8 +3,7 @@ const textFields=['name','phone','gender','avatar','profileCover','statusText'];
 const present=v=>typeof v==='string'&&v.trim().length>0;
 const time=u=>{const v=u.createdAt||u.joinedAt;return v?.toMillis?.()||(v?.seconds?Number(v.seconds)*1000:typeof v==='number'?v:0)||Number.MAX_SAFE_INTEGER;};
 export function ownerProfile(u){
- const result={...u};
- for(const [key,value] of Object.entries(u.adminProfile||{}))if(present(value)||typeof value==='number'&&value>0)result[key]=value;
+ const {adminProfile,adminName,...result}=u;
  return result;
 }
 export function mergedProfileFields(primary,accounts){
@@ -36,3 +35,4 @@ export function createMergedProfileReader({readUser,readGroup}){
   return result.profile;
  }};
 }
+

@@ -1,0 +1,11 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+const {JSDOM}=require('jsdom');
+const s=fs.readFileSync('salon-suite.js','utf8');
+const start=s.indexOf(' function customerReadOnlyFields('),end=s.indexOf('\n',start);
+const ctx={esc:v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),avatar:()=>'<img alt="頭像">',field:(label,id,value)=>`<label>${label}<input id="${id}" value="${value}"></label>`};
+vm.createContext(ctx);vm.runInContext(s.slice(start,end),ctx);
+const doc=new JSDOM(ctx.customerReadOnlyFields({name:'店家稱呼',privateAlias:'常客',avatar:'data:image/png;base64,YQ==',profileCover:'data:image/png;base64,YQ==',customerProvided:{name:'客人名字',phone:'123',birthMonth:5,birthDay:18}})).window.document;
+assert.equal(doc.querySelectorAll('input').length,1);assert.equal(doc.querySelector('input').id,'pfAlias');assert.equal(doc.querySelector('input[type=file]'),null);assert.equal(doc.querySelector('[download]'),null);assert(doc.body.textContent.includes('客人名字'));assert(doc.body.textContent.includes('5月18日'));
+const editor=s.slice(s.indexOf(' async function editCustomer('),s.indexOf(' function validateProfile('));
+assert(!editor.includes('mountPhotoPicker'));assert(!editor.includes('validateProfile()'));assert(editor.includes('saveShopAlias(u.id,alias,data.notes)'));assert(!editor.includes("adminProfile:"));
+console.log('PASS shop read-only profile fields, only private alias input, no photo upload/download controls, private save wiring');

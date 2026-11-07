@@ -37,7 +37,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('nod
 (async()=>{
  const html=fs.readFileSync('admin.html','utf8'),pages=[],rooms=[];
  const ctx={booted:true,history:{replaceState(){}},openCustomerChat:async id=>rooms.push(id),auth:{currentUser:{uid:'owner'}},ADMIN:'owner',URL,location:{href:'https://example.test/salon-space-chat/admin.html',origin:'https://example.test',pathname:'/salon-space-chat/admin.html'},showAdminPage:p=>pages.push(p),openTool:p=>pages.push(p),console};
- vm.createContext(ctx);vm.runInContext(html.slice(html.indexOf('let pendingNotificationURL='),html.indexOf("navigator.serviceWorker?.addEventListener('message'")),ctx);
+ vm.createContext(ctx);vm.runInContext(html.slice(html.indexOf('let pendingNotificationURL='),html.indexOf("navigator.serviceWorker?.addEventListener('message'",html.indexOf('let pendingNotificationURL='))),ctx);
  await ctx.routeNotification({url:ctx.location.href+'?chat=customer'});assert.deepEqual(rooms,['customer']);assert.deepEqual(pages,[]);
  await ctx.routeNotification({url:ctx.location.href+'#chat/legacy'});assert.equal(rooms.at(-1),'legacy');
  ctx.auth.currentUser=null;ctx.booted=false;

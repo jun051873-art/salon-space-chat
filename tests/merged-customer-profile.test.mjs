@@ -5,7 +5,7 @@ const old={id:'old',role:'customer',status:'active',createdAt:1,name:'小刀',av
 const fresh={id:'new',role:'customer',status:'active',createdAt:2,name:'新名字',avatar:'',phone:'',adminProfile:{phone:''}};
 for(const primary of [old,fresh]){const p=mergedProfileFields(primary,[fresh,old]);assert.equal(p.avatar,old.avatar);assert.equal(p.phone,'123');assert.equal(p.birthDay,9);assert.equal(p.name,primary.name);}
 assert.equal(mergedProfileFields({...fresh,avatar:'newphoto'},[old]).avatar,'newphoto');
-assert.equal(mergedProfileFields({...fresh,adminProfile:{name:'店家暱稱',phone:'456'}},[old]).phone,'456');
+assert.equal(mergedProfileFields({...fresh,adminProfile:{name:'店家暱稱',phone:'456'}},[old]).phone,'123');
 const fields=mergedProfileFields(fresh,[{...old,status:'blocked',pushToken:'secret',role:'admin'}]);assert(!('status' in fields));assert(!('role' in fields));assert(!('pushToken' in fields));
 assert(!('birthMonth' in mergedProfileFields({...fresh,birthMonth:1},[{id:'x',birthDay:9}])));
 let reads=0;const accounts=[old,fresh].map(u=>({...u,conversationId:'group'}));
@@ -17,6 +17,6 @@ const records=new Map([['users/old',old],['users/new',{...fresh,conversationId:'
 let writes=false;const snap=path=>({id:path.split('/').at(-1),exists:()=>records.has(path),data:()=>records.get(path)});
 const tx={get:async path=>{assert.equal(writes,false,'transaction must read before writes');return snap(path)},set:(path,value,opts)=>{writes=true;records.set(path,opts?.merge?{...records.get(path),...value}:value)},update:(path,value)=>{writes=true;records.set(path,{...records.get(path),...value})}};
 await mergeConversations({db:{},doc:(_, ...parts)=>parts.join('/'),runTransaction:(_,fn)=>fn(tx),stamp:()=>123,primaryUid:'new',secondaryUid:'old'});
-assert.equal(records.get('users/new').avatar,old.avatar);assert.equal(records.get('users/new').profileCover,old.profileCover);assert.equal(records.get('users/new').adminProfile.phone,'123');
+assert.equal(records.get('users/new').avatar,'');assert.equal(records.get('users/new').profileCover,undefined);assert.equal(records.get('users/new').adminProfile.phone,'');
 assert.equal(records.get('users/old').avatar,old.avatar);assert.equal(records.get('users/new').status,'active');assert.equal(records.get('conversations/group').memberIds.length,3);
 console.log('PASS merged profile: both merge directions, conflicts, blank owner fields, birthday integrity, existing groups, cached reads, membership isolation and real merge transaction');

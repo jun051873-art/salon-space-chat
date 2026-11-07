@@ -8,9 +8,9 @@ const owner=env.authenticatedContext('HcFJGmzHw6MYoWbFmtq9IyFSjvL2').firestore()
 const until=async fn=>{for(let i=0;i<200;i++){if(fn())return;await new Promise(r=>setTimeout(r,25));}throw Error('Timed out waiting for shared conversation');};
 try{
  await env.clearFirestore();
- for(const uid of ['old','new']){await setDoc(doc(owner,'users',uid),{name:uid,role:'customer',status:'active',avatar:uid==='new'?'data:image/png;base64,new-photo':'',phone:uid==='new'?'0912345678':''});await setDoc(doc(owner,'chats',uid),{status:'active'});await setDoc(doc(owner,'chats',uid,'messages','collision'),{senderId:'HcFJGmzHw6MYoWbFmtq9IyFSjvL2',senderRole:'admin',text:'history-'+uid,createdAt:serverTimestamp()});}
+ for(const uid of ['old','new']){await env.withSecurityRulesDisabled(c=>setDoc(doc(c.firestore(),'users',uid),{name:uid,role:'customer',status:'active',avatar:uid==='new'?'data:image/png;base64,new-photo':'',phone:uid==='new'?'0912345678':''}));await setDoc(doc(owner,'chats',uid),{status:'active'});await setDoc(doc(owner,'chats',uid,'messages','collision'),{senderId:'HcFJGmzHw6MYoWbFmtq9IyFSjvL2',senderRole:'admin',text:'history-'+uid,createdAt:serverTimestamp()});}
  await mergeConversations({db:owner,doc,runTransaction,stamp:serverTimestamp,primaryUid:'old',secondaryUid:'new'});
- const merged=(await getDoc(doc(owner,'users','old'))).data();assert.equal(merged.avatar,'data:image/png;base64,new-photo');assert.equal(merged.adminProfile.phone,'0912345678');
+ const merged=(await getDoc(doc(owner,'users','old'))).data();assert.equal(merged.avatar,'');assert.equal(merged.phone,'');assert.equal(merged.adminProfile,undefined);
  const views=[];
  for(const [db,room]of [[owner,'old'],[customer,'new']]){
   const v={room,docs:[],errors:[]};views.push(v);

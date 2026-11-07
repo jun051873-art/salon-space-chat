@@ -51,7 +51,7 @@ export default {
    const url = SITE+"/salon-space-chat/"+(toAdmin?"admin.html?chat="+encodeURIComponent(room):"customer.html");
    const configuration=await salonConfig(docRoot,accessToken),shopName=configuration.name||'專屬空間';
    // A shop owner may keep a private admin nickname; never reveal it to the customer.
-   const customerName=(toAdmin?customer.adminProfile?.name:customer.name)||customer.name||'客人';
+   const customerName=customer.name||'客人';
    // One compact identity line; keep only the actual message in the preview.
    const title=customerName+'｜'+shopName;
    const preview=msg.fields?.sticker?'傳來一張貼圖':msg.fields?.attachment?(unpack(msg.fields.attachment)?.type?.startsWith('image/')?'傳來一張照片':'傳來一份附件'):message;
