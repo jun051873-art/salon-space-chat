@@ -18,18 +18,18 @@ export function mountNotificationHelp(host,enable,role){
  test.textContent=androidWeb?'發送設定引導通知':'測試手機提示';test.onclick=async()=>{if(test.disabled)return;test.disabled=true;try{const reg=await navigator.serviceWorker.getRegistration();if(!reg)throw Error('通知服務尚未就緒');await reg.showNotification(androidWeb?'專屬空間・通知設定引導':'訊息提醒測試',{body:androidWeb?'下拉通知中心，長按這則通知 → 設定 → 開啟橫幅／懸浮通知。':'此為手機提示測試。',tag:'salon-notification-test',renotify:true,silent:false,data:{url:location.pathname}});p.textContent=androidWeb?'已發送引導通知。下拉通知中心 → 長按「專屬空間・通知設定引導」→ 設定，查看這則網站通知的橫幅／懸浮通知。若已開啟仍無橫幅，請保留現況；網頁無法讀取該開關，也不能判定已修復。':'已送出手機提示。若沒有橫幅，請先查看通知中心；睡眠／專注模式可能將提示靜音。這項測試不代表店家與客人的雙向傳送已驗證。';}catch(e){p.textContent='測試未完成：'+e.message;}finally{test.disabled=false;}};
  enableButton.onclick=async()=>{if(busy)return;busy=true;error='';render();try{await enable();}catch(e){error=e.message;}finally{busy=false;if(!ready&&!error)error='通知尚未完成，請確認已允許通知後再試。';render();}};
  box.append(title,p,enableButton);if(androidWeb){const steps=document.createElement('p');steps.textContent='橫幅與角標設定：按下方按鈕，再下拉通知中心，長按剛收到的引導通知進入設定。網址版無法直接開啟系統內的網站通知開關。';box.append(steps);}if(role==='admin'||androidWeb)box.append(test);box.append(help);
- let indicator=null;
+ let indicator=null,panel=null;
  if(role==='customer'||role==='admin'){
   const header=role==='customer'?document.getElementById('customerHeader'):document.querySelector?.('.app > h1, body > h1');
   if(header){
    if(role==='admin')header.classList.add('adminNotificationHeader');
    indicator=document.createElement('button');indicator.type='button';indicator.className='notificationIndicator';
    indicator.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><i aria-hidden="true"></i>';
-   const panel=document.createElement('dialog');panel.className='notificationGuide notificationStatusDialog';panel.id='notificationStatusDialog';
+   panel=document.createElement('dialog');panel.className='notificationGuide notificationStatusDialog';panel.id='notificationStatusDialog';
    const close=document.createElement('button');close.type='button';close.className='notificationClose';close.textContent='關閉';close.onclick=()=>panel.close();
    panel.append(close,box);document.body.append(panel);header.append(indicator);
    indicator.setAttribute('aria-haspopup','dialog');indicator.setAttribute('aria-controls',panel.id);
-   indicator.onclick=()=>{render();if(!panel.open)panel.showModal();if(state()==='enable'&&!busy)enableButton.click();};
+   indicator.onclick=()=>open();
   }
  }
  let lastState='';
@@ -39,5 +39,6 @@ export function mountNotificationHelp(host,enable,role){
  enableButton.hidden=s!=='enable';enableButton.disabled=busy;enableButton.textContent=busy?'正在設定…':'開啟訊息通知';test.hidden=!ok;
  if(typeof window.dispatchEvent==='function'&&typeof CustomEvent==='function')window.dispatchEvent(new CustomEvent('salon:notification-state',{detail:{ready:ok,busy,error}}));
  }
- render();return {update(ok=false,message=''){ready=ok;error=message;render();},guide};
+ function open(){render();if(panel&&!panel.open)panel.showModal();if(state()==='enable'&&!busy)enableButton.click();}
+ render();return {update(ok=false,message=''){ready=ok;error=message;render();},guide,open};
 }
