@@ -10,3 +10,10 @@ trail.reset();trail.visit('holidays',160);assert.equal(trail.back().id,'inbox');
 trail.visit('featureDetail',90);trail.back();trail.visit('preferences',90);assert.equal(trail.back().id,'inbox');
 const esc=s=>String(s??'');assert.match(homeMosaicHTML({sections:{holidays:true}},esc),/data-home-holidays/);assert.equal(homeMosaicHTML({sections:{holidays:false}},esc),'');
 console.log('PASS real-source back targets, refresh deduplication, nested routes, restored scroll, root navigation and independent holiday entrance');
+
+const admin=createPageTrail('adminHome',[]);
+admin.visit('tool:display',20);admin.visit('tool:gallery',120);admin.visit('chat:a',240);
+assert.deepEqual(admin.back(),{id:'tool:gallery',scroll:240});
+assert.deepEqual(admin.back(),{id:'tool:display',scroll:120});
+assert.equal(admin.back().id,'adminHome');admin.reset('admin');admin.visit('chat:b');assert.equal(admin.back().id,'admin');
+console.log('PASS shop tools and chats return to the actual entry route');

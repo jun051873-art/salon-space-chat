@@ -20,3 +20,5 @@ await mergeConversations({db:{},doc:(_, ...parts)=>parts.join('/'),runTransactio
 assert.equal(records.get('users/new').avatar,'');assert.equal(records.get('users/new').profileCover,undefined);assert.equal(records.get('users/new').adminProfile.phone,'');
 assert.equal(records.get('users/old').avatar,old.avatar);assert.equal(records.get('users/new').status,'active');assert.equal(records.get('conversations/group').memberIds.length,3);
 console.log('PASS merged profile: both merge directions, conflicts, blank owner fields, birthday integrity, existing groups, cached reads, membership isolation and real merge transaction');
+
+assert.equal(records.get('conversations/group').sharedProfile.avatar,old.avatar);assert.equal(records.get('conversations/group').profileInitialized,true);assert(!('adminProfile' in records.get('conversations/group').sharedProfile));

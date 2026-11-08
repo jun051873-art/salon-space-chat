@@ -1,4 +1,4 @@
-import {mergedProfileFields} from './merged-customer-profile.js?v=P132';
+import {mergedProfileFields,sharedProfile} from './merged-customer-profile.js?v=P139';
 // Caller must be authenticated salon owner. Firestore rules enforce the same boundary.
 export async function mergeConversations({db,doc,runTransaction,stamp,primaryUid,secondaryUid}) {
  if(!primaryUid||!secondaryUid||primaryUid===secondaryUid)throw Error('請選擇兩筆不同顧客資料');
@@ -18,9 +18,11 @@ export async function mergeConversations({db,doc,runTransaction,stamp,primaryUid
   const revision=Math.max(0,...groups.map(g=>g.revision||0))+1;
   const note=await tx.get(doc(db,'customerNotes',primaryUid));
   const group={state:'active',primaryUid,memberIds:members,historyRoomIds:rooms,revision,updatedAt:stamp()};
-  tx.set(doc(db,'conversations',id),group);
-  const profiles=accounts.map(s=>({id:s.id,...s.data()}));
+
+  const profiles=accounts.map(s=>({id:s.id,...s.data(),...sharedProfile(groups.find(g=>g.id===s.data().conversationId)?.sharedProfile)}));
   const profile=mergedProfileFields(profiles.find(u=>u.id===primaryUid),profiles);
+  group.sharedProfile={...sharedProfile(profiles.find(u=>u.id===primaryUid)),...profile};group.profileInitialized=true;
+  tx.set(doc(db,'conversations',id),group);
   const tags=[...new Set(accounts.flatMap(s=>s.data().tags||[]))].slice(0,20);
   const visits=accounts.map(s=>s.data().lastVisitAt).filter(Boolean).sort((a,b)=>(b.toMillis?.()||0)-(a.toMillis?.()||0));
   tx.update(doc(db,'users',primaryUid),{tags,...(visits.length?{lastVisitAt:visits[0]}:{})});

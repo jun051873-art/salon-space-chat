@@ -85,7 +85,7 @@ setTimeout(()=>{
 <section id="featureDetail" class="card hidden" aria-label="本月主打"></section>
 <nav id="customerNav" class="bottomNav hidden" aria-label="主要導覽"><button class="navBtn active" data-customer-page="inbox"><span>◉</span>訊息</button><button class="navBtn" data-customer-page="booking"><span>▦</span>預約</button></nav>
 </div>
-<script type="module" src="./salon-layout.js?v=N52"></script><script type="module">import{customerPushRegistration}from"./customer-push-registration.js?v=N119";import{releaseCoverAfter}from"./startup-cover.js?v=1";import{ensureNotificationWorker}from"./customer-notification-worker.js?v=N123";import{mountNotificationHelp}from"./notification-help.js?v=N130";import{installSuite,messageHTML}from"./salon-suite.js?v=P138";import{pinChatBottom}from'./chat-bottom.js?v=1';import{reconcileMessages,mergeOutboxRows}from'./chat-render.js?v=N123';let suite;let profileReady=false;let accountStatus="new",accessUnsub=null;import{createDelivery}from"./chat-delivery.js?v=N122";import{createPagedFeed}from"./chat-feed.js?v=N117";import{createConversationFeed,watchServerDocument}from"./conversation-feed.js?v=N117";const CHAT_ROLE="customer";
+<script type="module" src="./salon-layout.js?v=N52"></script><script type="module">import{customerPushRegistration}from"./customer-push-registration.js?v=N119";import{releaseCoverAfter}from"./startup-cover.js?v=1";import{ensureNotificationWorker}from"./customer-notification-worker.js?v=N123";import{mountNotificationHelp}from"./notification-help.js?v=N130";import{installSuite,messageHTML}from"./salon-suite.js?v=P139";import{pinChatBottom}from'./chat-bottom.js?v=1';import{reconcileMessages,mergeOutboxRows}from'./chat-render.js?v=N123';let suite;let profileReady=false;let accountStatus="new",accessUnsub=null;import{createDelivery}from"./chat-delivery.js?v=N122";import{createPagedFeed}from"./chat-feed.js?v=N117";import{createConversationFeed,watchServerDocument}from"./conversation-feed.js?v=N117";const CHAT_ROLE="customer";
 import{initializeApp}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
 import{getAuth,signInAnonymously,onAuthStateChanged,signOut,setPersistence,browserLocalPersistence}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 import{getFirestore,doc,getDoc,collection,query,orderBy,onSnapshot,limit,startAfter,getDocsFromServer}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
@@ -238,7 +238,7 @@ async function getChatMessaging(){
 }
 
 function show(id,{keepSplash=false}={}){["setup","inbox","chat","info","gallery","featureDetail","holidays","booking","profile","preferences"].forEach(x=>$(x)?.classList.add("hidden"));$(id)?.classList.remove("hidden");if(!keepSplash)$("splash")?.remove();if(id!=="setup")$("customerNav")?.classList.remove("hidden")}
-import{createPageTrail}from"./customer-navigation.js?v=N50";
+import{createPageTrail}from"./customer-navigation.js?v=P139";
 const pageTrail=createPageTrail();
 function backCustomerPage(){const entry=pageTrail.back();return showCustomerPage(entry.id,{back:true,scroll:entry.scroll});}
 function watchPageLoad(task,isCurrent){
@@ -316,7 +316,7 @@ suite=installSuite({auth,db,role:CHAT_ROLE,delivery,getChat:()=>currentChatView,
 
 
 $("enterChat").onclick=()=>{history.pushState({salonChat:true},"","#chat");showCustomerPage("chat")};
-$("leaveChat").onclick=()=>{history.replaceState(null,"",location.pathname+location.search);showCustomerPage("inbox")};
+$("leaveChat").onclick=()=>{history.replaceState(null,"",location.pathname+location.search);backCustomerPage()};
 function restoreNotificationRoute(){if(uid&&profileReady)showCustomerPage(location.hash==="#chat"?"chat":"inbox");}
 function requestNotificationChat(){document.documentElement.dataset.notificationChat='pending';history.replaceState(null,"","#chat");if(uid&&profileReady){if(document.body.dataset.page!=="chat")showCustomerPage("chat");else delete document.documentElement.dataset.notificationChat;resumeVisibleReads(true);}}
 window.addEventListener("popstate",restoreNotificationRoute);

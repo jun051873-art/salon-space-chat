@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import {watchIdentity,sharedProfile,createMergedProfileReader} from '../merged-customer-profile.js';
+let userNext,groupNext,groupError,stops=0;const values=[];
+const stop=watchIdentity({uid:'a',watchUser:(id,next)=>{userNext=next;return()=>stops++;},watchGroup:(id,next,error)=>{groupNext=next;groupError=error;return()=>stops++;},onChange:p=>values.push(p),onError:e=>{throw e;}});
+userNext({id:'a',name:'old',avatar:'old',conversationId:'g'});
+groupNext({state:'active',memberIds:['a','b'],sharedProfile:{name:'new',avatar:'cat',profileCover:'cover',phone:'123',adminName:'LEAK'}});
+assert.equal(values.at(-1).avatar,'cat');assert.equal(values.at(-1).adminName,undefined);
+groupNext({state:'active',memberIds:['a','b'],sharedProfile:{avatar:''}});assert.equal(values.at(-1).avatar,'','explicit removal must not resurrect old avatar');
+const stale=groupNext;userNext({id:'a',name:'unmerged',avatar:'self'});const count=values.length;stale({state:'active',memberIds:['a'],sharedProfile:{name:'stale'}});assert.equal(values.length,count);
+stop();userNext({name:'after stop'});groupError(Error('late'));assert.equal(values.length,count);assert.equal(stops,2);
+assert.deepEqual(sharedProfile({notes:'secret',role:'admin',name:'Alice',profileRandom:false}),{name:'Alice',profileRandom:false});
+const reader=createMergedProfileReader({readUser:async id=>({id,conversationId:'g',name:'old',avatar:'old'}),readGroup:async()=>({state:'active',memberIds:['a','b'],primaryUid:'a',sharedProfile:{name:'current',avatar:''}})});
+assert.equal((await reader.resolve({id:'b',conversationId:'g'})).avatar,'');
+console.log('PASS live identity, merged overlay, photo deletion, membership change, late events, unsubscribe and private field filtering');
