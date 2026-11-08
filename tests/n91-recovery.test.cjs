@@ -3,7 +3,7 @@ const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/st
  const source=fs.readFileSync('profile-scene.js','utf8');
  const exit=source.slice(source.indexOf('async function exit()'),source.indexOf(" d.addEventListener('close'"));
  let ready,closed=0;const events=[];
- const ctx={saving:false,closed:false,editing:false,onBeforeClose:()=>new Promise(r=>{ready=r;events.push('prepare-return')}),d:{close:()=>{closed++;events.push('close')},classList:{add:()=>events.push('fade')}},setTimeout,feedback:()=>{},render:()=>{},setEditing:()=>{}};
+ const ctx={q:()=>null,sheet:{hidden:true},saving:false,closed:false,editing:false,onBeforeClose:()=>new Promise(r=>{ready=r;events.push('prepare-return')}),d:{close:()=>{closed++;events.push('close')},classList:{add:()=>events.push('fade')}},setTimeout,feedback:()=>{},render:()=>{},setEditing:()=>{}};
  vm.createContext(ctx);vm.runInContext(exit,ctx);const job=ctx.exit();assert.equal(closed,0);await ctx.exit();assert.deepEqual(events,['prepare-return']);ready();await job;assert.equal(closed,1);assert.deepEqual(events,['prepare-return','close']);
  ctx.closed=false;ctx.onBeforeClose=()=>Promise.reject(Error('offline'));await ctx.exit();assert.equal(ctx.closed,false);assert.equal(closed,1);
  const html=fs.readFileSync('customer.html','utf8');const guard=html.slice(html.indexOf('function watchPageLoad('),html.indexOf('let pageGeneration=0;'));

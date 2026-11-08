@@ -24,6 +24,28 @@ service cloud.firestore {
     && group.state == 'active' && group.get('blocked',false) == false && group.memberIds.hasAny([request.auth.uid])
     && group.historyRoomIds.hasAny([room]);
   }
+  function sharedProfileUpdate(id){
+   let user=get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+   let p=request.resource.data.sharedProfile;
+   return signedIn() && user.get('conversationId','') == id && user.get('role','') == 'customer'
+    && user.get('status','') == 'active' && user.get('adminDeleted',false) == false
+    && resource.data.state == 'active' && resource.data.get('blocked',false) == false
+    && resource.data.memberIds.hasAny([request.auth.uid])
+    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['sharedProfile'])
+    && p is map && p.keys().hasOnly(['name','phone','birthMonth','birthDay','gender','avatar','profileCover','statusText','profileEffect','profileWeatherCity','profileEffectDirection','profileRandom'])
+    && p.get('name','') is string && p.get('name','').size() <= 60
+    && p.get('phone','') is string && p.get('phone','').size() <= 40
+    && p.get('avatar','') is string && p.get('avatar','').size() <= 250000
+    && p.get('profileCover','') is string && p.get('profileCover','').size() <= 400000
+    && p.get('statusText','') is string && p.get('statusText','').size() <= 120
+    && (p.get('birthMonth',null) == null || (p.birthMonth is number && p.birthMonth >= 1 && p.birthMonth <= 12) || (p.birthMonth is string && p.birthMonth.size() <= 2))
+    && (p.get('birthDay',null) == null || (p.birthDay is number && p.birthDay >= 1 && p.birthDay <= 31) || (p.birthDay is string && p.birthDay.size() <= 2))
+    && p.get('gender','') is string && p.get('gender','').size() <= 20
+    && p.get('profileEffect','none') is string && p.get('profileEffect','none').size() <= 30
+    && p.get('profileWeatherCity','yingge') is string && p.get('profileWeatherCity','yingge').size() <= 30
+    && p.get('profileEffectDirection','left') in ['left','right','stay']
+    && p.get('profileRandom',false) is bool;
+  }
   match /conversationMergeAudit/{id} {allow read,write: if admin();}
   match /conversations/{id} {
    allow read: if admin() || (signedIn()
@@ -31,7 +53,8 @@ service cloud.firestore {
     && active(request.auth.uid)
     && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('adminDeleted',false) == false
     && resource.data.state == 'active' && resource.data.memberIds.hasAny([request.auth.uid]));
-   allow write: if admin();
+   allow create,delete: if admin();
+   allow update: if admin() || sharedProfileUpdate(id);
   }
   match /users/{uid} {
    allow read: if admin() || owner(uid);

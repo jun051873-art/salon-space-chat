@@ -4,7 +4,7 @@ const {JSDOM}=require('jsdom');
  const html=fs.readFileSync('admin.html','utf8');
  const dom=new JSDOM(html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/g,''),{url:'https://example.test/salon-space-chat/admin.html?chat=merged-member'});
  const {document}=dom.window;const rooms=[];let reads=0;
- const ctx={document,$:id=>document.getElementById(id),sel:null,adminFeed:null,currentChatView:null,ADMIN:'owner',auth:{currentUser:{uid:'owner'}},suite:{demo:false},chatPresence:{enter(){}},listen:(id)=>rooms.push(id),getDoc:()=>{reads++;return new Promise(()=>{})},doc:()=>({}),db:{},chatError:e=>e.message};
+ const ctx={rememberAdminRoute(){},document,$:id=>document.getElementById(id),sel:null,adminFeed:null,currentChatView:null,ADMIN:'owner',auth:{currentUser:{uid:'owner'}},suite:{demo:false},chatPresence:{enter(){}},listen:(id)=>rooms.push(id),getDoc:()=>{reads++;return new Promise(()=>{})},doc:()=>({}),db:{},chatError:e=>e.message};
  vm.createContext(ctx);vm.runInContext(html.slice(html.indexOf('async function openCustomerChat('),html.indexOf('$("adminCustomerPill").onclick')),ctx);
  // Identity lookup and homepage config may never resolve. The destination must
  // still be visible, accept typing, and start listening before either finishes.
