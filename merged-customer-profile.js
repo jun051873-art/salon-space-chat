@@ -41,6 +41,12 @@ export function createMergedProfileReader({readUser,readGroup}){
 // permissions, device tokens or account state. Empty values deliberately clear fields.
 export const sharedProfileKeys=['name','phone','birthMonth','birthDay','gender','avatar','profileCover','statusText','profileEffect','profileWeatherCity','profileEffectDirection','profileRandom'];
 export function sharedProfile(value={}){return Object.fromEntries(sharedProfileKeys.filter(k=>Object.hasOwn(value,k)).map(k=>[k,value[k]]));}
+// A resolved profile belongs to the group's primary account. Never copy that
+// account's ID, lifecycle, tags or routing onto a different member's list row.
+export function customerListProfile(row,profile,account=row){
+ if(account.id!==row.id)throw Error('顧客資料已變更，請重新開啟');
+ return {...row,...account,...sharedProfile(profile),privateAlias:profile.privateAlias||'',customerProvided:profile.customerProvided};
+}
 export async function ensureSharedProfile({db,id,doc,runTransaction}){
  return runTransaction(db,async tx=>{
   const ref=doc(db,'conversations',id),snap=await tx.get(ref),group=snap.data();
