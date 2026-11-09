@@ -30,7 +30,6 @@ export function createCustomerCleanup({db,auth,project,actor,enabled=false,now=D
   requireValue(!p.cleanupLock&&!s.cleanupLock&&!g.cleanupLock&&!p.adminDeleted&&p.status==='active','此組正在處理或主檔未啟用');
   requireValue(g.memberIds.length<=20&&g.historyRoomIds.length<=40&&g.memberIds.every(idOK)&&new Set(g.memberIds).size===g.memberIds.length&&g.historyRoomIds.every(idOK),'群組資料不完整');
   requireValue(!(await db.get('retiredCustomers/'+sourceUid)),'舊帳號已停用');
-  requireValue(!(await db.query('bookings','userId','EQUAL',sourceUid,1)).length,'舊帳號仍有預約資料，請先核對；本功能不改動預約表');
   // Unknown collections must be handled explicitly, never silently discarded.
   for(const [path,allowed] of [['users/'+sourceUid,[]],['chats/'+sourceUid,['messages','files']],['pushTokens/'+sourceUid,['devices']],['customerNotes/'+sourceUid,[]]]){
    requireValue((await db.children(path)).every(x=>allowed.includes(x)),'發現其他資料類型，暫停清除並保留全部資料');
@@ -72,7 +71,25 @@ export function createCustomerCleanup({db,auth,project,actor,enabled=false,now=D
    const next={...j,...change,serial:j.serial+1,updatedAt:now()};
    await db.commit([...writes,put(record.path,next,record)]);return publicJob(next);
   };
-  if(j.stage==='auth-disable'){requireValue(!(await db.query('bookings','userId','EQUAL',j.sourceUid,1)).length,'舊帳號仍有預約，暫停並保留資料');await auth.disable(j.sourceUid);return commit([],{stage:'copy-files'});}
+  if(j.stage==='auth-disable'){
+   // Update the existing booking in place: its ID, slots, status and all native
+   // Firestore values stay intact. Locks protect both old and new references.
+   if(j.pendingBookings?.length){
+    const saved=await Promise.all(j.pendingBookings.map(x=>db.get(x.path)));
+    for(let i=0;i<saved.length;i++)requireValue(saved[i]&&await cleanupHash(saved[i].raw)===j.pendingBookings[i].hash,'預約移轉核對不一致，暫停清除並保留帳號');
+    return commit(saved.map(guard),{pendingBookings:[],transferredBookings:(j.transferredBookings||0)+saved.length});
+   }
+   const bookings=await db.query('bookings','userId','EQUAL',j.sourceUid,PAGE);
+   if(bookings.length){
+    const pendingBookings=[];
+    for(const booking of bookings){
+     requireValue(!(await db.children(booking.path)).length,'預約含其他資料，暫停清除並保留帳號');
+     pendingBookings.push({path:booking.path,hash:await cleanupHash({...booking.raw,userId:{stringValue:j.primaryUid}})});
+    }
+    return commit(bookings.map(x=>patch(x,{userId:j.primaryUid})),{pendingBookings});
+   }
+   await auth.disable(j.sourceUid);return commit([],{stage:'copy-files'});
+  }
   const kind=j.stage.endsWith('files')?'files':'messages';
   const collection='chats/'+j.sourceUid+'/'+kind;
   async function destination(doc){
@@ -132,7 +149,7 @@ export function createCustomerCleanup({db,auth,project,actor,enabled=false,now=D
    const join=await db.get('notificationJobs/join_'+j.sourceUid);if(join)return commit([erase(join)]);
    return commit([],{stage:'auth-delete'});
   }
-  if(j.stage==='auth-delete'){await auth.remove(j.sourceUid);return commit([],{stage:'finish'});}
+  if(j.stage==='auth-delete'){requireValue(!(await db.query('bookings','userId','EQUAL',j.sourceUid,1)).length,'仍有舊帳號預約關聯，暫停清除');await auth.remove(j.sourceUid);return commit([],{stage:'finish'});}
   if(j.stage==='finish'){
    requireValue(j.copiedMessages===j.deletedMessages&&j.copiedFiles===j.deletedFiles,'搬移與清除數量不符');
    for(const c of ['chats/'+j.sourceUid+'/messages','chats/'+j.sourceUid+'/files','pushTokens/'+j.sourceUid+'/devices'])requireValue(!(await db.list(c,'',1)).length,'仍有舊資料，請繼續核對');

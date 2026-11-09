@@ -16,6 +16,8 @@ try{
  await assertFails(setDoc(doc(owner,'retiredCustomers/b'),{retired:true}));
  const transport=createCleanupRest({project:'demo-salon',token:'owner',emulatorOrigin:'http://127.0.0.1:8089'}),calls=[];
  const api=createCustomerCleanup({db:transport.db,auth:{disable:async uid=>calls.push('disable:'+uid),remove:async uid=>calls.push('delete:'+uid)},project:CLEANUP_PROJECT,actor:CLEANUP_OWNER,enabled:true});
+ await env.withSecurityRulesDisabled(async c=>{for(let i=0;i<9;i++)await setDoc(doc(c.firestore(),'bookings/booking'+i),{userId:'b',status:['confirmed','completed','cancelled'][i%3],startAt:serverTimestamp(),slotId:'booking'+i,service:'剪髮'});await setDoc(doc(c.firestore(),'availability/day'),{slots:{'10:00':true}});});
+ const before=await transport.db.list('bookings','',20);
  const preview=await api.preview('a','b');await api.start('a','b',preview.token);
  for(const user of [owner,db('a'),db('b')]){
   await assertFails(updateDoc(doc(user,'users/b'),{status:'active'}));
@@ -26,8 +28,15 @@ try{
  await assertFails(setDoc(doc(db('b'),'pushTokens/b/devices/d'),{token:'late'}));
  await assertFails(setDoc(doc(owner,'bookings/test'),{userId:'b'}));
  await assertFails(deleteDoc(doc(owner,'chats/a')));
+ await api.step('b');
+ await assertFails(updateDoc(doc(owner,'bookings/booking0'),{status:'cancelled'}));
  let result;for(let i=0;i<60;i++){result=await api.step('b');if(result.done)break;}
- assert.equal(result.done,true);assert.deepEqual(calls,['disable:b','delete:b']);
+ assert.equal(result.done,true);
+ for(const original of before)assert.deepEqual((await transport.db.get(original.path)).raw,{...original.raw,userId:{stringValue:'a'}});
+ assert.deepEqual((await transport.db.get('availability/day')).data,{slots:{'10:00':true}});
+ await assertSucceeds(getDoc(doc(db('a'),'bookings/booking0')));
+ await assertFails(getDoc(doc(db('b'),'bookings/booking0')));
+assert.deepEqual(calls,['disable:b','delete:b']);
  assert.equal((await transport.db.get('users/b')),null);assert.equal((await transport.db.list('chats/b/messages','',10)).length,0);
  const messages=await transport.db.list('chats/a/messages','',10);assert.equal(messages.length,1);assert.ok(messages[0].raw.createdAt.timestampValue,'timestamp retained as native timestamp');
  await assertFails(setDoc(doc(owner,'users/b'),{role:'customer',status:'active'}));

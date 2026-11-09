@@ -1,7 +1,12 @@
 var __defProp = Object.defineProperty;
 var __getOwnPropNames = Object.getOwnPropertyNames;
-var __esm = (fn, res) => function __init() {
-  return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
+var __esm = (fn, res, err) => function __init() {
+  if (err) throw err[0];
+  try {
+    return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
+  } catch (e) {
+    throw err = [e], e;
+  }
 };
 var __export = (target, all) => {
   for (var name in all)
@@ -52,7 +57,6 @@ function createCustomerCleanup({ db, auth, project, actor, enabled = false, now 
     requireValue(!p.cleanupLock && !s.cleanupLock && !g.cleanupLock && !p.adminDeleted && p.status === "active", "\u6B64\u7D44\u6B63\u5728\u8655\u7406\u6216\u4E3B\u6A94\u672A\u555F\u7528");
     requireValue(g.memberIds.length <= 20 && g.historyRoomIds.length <= 40 && g.memberIds.every(idOK) && new Set(g.memberIds).size === g.memberIds.length && g.historyRoomIds.every(idOK), "\u7FA4\u7D44\u8CC7\u6599\u4E0D\u5B8C\u6574");
     requireValue(!await db.get("retiredCustomers/" + sourceUid), "\u820A\u5E33\u865F\u5DF2\u505C\u7528");
-    requireValue(!(await db.query("bookings", "userId", "EQUAL", sourceUid, 1)).length, "\u820A\u5E33\u865F\u4ECD\u6709\u9810\u7D04\u8CC7\u6599\uFF0C\u8ACB\u5148\u6838\u5C0D\uFF1B\u672C\u529F\u80FD\u4E0D\u6539\u52D5\u9810\u7D04\u8868");
     for (const [path, allowed] of [["users/" + sourceUid, []], ["chats/" + sourceUid, ["messages", "files"]], ["pushTokens/" + sourceUid, ["devices"]], ["customerNotes/" + sourceUid, []]]) {
       requireValue((await db.children(path)).every((x) => allowed.includes(x)), "\u767C\u73FE\u5176\u4ED6\u8CC7\u6599\u985E\u578B\uFF0C\u66AB\u505C\u6E05\u9664\u4E26\u4FDD\u7559\u5168\u90E8\u8CC7\u6599");
     }
@@ -110,7 +114,20 @@ function createCustomerCleanup({ db, auth, project, actor, enabled = false, now 
       return publicJob(next);
     };
     if (j.stage === "auth-disable") {
-      requireValue(!(await db.query("bookings", "userId", "EQUAL", j.sourceUid, 1)).length, "\u820A\u5E33\u865F\u4ECD\u6709\u9810\u7D04\uFF0C\u66AB\u505C\u4E26\u4FDD\u7559\u8CC7\u6599");
+      if (j.pendingBookings?.length) {
+        const saved = await Promise.all(j.pendingBookings.map((x) => db.get(x.path)));
+        for (let i = 0; i < saved.length; i++) requireValue(saved[i] && await cleanupHash(saved[i].raw) === j.pendingBookings[i].hash, "\u9810\u7D04\u79FB\u8F49\u6838\u5C0D\u4E0D\u4E00\u81F4\uFF0C\u66AB\u505C\u6E05\u9664\u4E26\u4FDD\u7559\u5E33\u865F");
+        return commit(saved.map(guard), { pendingBookings: [], transferredBookings: (j.transferredBookings || 0) + saved.length });
+      }
+      const bookings = await db.query("bookings", "userId", "EQUAL", j.sourceUid, PAGE);
+      if (bookings.length) {
+        const pendingBookings = [];
+        for (const booking of bookings) {
+          requireValue(!(await db.children(booking.path)).length, "\u9810\u7D04\u542B\u5176\u4ED6\u8CC7\u6599\uFF0C\u66AB\u505C\u6E05\u9664\u4E26\u4FDD\u7559\u5E33\u865F");
+          pendingBookings.push({ path: booking.path, hash: await cleanupHash({ ...booking.raw, userId: { stringValue: j.primaryUid } }) });
+        }
+        return commit(bookings.map((x) => patch(x, { userId: j.primaryUid })), { pendingBookings });
+      }
       await auth.disable(j.sourceUid);
       return commit([], { stage: "copy-files" });
     }
@@ -193,6 +210,7 @@ function createCustomerCleanup({ db, auth, project, actor, enabled = false, now 
       return commit([], { stage: "auth-delete" });
     }
     if (j.stage === "auth-delete") {
+      requireValue(!(await db.query("bookings", "userId", "EQUAL", j.sourceUid, 1)).length, "\u4ECD\u6709\u820A\u5E33\u865F\u9810\u7D04\u95DC\u806F\uFF0C\u66AB\u505C\u6E05\u9664");
       await auth.remove(j.sourceUid);
       return commit([], { stage: "finish" });
     }
@@ -330,7 +348,7 @@ var worker_suite_default = {
   async fetch(request, env, ctx) {
     const cors = { "Access-Control-Allow-Origin": SITE, "Access-Control-Allow-Methods": "GET, POST, OPTIONS", "Access-Control-Allow-Headers": "Content-Type, Authorization", "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store", "Vary": "Origin" };
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
-    if (request.method === "GET") return json({ ok: true, service: "salon-space-notify", version: "17-permanent-merge-cleanup", authenticated: true, features: { permanentMergeCleanup: env.CUSTOMER_CLEANUP_RULES_VERSION === "P141", androidNativePush: true, unifiedConversations: true, activeChatAutoReplySuppression: true, newCustomerNotifications: true, timeReplies: true, keywordReplies: true, keywordContains: true, scheduledCare: true, visitCare: true, personalVisitCare: true, appointmentReminders: true } }, 200, cors);
+    if (request.method === "GET") return json({ ok: true, service: "salon-space-notify", version: "18-booking-merge-cleanup", authenticated: true, features: { permanentMergeCleanup: env.CUSTOMER_CLEANUP_RULES_VERSION === "P141", androidNativePush: true, unifiedConversations: true, activeChatAutoReplySuppression: true, newCustomerNotifications: true, timeReplies: true, keywordReplies: true, keywordContains: true, scheduledCare: true, visitCare: true, personalVisitCare: true, appointmentReminders: true } }, 200, cors);
     if (request.method !== "POST") return json({ ok: false, error: "METHOD_NOT_ALLOWED" }, 405, cors);
     try {
       if (request.headers.get("Origin") && request.headers.get("Origin") !== SITE) throw fault("ORIGIN_NOT_ALLOWED", 403);

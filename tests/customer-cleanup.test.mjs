@@ -30,3 +30,26 @@ await Promise.allSettled([f.api.step('b'),f.api.step('b')]);assert.equal(f.docs.
 while(f.docs.get('customerCleanup/b').data.stage!=='erase-messages')await f.api.step('b');
 const copied=[...f.docs.keys()].find(p=>p.startsWith('chats/a/messages/m_'));f.seed(copied,{text:'tampered'});await assert.rejects(f.api.step('b'),/不一致/);assert.equal((await f.db.list('chats/b/messages','',100)).length,9);
 console.log('PASS cleanup: concurrent steps serialize; altered destination blocks deletion');
+// Bookings keep their original document IDs, timestamps, status and slot data.
+f=fixture();const originals=new Map();
+for(let i=0;i<11;i++){
+ const path='bookings/slot'+i;f.seed(path,{userId:'b',status:['confirmed','completed','cancelled'][i%3],date:'2026-11-10',time:'10:00',slotId:'slot'+i,service:'剪髮',adminArchived:i%2===0,custom:{keep:true}});
+ f.docs.get(path).raw.startAt={timestampValue:'2026-11-10T02:00:00.123456Z'};originals.set(path,structuredClone(f.docs.get(path).raw));
+}
+f.seed('bookings/unrelated',{userId:'c',status:'confirmed'});f.seed('availability/day',{slots:{'10:00':true}});
+q=await f.api.preview('a','b');await f.api.start('a','b',q.token);
+f.fail();await assert.rejects(f.api.step('b'),/network/);assert.equal(f.authCalls.length,0);
+await f.api.step('b'); // transfer committed, response may be lost
+assert.equal(f.docs.get('customerCleanup/b').data.pendingBookings.length,4);
+f.fail();await assert.rejects(f.api.step('b'),/network/);assert.equal(f.authCalls.length,0);
+await Promise.allSettled([f.api.step('b'),f.api.step('b')]);
+assert.equal(f.docs.get('customerCleanup/b').data.transferredBookings,4);
+for(let i=0;i<100;i++){j=await f.api.step('b');if(j.done)break;}
+assert.equal(j.done,true);assert.equal(f.docs.get('customerCleanup/b').data.transferredBookings,11);
+for(const [path,raw] of originals)assert.deepEqual(f.docs.get(path).raw,{...raw,userId:{stringValue:'a'}});
+assert.equal(f.docs.get('bookings/unrelated').data.userId,'c');assert.deepEqual(f.docs.get('availability/day').data,{slots:{'10:00':true}});
+console.log('PASS booking migration: all statuses, multiple pages, native fields, retries, concurrent verification, unrelated records and slots preserved');
+f=fixture();f.seed('bookings/one',{userId:'b',status:'confirmed'});q=await f.api.preview('a','b');await f.api.start('a','b',q.token);await f.api.step('b');
+f.seed('bookings/one',{userId:'a',status:'cancelled'});await assert.rejects(f.api.step('b'),/預約移轉核對不一致/);assert.equal(f.authCalls.length,0);assert.ok(f.docs.has('users/b'));
+f=fixture();f.seed('bookings/one',{userId:'b'});f.seed('bookings/one/unknown/data',{keep:true});q=await f.api.preview('a','b');await f.api.start('a','b',q.token);await assert.rejects(f.api.step('b'),/預約含其他資料/);assert.equal(f.docs.get('bookings/one').data.userId,'b');assert.equal(f.authCalls.length,0);
+console.log('PASS booking migration: changed destination or unknown descendants block account deletion');
