@@ -12,6 +12,7 @@ export function createConversationFeed({room,watchAccount,watchGroup,makeSource,
   onChange({docs,more:all.some(s=>s.more),loading:all.some(s=>s.loading),ready:all.length===feeds.size&&all.every(s=>s.ready),fromCache:all.some(s=>s.fromCache),reason});
  };
  function configure(group){
+  if(group?.cleanupLock)throw Error('正在整合顧客資料，完成後會自動恢復對話');
   const rooms=group?.state==='active'?group.historyRoomIds:[room];
   if(!Array.isArray(rooms)||!rooms.length||rooms.length>40||!rooms.includes(room)||rooms.some(r=>typeof r!=='string'||!r||r.includes('/')))throw Error('聊天室連結不完整，請店家重新核對');
   const ids=[...new Set(rooms)].sort(),key=JSON.stringify(ids);
@@ -53,7 +54,7 @@ export function watchConversationRooms({room,watchAccount,watchGroup,watchRoom,o
   for(const id of new Set(ids))stops.push(watchRoom(id,(data,fromCache)=>{if(dead||gen!==version)return;rows.set(id,{id,...data,fromCache});onChange([...rows.values()],rows.size===new Set(ids).size&&[...rows.values()].every(x=>!x.fromCache));},e=>{clear();onChange([],false);onError(e);}));
  }
  const stopAccount=watchAccount(account=>{stopGroup?.();stopGroup=null;
-  if(account?.conversationId)stopGroup=watchGroup(account.conversationId,group=>{if(group?.state==='active')configure(group.historyRoomIds);else{clear();onChange([],false);onError(Error('共用聊天室尚未啟用'));}},e=>{clear();onChange([],false);onError(e);});else configure([room]);
+  if(account?.conversationId)stopGroup=watchGroup(account.conversationId,group=>{if(group?.cleanupLock){clear();onChange([],false);onError(Error('正在整合顧客資料，完成後會自動恢復對話'));}else if(group?.state==='active')configure(group.historyRoomIds);else{clear();onChange([],false);onError(Error('共用聊天室尚未啟用'));}},e=>{clear();onChange([],false);onError(e);});else configure([room]);
  },onError);
  return ()=>{dead=true;stopAccount?.();stopGroup?.();clear();};
 }

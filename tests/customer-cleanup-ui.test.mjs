@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import {JSDOM} from 'jsdom';
+import {cleanupClient,openCleanup} from '../customer-cleanup-ui.js';
+let request;
+const call=cleanupClient({auth:{currentUser:{getIdToken:async()=>'firebase-auth-token'}},fetcher:async(url,opts)=>{request=JSON.parse(opts.body);return {ok:true,json:async()=>({ok:true})};}});
+await call('cleanup-start',{token:'preview-token',primaryUid:'a',sourceUid:'b'});assert.equal(request.idToken,'firebase-auth-token');assert.equal(request.token,'preview-token');
+const dom=new JSDOM('<body></body>');let writes=0,done=0,lost=true;
+const d=await openCleanup({primaryUid:'a',sourceUid:'b',esc:x=>x,modal:(title,html)=>{const el=dom.window.document.createElement('dialog');el.innerHTML=html;el.close=()=>el.remove();dom.window.document.body.append(el);return el;},call:async(action)=>{if(action==='cleanup-preview')return {ok:true,token:'preview'};writes++;if(action==='cleanup-start'&&lost){lost=false;throw Error('lost response');}return action==='cleanup-start'?{stage:'auth-disable'}:{done:true};},onDone:async()=>done++});
+const b=d.querySelector('button'),c=d.querySelector('input');assert.equal(b.disabled,true);assert.equal(writes,0);c.checked=true;c.onchange();await b.onclick();assert.equal(done,0);assert.equal(b.disabled,false);await b.onclick();assert.equal(done,1);assert.equal(d.isConnected,false);
+console.log('PASS cleanup UI: explicit confirmation, distinct auth/preview tokens, lost response retry, completion only after server done');

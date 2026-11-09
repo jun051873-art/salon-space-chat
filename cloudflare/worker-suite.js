@@ -11,7 +11,7 @@ export default {
  async fetch(request, env, ctx) {
   const cors = {"Access-Control-Allow-Origin":SITE,"Access-Control-Allow-Methods":"GET, POST, OPTIONS","Access-Control-Allow-Headers":"Content-Type, Authorization","Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store","Vary":"Origin"};
   if(request.method === "OPTIONS") return new Response(null,{status:204,headers:cors});
-  if(request.method === "GET") return json({ok:true,service:"salon-space-notify",version:"16-native-android-push",authenticated:true,features:{androidNativePush:true,unifiedConversations:true,activeChatAutoReplySuppression:true,newCustomerNotifications:true,timeReplies:true,keywordReplies:true,keywordContains:true,scheduledCare:true,visitCare:true,personalVisitCare:true,appointmentReminders:true}},200,cors);
+  if(request.method === "GET") return json({ok:true,service:"salon-space-notify",version:"17-permanent-merge-cleanup",authenticated:true,features:{permanentMergeCleanup:env.CUSTOMER_CLEANUP_RULES_VERSION==='P141',androidNativePush:true,unifiedConversations:true,activeChatAutoReplySuppression:true,newCustomerNotifications:true,timeReplies:true,keywordReplies:true,keywordContains:true,scheduledCare:true,visitCare:true,personalVisitCare:true,appointmentReminders:true}},200,cors);
   if(request.method !== "POST") return json({ok:false,error:"METHOD_NOT_ALLOWED"},405,cors);
   try {
    if(request.headers.get("Origin") && request.headers.get("Origin") !== SITE) throw fault("ORIGIN_NOT_ALLOWED",403);
@@ -24,6 +24,17 @@ export default {
    const who = await readJSON("https://identitytoolkit.googleapis.com/v1/accounts:lookup?key="+WEB_API_KEY,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({idToken})},"AUTH");
    const user = who.users?.[0];
    if(!user?.localId || user.disabled) throw fault("LOGIN_INVALID",401);
+   if(['cleanup-preview','cleanup-start','cleanup-step'].includes(body.action)){
+    if(user.localId!==ADMIN_UID)throw fault('NOT_AUTHORIZED',403);
+    if(env.CUSTOMER_CLEANUP_RULES_VERSION!=='P141')return json({ok:false,error:'永久清除服務尚未啟用；需先完成規則與後端部署。'},409,cors);
+    const [{createCustomerCleanup},{createCleanupRest}]=await Promise.all([import('./customer-cleanup.js'),import('./cleanup-rest.js')]);
+    const connection=createCleanupRest({project:env.FIREBASE_PROJECT_ID,token:await googleToken(env)});
+    const cleanup=createCustomerCleanup({...connection,project:env.FIREBASE_PROJECT_ID,actor:user.localId,enabled:true});
+    try{
+     const result=body.action==='cleanup-preview'?await cleanup.preview(body.primaryUid,body.sourceUid):body.action==='cleanup-start'?await cleanup.start(body.primaryUid,body.sourceUid,body.token):await cleanup.step(body.jobId);
+     return json(result,200,cors);
+    }catch(e){return json({ok:false,error:e.message||'清除尚未完成；資料會保留以便繼續。',retryable:['ABORTED','FAILED_PRECONDITION'].includes(e.code)},e.status||409,cors);}
+   }
    if(body.action==='customer-joined'){
     if(user.localId===ADMIN_UID||body.customerUid!==user.localId)throw fault('NOT_AUTHORIZED',403);
     return json(await notifyNewCustomer(env,user.localId),200,cors);
@@ -126,13 +137,13 @@ async function conversationTokens(root,uid,token){
 }
 async function googleToken(env){
  if(!env.FIREBASE_PROJECT_ID || !env.FIREBASE_CLIENT_EMAIL || !env.FIREBASE_PRIVATE_KEY)throw fault("MISSING_FIREBASE_ENV",500);
- const cacheKey=env.FIREBASE_PROJECT_ID+":"+env.FIREBASE_CLIENT_EMAIL;
+ const cacheKey=env.FIREBASE_PROJECT_ID+":"+env.FIREBASE_CLIENT_EMAIL+(env.CUSTOMER_CLEANUP_RULES_VERSION==='P141'?':cleanup':'');
  if(oauthCache?.key===cacheKey && oauthCache.until>Date.now()+60000)return oauthCache.token;
  if(oauthPending?.key===cacheKey)return oauthPending.promise;
  const pending={key:cacheKey,promise:null};
  pending.promise=(async()=>{
   const now=Math.floor(Date.now()/1000),encode=obj=>base64Url(new TextEncoder().encode(JSON.stringify(obj)));
-  const unsigned=encode({alg:"RS256",typ:"JWT"})+"."+encode({iss:env.FIREBASE_CLIENT_EMAIL,scope:"https://www.googleapis.com/auth/firebase.messaging https://www.googleapis.com/auth/datastore",aud:"https://oauth2.googleapis.com/token",iat:now,exp:now+3600});
+  const unsigned=encode({alg:"RS256",typ:"JWT"})+"."+encode({iss:env.FIREBASE_CLIENT_EMAIL,scope:"https://www.googleapis.com/auth/firebase.messaging https://www.googleapis.com/auth/datastore"+(env.CUSTOMER_CLEANUP_RULES_VERSION==='P141'?' https://www.googleapis.com/auth/cloud-platform':''),aud:"https://oauth2.googleapis.com/token",iat:now,exp:now+3600});
   const pem=env.FIREBASE_PRIVATE_KEY.replace(/\\n/g,"\n").replace(/-----BEGIN PRIVATE KEY-----|-----END PRIVATE KEY-----|\s/g,"");
   let cryptoKey;try{cryptoKey=await crypto.subtle.importKey("pkcs8",Uint8Array.from(atob(pem),c=>c.charCodeAt(0)),{name:"RSASSA-PKCS1-v1_5",hash:"SHA-256"},false,["sign"]);}catch{throw fault("INVALID_PRIVATE_KEY_FORMAT",500);}
   const signature=await crypto.subtle.sign("RSASSA-PKCS1-v1_5",cryptoKey,new TextEncoder().encode(unsigned));
@@ -153,7 +164,8 @@ async function salonConfig(root,token,fresh=false){if(!fresh&&salonConfigCache?.
 async function systemMessage(env,root,token,uid,id,text,customer={},shopName='專屬空間'){
  const name='projects/'+env.FIREBASE_PROJECT_ID+'/databases/(default)/documents/';
  const s=v=>({stringValue:v});
- try{await readJSON(root.slice(0,-1)+':commit',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({writes:[{update:{name:name+'chats/'+uid+'/messages/'+id,fields:{text:s(text.slice(0,4000)),senderId:s(ADMIN_UID),senderRole:s('admin'),clientMessageId:s(id),automatic:{booleanValue:true}}},currentDocument:{exists:false},updateTransforms:[{fieldPath:'createdAt',setToServerValue:'REQUEST_TIME'}]},{update:{name:name+'chats/'+uid,fields:{lastMessage:s(text.slice(0,4000))}},updateMask:{fieldPaths:['lastMessage']},updateTransforms:[{fieldPath:'updatedAt',setToServerValue:'REQUEST_TIME'},{fieldPath:'lastAdminMessageAt',setToServerValue:'REQUEST_TIME'}]}]})},'AUTO_WRITE');}
+ const cleanupGuard=await cleanupWriteGuard(env,root,token,uid);if(cleanupGuard===null)return false;
+ try{await readJSON(root.slice(0,-1)+':commit',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({writes:[...cleanupGuard,{update:{name:name+'chats/'+uid+'/messages/'+id,fields:{text:s(text.slice(0,4000)),senderId:s(ADMIN_UID),senderRole:s('admin'),clientMessageId:s(id),automatic:{booleanValue:true}}},currentDocument:{exists:false},updateTransforms:[{fieldPath:'createdAt',setToServerValue:'REQUEST_TIME'}]},{update:{name:name+'chats/'+uid,fields:{lastMessage:s(text.slice(0,4000))}},updateMask:{fieldPaths:['lastMessage']},updateTransforms:[{fieldPath:'updatedAt',setToServerValue:'REQUEST_TIME'},{fieldPath:'lastAdminMessageAt',setToServerValue:'REQUEST_TIME'}]}]})},'AUTO_WRITE');}
  catch(e){if(e.code?.includes('ALREADY_EXISTS')||e.code?.includes('FAILED_PRECONDITION'))return false;throw e;}
  // Shared browser tokens may be registered under both customer and owner accounts.
  // Automatic messages remain in the conversation, but never alert an owner device.
@@ -251,22 +263,22 @@ function findReply(rules,text){const input=String(text||'').normalize('NFKC').to
 async function notifyNewCustomer(env,uid){
  if(!/^[A-Za-z0-9_-]{1,128}$/.test(uid))throw fault('INVALID_RECIPIENT',400);
  const token=await googleToken(env),root='https://firestore.googleapis.com/v1/projects/'+encodeURIComponent(env.FIREBASE_PROJECT_ID)+'/databases/(default)/documents/',headers={Authorization:'Bearer '+token,'Content-Type':'application/json'};
- const customer=fieldsOf(await readJSON(root+'users/'+uid,{headers},'CUSTOMER'));
- if(customer.status!=='pending')return {ok:true,skipped:'not-pending'};
+ const customerDoc=await readJSON(root+'users/'+uid,{headers},'CUSTOMER'),customer=fieldsOf(customerDoc);
+ if(customer.cleanupLock||customer.status!=='pending')return {ok:true,skipped:'not-pending'};
  const path='notificationJobs/join_'+uid;let previous=null;
  try{previous=await readJSON(root+path,{headers},'JOIN_JOB');}catch(e){if(e.status!==404)throw e;}
  const state=fieldsOf(previous||{});
  if(state.status==='sent')return {ok:true,alreadySent:true};
  if(state.status==='sending'&&Number(state.leaseUntil)>Date.now())return {ok:true,inProgress:true};
  const precondition=previous?'currentDocument.updateTime='+encodeURIComponent(previous.updateTime):'currentDocument.exists=false';
- try{await readJSON(root+path+'?'+precondition,{method:'PATCH',headers,body:JSON.stringify({fields:{status:{stringValue:'sending'},leaseUntil:{integerValue:String(Date.now()+120000)}}})},'JOIN_LEASE');}catch(e){if(/ALREADY_EXISTS|FAILED_PRECONDITION/.test(e.code||''))return {ok:true,inProgress:true};throw e;}
+ try{await writeJoinJob(env,root,token,path,{status:'sending',leaseUntil:Date.now()+120000},customerDoc,previous?{updateTime:previous.updateTime}:{exists:false});}catch(e){if(/ALREADY_EXISTS|FAILED_PRECONDITION/.test(e.code||''))return {ok:true,inProgress:true};throw e;}
  try{
   const tokens=await recipientTokens(root,ADMIN_UID,token);if(!tokens.length)throw fault('NO_DEVICE_TOKENS',404);
   const results=[];for(let i=0;i<tokens.length;i+=5)results.push(...await Promise.all(tokens.slice(i,i+5).map(async device=>{try{await readJSON('https://fcm.googleapis.com/v1/projects/'+encodeURIComponent(env.FIREBASE_PROJECT_ID)+'/messages:send',{method:'POST',headers,body:JSON.stringify({message:{token:device,data:{title:'新客加入・待核准',body:String(customer.name||'新客人').slice(0,60)+' 已送出加入申請，點此核對。',tag:'salon-join-'+uid,url:SITE+'/salon-space-chat/admin.html?view=approvals'},webpush:{headers:{Urgency:'high',TTL:'86400'}}}})},'FCM');return true;}catch{return false;}})));
   const success=results.filter(Boolean).length;if(!success)throw fault('FCM_FAILED');
-  await readJSON(root+path,{method:'PATCH',headers,body:JSON.stringify({fields:{status:{stringValue:'sent'},leaseUntil:{integerValue:'0'}}})},'JOIN_RESULT');
+  await writeJoinJob(env,root,token,path,{status:'sent',leaseUntil:0},customerDoc);
   return {ok:true,success,devices:tokens.length,acceptedBy:'FCM'};
- }catch(e){try{await readJSON(root+path,{method:'PATCH',headers,body:JSON.stringify({fields:{status:{stringValue:'retry'},leaseUntil:{integerValue:'0'}}})},'JOIN_RETRY');}catch{}throw e;}
+ }catch(e){try{await writeJoinJob(env,root,token,path,{status:'retry',leaseUntil:0},customerDoc);}catch{}throw e;}
 }
 
 // v13 appointments. Firestore queue, not an open browser timer. Drafts never send.
@@ -290,6 +302,7 @@ async function processAppointment(env,root,token,queueDoc,now=Date.now()){
  const job=fieldsOf(fresh);if(job.type!=='appointmentReminder'||job.status!=='queued')return false;
  if(!/^[A-Za-z0-9_-]{1,128}$/.test(job.userId||'')){await appointmentPatch(root,path,token,{status:'invalid',appointmentDueAt:null},fresh.updateTime);return false;}
  const [userDoc,configDoc]=await Promise.all([appointmentDoc(root,'users/'+job.userId,token),appointmentDoc(root,'announcements/settings',token)]),user=userDoc?{...fieldsOf(userDoc),id:job.userId}:null,config=fieldsOf(configDoc||{}),decision=appointmentDue(job,user,config,now);
+ if(env.CUSTOMER_CLEANUP_RULES_VERSION==='P141'&&(!user||user.cleanupLock))return false;
  if(decision==='skip'||decision==='future')return false;
  const base='projects/'+env.FIREBASE_PROJECT_ID+'/databases/(default)/documents/',headers={Authorization:'Bearer '+token,'Content-Type':'application/json'};
  // REST v1 has no verify operation. Compare-and-set unchanged fields to guard both snapshots atomically.
@@ -308,7 +321,7 @@ async function pushAppointment(env,root,token,queueDoc,now=Date.now()){
  const delivered=new Set(job.deliveredTokens||[]);let pending=true;
  try{
   const userDoc=await appointmentDoc(root,'users/'+job.userId,token),user=userDoc?fieldsOf(userDoc):null;
-  if(!user||user.adminDeleted||user.adminMergedInto||(user.status||'active')!=='active'||user.marketingOptIn===false){await appointmentPatch(root,path,token,{appointmentPushDueAt:null,pushStatus:'excluded'},lease.updateTime);return;}
+  if(!user||user.cleanupLock||user.adminDeleted||user.adminMergedInto||(user.status||'active')!=='active'||user.marketingOptIn===false){await appointmentPatch(root,path,token,{appointmentPushDueAt:null,pushStatus:'excluded'},lease.updateTime);return;}
   const customerTokens=await conversationTokens(root,job.userId,token),ownerTokens=new Set(await recipientTokens(root,ADMIN_UID,token)),tokens=customerTokens.filter(t=>!ownerTokens.has(t)),config=await salonConfig(root,token);
   const ttl=Math.max(1,Math.min(3600,Math.floor((job.appointmentAt-now)/1000)));
   for(const device of tokens.filter(t=>!delivered.has(t)).slice(0,5)){try{await readJSON('https://fcm.googleapis.com/v1/projects/'+env.FIREBASE_PROJECT_ID+'/messages:send',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({message:{token:device,data:{title:(user.name||'客人')+'｜'+(config.name||'專屬空間'),body:job.messageText.slice(0,500),messageId:job.messageId,automatic:'true',recipientRole:'customer',tag:'salon-'+job.userId+'-'+job.messageId,url:SITE+'/salon-space-chat/customer.html'},webpush:{headers:{Urgency:'high',TTL:String(ttl)}}}})},'APPOINTMENT_PUSH');delivered.add(device);}catch(e){console.error('appointment-push',e.code);}}
@@ -329,4 +342,25 @@ async function runScheduledReminders(env,controller){
  const jobs=[runAppointments(env,controller?.cron||'')];
  if(time.getUTCMinutes()===0&&hour>=10&&hour<=20)jobs.push(runCare(env));
  const results=await Promise.allSettled(jobs);for(const r of results)if(r.status==='rejected')throw r.reason;
+}
+
+// All background message creation uses a fresh account CAS when cleanup is on.
+// A source removed after this read makes the entire write fail, never recreate it.
+async function cleanupWriteGuard(env,root,token,uid){
+ if(env.CUSTOMER_CLEANUP_RULES_VERSION!=='P141')return [];
+ const snapshot=await appointmentDoc(root,'users/'+uid,token);if(!snapshot)return null;
+ const user=fieldsOf(snapshot);if(user.cleanupLock||user.adminDeleted||(user.status||'active')!=='active')return null;
+ return [{update:{name:snapshot.name,fields:snapshot.fields.status?{status:snapshot.fields.status}:{}},updateMask:{fieldPaths:['status']},currentDocument:{updateTime:snapshot.updateTime}}];
+}
+
+async function writeJoinJob(env,root,token,path,values,customerDoc,currentDocument){
+ const fields=packFields(values),headers={Authorization:'Bearer '+token,'Content-Type':'application/json'};
+ if(env.CUSTOMER_CLEANUP_RULES_VERSION!=='P141'){
+  const q=currentDocument?('?'+(currentDocument.updateTime?'currentDocument.updateTime='+encodeURIComponent(currentDocument.updateTime):'currentDocument.exists=false')):'';
+  return readJSON(root+path+q,{method:'PATCH',headers,body:JSON.stringify({fields})},'JOIN_WRITE');
+ }
+ customerDoc=await appointmentDoc(root,'users/'+customerDoc.name.split('/').pop(),token);
+ if(!customerDoc||fieldsOf(customerDoc).cleanupLock||fieldsOf(customerDoc).status!=='pending')throw fault('CUSTOMER_CHANGED',409);
+ const name='projects/'+env.FIREBASE_PROJECT_ID+'/databases/(default)/documents/';
+ return readJSON(root.slice(0,-1)+':commit',{method:'POST',headers,body:JSON.stringify({writes:[{update:{name:customerDoc.name,fields:{status:customerDoc.fields.status}},updateMask:{fieldPaths:['status']},currentDocument:{updateTime:customerDoc.updateTime}},{update:{name:name+path,fields},...(currentDocument?{currentDocument}:{})}]})},'JOIN_WRITE');
 }

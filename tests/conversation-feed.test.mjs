@@ -14,5 +14,6 @@ await f.loadMore();assert.equal(pages.length,2);assert.equal(last.docs.length,62
 const stale=callbacks.get('old').next;group({state:'active',memberIds:['new'],historyRoomIds:['new']});
 stale(snap([d('forbidden',999)]));assert(!last.docs.some(x=>x.id.includes('forbidden')));
 f.pause();f.start();account({conversationId:'group'});group({state:'active',historyRoomIds:['new']});callbacks.get('new').next(snap([d('fresh',200)]));assert.equal(last.docs[0].id,'fresh');
-f.destroy();assert.equal(errors.length,0);
+group({state:'active',historyRoomIds:['new'],cleanupLock:'old'});assert.equal(last.docs.length,0);assert.equal(callbacks.size,0);assert.equal(errors.length,1);group({state:'active',historyRoomIds:['new'],cleanupLock:''});callbacks.get('new').next(snap([d('resumed',201)]));assert.equal(last.docs[0].id,'resumed');
+f.destroy();assert.equal(errors.length,1);
 console.log('PASS combined histories: collision-safe source IDs, independent cursors, member change ignores stale callbacks, resume');
