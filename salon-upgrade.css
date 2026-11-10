@@ -16,7 +16,7 @@ html[data-reading-size=large] .msg,html[data-reading-size=large] .sectionIntro,h
 
 /* C24: stable peer labels and non-selecting preview surfaces */
 .bubbleRow:not(.own) .senderName{display:block!important;position:static!important;font-size:14px;font-weight:700;color:var(--salon-ink,#39372f);margin:0 0 6px 4px;line-height:1.4}
-.bubbleStack{display:flex;flex-direction:column}.senderName{order:0}.bubbleStack>.msg{order:1}.messageActions{order:2}
+.bubbleStack{display:flex;flex-direction:column}.senderName{order:0}.bubbleStack>.msg{order:1;align-self:flex-start;width:fit-content;min-width:0;box-sizing:border-box}.bubbleRow.own .bubbleStack>.msg{align-self:flex-end}.messageActions{order:2}
 .chatCard,.chatCard *,.chatPreview,.chatPreview *{-webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none!important}.chatCard{touch-action:pan-y}.chatPreview .previewMessages{touch-action:pan-y}
 .avatarCropFrame{position:relative;width:min(75vw,360px);aspect-ratio:1;margin:18px auto;overflow:hidden;border-radius:14px;background:#222;touch-action:none}
 .avatarEditor .avatarCropFrame canvas{width:100%;height:100%;max-width:none;margin:0;border-radius:0;outline:0;object-fit:fill}
