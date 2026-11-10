@@ -11,7 +11,7 @@ export default {
  async fetch(request, env, ctx) {
   const cors = {"Access-Control-Allow-Origin":SITE,"Access-Control-Allow-Methods":"GET, POST, OPTIONS","Access-Control-Allow-Headers":"Content-Type, Authorization","Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store","Vary":"Origin"};
   if(request.method === "OPTIONS") return new Response(null,{status:204,headers:cors});
-  if(request.method === "GET") return json({ok:true,service:"salon-space-notify",version:"18-booking-merge-cleanup",authenticated:true,features:{permanentMergeCleanup:env.CUSTOMER_CLEANUP_RULES_VERSION==='P141',androidNativePush:true,unifiedConversations:true,activeChatAutoReplySuppression:true,newCustomerNotifications:true,timeReplies:true,keywordReplies:true,keywordContains:true,scheduledCare:true,visitCare:true,personalVisitCare:true,appointmentReminders:true}},200,cors);
+  if(request.method === "GET") return json({ok:true,service:"salon-space-notify",version:"19-customer-recovery",authenticated:true,features:{customerRecovery:true,permanentMergeCleanup:env.CUSTOMER_CLEANUP_RULES_VERSION==='P141',androidNativePush:true,unifiedConversations:true,activeChatAutoReplySuppression:true,newCustomerNotifications:true,timeReplies:true,keywordReplies:true,keywordContains:true,scheduledCare:true,visitCare:true,personalVisitCare:true,appointmentReminders:true}},200,cors);
   if(request.method !== "POST") return json({ok:false,error:"METHOD_NOT_ALLOWED"},405,cors);
   try {
    if(request.headers.get("Origin") && request.headers.get("Origin") !== SITE) throw fault("ORIGIN_NOT_ALLOWED",403);
@@ -24,6 +24,15 @@ export default {
    const who = await readJSON("https://identitytoolkit.googleapis.com/v1/accounts:lookup?key="+WEB_API_KEY,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({idToken})},"AUTH");
    const user = who.users?.[0];
    if(!user?.localId || user.disabled) throw fault("LOGIN_INVALID",401);
+   if(['recovery-issue','recovery-redeem'].includes(body.action)){
+    if(body.action==='recovery-issue'&&user.localId!==ADMIN_UID)throw fault('NOT_AUTHORIZED',403);
+    const [{createCustomerRecovery},{createCleanupRest}]=await Promise.all([import('./customer-recovery.js'),import('./cleanup-rest.js')]);
+    const access=await googleToken(env),connection=createCleanupRest({project:env.FIREBASE_PROJECT_ID,token:access});
+    const recovery=createCustomerRecovery({db:connection.db,actor:user.localId,
+     checkAuth:async uid=>{const result=await readJSON('https://identitytoolkit.googleapis.com/v1/projects/'+encodeURIComponent(env.FIREBASE_PROJECT_ID)+'/accounts:lookup',{method:'POST',headers:{Authorization:'Bearer '+access,'Content-Type':'application/json'},body:JSON.stringify({localId:[uid]})},'RECOVERY_AUTH');if(!result.users?.some(u=>u.localId===uid&&!u.disabled))throw fault('RECOVERY_UNAVAILABLE',409);},
+     mint:uid=>recoveryCustomToken(env,uid)});
+    return json(body.action==='recovery-issue'?await recovery.issue(body.primaryUid):await recovery.redeem(body.code),200,cors);
+   }
    if(['cleanup-preview','cleanup-start','cleanup-step'].includes(body.action)){
     if(user.localId!==ADMIN_UID)throw fault('NOT_AUTHORIZED',403);
     if(env.CUSTOMER_CLEANUP_RULES_VERSION!=='P141')return json({ok:false,error:'永久清除服務尚未啟用；需先完成規則與後端部署。'},409,cors);
@@ -363,4 +372,12 @@ async function writeJoinJob(env,root,token,path,values,customerDoc,currentDocume
  if(!customerDoc||fieldsOf(customerDoc).cleanupLock||fieldsOf(customerDoc).status!=='pending')throw fault('CUSTOMER_CHANGED',409);
  const name='projects/'+env.FIREBASE_PROJECT_ID+'/databases/(default)/documents/';
  return readJSON(root.slice(0,-1)+':commit',{method:'POST',headers,body:JSON.stringify({writes:[{update:{name:customerDoc.name,fields:{status:customerDoc.fields.status}},updateMask:{fieldPaths:['status']},currentDocument:{updateTime:customerDoc.updateTime}},{update:{name:name+path,fields},...(currentDocument?{currentDocument}:{})}]})},'JOIN_WRITE');
+}
+
+async function recoveryCustomToken(env,uid){
+ const now=Math.floor(Date.now()/1000),encode=obj=>base64Url(new TextEncoder().encode(JSON.stringify(obj)));
+ const unsigned=encode({alg:'RS256',typ:'JWT'})+'.'+encode({iss:env.FIREBASE_CLIENT_EMAIL,sub:env.FIREBASE_CLIENT_EMAIL,aud:'https://identitytoolkit.googleapis.com/google.identity.identitytoolkit.v1.IdentityToolkit',iat:now,exp:now+300,uid});
+ const pem=env.FIREBASE_PRIVATE_KEY.replace(/\\n/g,'\n').replace(/-----BEGIN PRIVATE KEY-----|-----END PRIVATE KEY-----|\s/g,'');
+ const key=await crypto.subtle.importKey('pkcs8',Uint8Array.from(atob(pem),c=>c.charCodeAt(0)),{name:'RSASSA-PKCS1-v1_5',hash:'SHA-256'},false,['sign']);
+ return unsigned+'.'+base64Url(new Uint8Array(await crypto.subtle.sign('RSASSA-PKCS1-v1_5',key,new TextEncoder().encode(unsigned))));
 }

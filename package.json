@@ -10,7 +10,9 @@
     "test:conversation-rules": "firebase emulators:exec --project demo-salon --only firestore 'node tests/firestore-rules.test.mjs && node tests/conversation-shared-rules.test.mjs && node tests/conversation-integration.test.mjs && node tests/conversation-cache-stress.test.mjs'",
     "test:shared-profile": "firebase emulators:exec --project demo-salon --only firestore 'node tests/profile-save.test.mjs && node tests/shared-profile-rules.test.mjs && node tests/firestore-rules.test.mjs && node tests/conversation-shared-rules.test.mjs'",
     "test:cleanup": "node tests/customer-cleanup.test.mjs && node tests/customer-cleanup-ui.test.mjs && node tests/conversation-feed.test.mjs",
-    "test:cleanup-rules": "firebase emulators:exec --project demo-salon --only firestore 'node tests/customer-cleanup-rules.test.mjs'"
+    "test:cleanup-rules": "firebase emulators:exec --project demo-salon --only firestore 'node tests/customer-cleanup-rules.test.mjs'",
+    "test:recovery": "node tests/customer-recovery.test.mjs && node tests/customer-recovery-worker.test.mjs",
+    "test:recovery-rules": "firebase emulators:exec --project demo-salon --only firestore 'node tests/customer-recovery-rules.test.mjs'"
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "^5.0.2",
