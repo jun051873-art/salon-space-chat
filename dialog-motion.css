@@ -1,0 +1,18 @@
+/* P146: a stable top edge; content loading never recentres the whole card. */
+body:is(.adminApp,.customerApp) dialog.salonDialog.stableDialog:not(.profileSceneDialog):not(.portraitPageDialog){
+ inset-block-start:max(18px,env(safe-area-inset-top));inset-block-end:auto;
+ margin-block:clamp(8px,3svh,28px) 0;
+ max-height:calc(100dvh - max(18px,env(safe-area-inset-top)) - clamp(8px,3svh,28px) - max(18px,env(safe-area-inset-bottom)));
+ overflow-y:auto;overscroll-behavior:contain;scroll-behavior:auto!important;
+ animation:salonCardArrive .18s cubic-bezier(.22,.61,.36,1) both!important;
+}
+body:is(.adminApp,.customerApp) dialog.salonDialog.asyncFormDialog{
+ height:min(80dvh,740px);box-sizing:border-box;
+}
+body dialog.stableDialog .dialogHead h2:focus{outline:none}
+body dialog.stableDialog [data-dialog-status]{padding:24px 0;line-height:1.7}
+@keyframes salonCardArrive{from{opacity:.85;translate:0 6px}to{opacity:1;translate:0 0}}
+@media(prefers-reduced-motion:reduce){body:is(.adminApp,.customerApp) dialog.salonDialog.stableDialog{animation:none!important;translate:none!important}}
+html[data-salon-motion=off] body dialog.salonDialog.stableDialog,
+html[data-reading-motion=off] body dialog.salonDialog.stableDialog,
+html[data-reading-motion=reduced] body dialog.salonDialog.stableDialog{animation:none!important;translate:none!important}

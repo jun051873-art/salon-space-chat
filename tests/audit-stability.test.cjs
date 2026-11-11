@@ -22,8 +22,11 @@ vm.runInContext(source.slice(start,end),c);
  console.log('PASS absent guide does not abort background recovery setup');
 })();
 // Replacing a confirmation dialog must settle its pending operation as cancelled.
-const dialogs=[],buttons={};
-class Dialog{constructor(){this.open=false;this.listeners={};this.isConnected=true;}set innerHTML(value){for(const id of ['confirmYes','confirmNo'])buttons[id]={};}querySelector(){return{}}addEventListener(n,f){(this.listeners[n]??=[]).push(f)}showModal(){this.open=true}close(){if(!this.open)return;this.open=false;for(const fn of this.listeners.close||[])fn()}remove(){this.isConnected=false}}
-const mc=vm.createContext({admin:false,activeTool:'',document:{querySelectorAll:()=>dialogs.filter(d=>d.isConnected),createElement:()=>new Dialog(),body:{dataset:{},append:d=>dialogs.push(d)}},esc:x=>x,icon:()=>'', $:id=>buttons[id]});
+const {JSDOM}=require('jsdom');
+const modalDOM=new JSDOM('<body></body>'),mw=modalDOM.window;
+mw.HTMLDialogElement.prototype.showModal=function(){this.open=true;};
+mw.HTMLDialogElement.prototype.close=function(){if(!this.open)return;this.open=false;this.dispatchEvent(new mw.Event('close'));};
+const mc=vm.createContext({admin:false,activeTool:'',document:mw.document,esc:x=>x,icon:()=>'', $:id=>mw.document.getElementById(id)});
+vm.runInContext(fs.readFileSync('dialog-lifecycle.js','utf8').replaceAll('export function','function'),mc);
 vm.runInContext(source.slice(source.indexOf(' function modal('),source.indexOf(' async function store(')),mc);
-(async()=>{const answer=mc.confirmAction('確認','測試');mc.modal('下一個視窗','');assert.equal(await answer,false);assert.equal(dialogs.filter(d=>d.isConnected).length,1);console.log('PASS replacing a confirmation cancels its pending operation and leaves one dialog');})();
+(async()=>{const answer=mc.confirmAction('確認','測試');mc.modal('下一個視窗','');assert.equal(await answer,false);assert.equal(mw.document.querySelectorAll('dialog').length,1);modalDOM.window.close();console.log('PASS replacing a confirmation cancels its pending operation and leaves one dialog');})();
