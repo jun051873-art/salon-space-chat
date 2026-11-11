@@ -44,7 +44,7 @@ export function bindSwipe(shell){const front=shell.querySelector('.swipeFront');
 
 export function mountAttachmentPicker(input,{photos=true}={}){
  const box=document.createElement('div');box.className='attachmentPicker';input.before(box);input.hidden=true;box.append(input);
- const status=document.createElement('p');status.className='attachmentStatus';status.setAttribute('role','status');status.textContent='尚未加入附件';
+ const status=document.createElement('p');status.className='attachmentStatus';status.setAttribute('role','status');status.textContent='尚未加入附件';const retention=document.createElement('p');retention.className='small';retention.textContent='聊天室照片保留 90 天，到期後無法查看或下載；需要留存請先下載。';box.append(retention);
  const preview=document.createElement('img');preview.className='attachmentPreview';preview.hidden=true;preview.alt='已選照片預覽';let url='';
  const clear=()=>{if(url)URL.revokeObjectURL(url);url='';preview.removeAttribute('src');preview.hidden=true;};
  const choose=(label,key,accept)=>{const b=document.createElement('button');b.type='button';b.className='attachmentChoice';b.innerHTML=icon(key)+'<span>'+label+'</span>';b.onclick=()=>{input.accept=accept;input.click();};box.append(b);};

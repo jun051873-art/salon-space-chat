@@ -11,7 +11,7 @@ export default {
  async fetch(request, env, ctx) {
   const cors = {"Access-Control-Allow-Origin":SITE,"Access-Control-Allow-Methods":"GET, POST, OPTIONS","Access-Control-Allow-Headers":"Content-Type, Authorization","Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store","Vary":"Origin"};
   if(request.method === "OPTIONS") return new Response(null,{status:204,headers:cors});
-  if(request.method === "GET") return json({ok:true,service:"salon-space-notify",version:"20-preserve-customer-access",authenticated:true,features:{automaticMergedRecovery:true,customerRecovery:true,permanentMergeCleanup:env.CUSTOMER_CLEANUP_RULES_VERSION==='P141',androidNativePush:true,unifiedConversations:true,activeChatAutoReplySuppression:true,newCustomerNotifications:true,timeReplies:true,keywordReplies:true,keywordContains:true,scheduledCare:true,visitCare:true,personalVisitCare:true,appointmentReminders:true}},200,cors);
+  if(request.method === "GET") return json({ok:true,service:"salon-space-notify",version:"21-chat-image-retention",authenticated:true,features:{chatImageRetentionDays:90,automaticMergedRecovery:true,customerRecovery:true,permanentMergeCleanup:env.CUSTOMER_CLEANUP_RULES_VERSION==='P141',androidNativePush:true,unifiedConversations:true,activeChatAutoReplySuppression:true,newCustomerNotifications:true,timeReplies:true,keywordReplies:true,keywordContains:true,scheduledCare:true,visitCare:true,personalVisitCare:true,appointmentReminders:true}},200,cors);
   if(request.method !== "POST") return json({ok:false,error:"METHOD_NOT_ALLOWED"},405,cors);
   try {
    if(request.headers.get("Origin") && request.headers.get("Origin") !== SITE) throw fault("ORIGIN_NOT_ALLOWED",403);
@@ -348,7 +348,7 @@ async function runAppointments(env,cron=''){
 async function runScheduledReminders(env,controller){
  // One every-minute schedule. Keep day-based care at 10:00–20:00 Taiwan, hourly.
  const time=new Date(controller?.scheduledTime||Date.now()),hour=(time.getUTCHours()+8)%24;
- const jobs=[runAppointments(env,controller?.cron||'')];
+ const jobs=[runAppointments(env,controller?.cron||''), runImageRetention(env,time.getTime())];
  if(time.getUTCMinutes()===0&&hour>=10&&hour<=20)jobs.push(runCare(env));
  const results=await Promise.allSettled(jobs);for(const r of results)if(r.status==='rejected')throw r.reason;
 }
@@ -381,3 +381,5 @@ async function recoveryCustomToken(env,uid){
  const key=await crypto.subtle.importKey('pkcs8',Uint8Array.from(atob(pem),c=>c.charCodeAt(0)),{name:'RSASSA-PKCS1-v1_5',hash:'SHA-256'},false,['sign']);
  return unsigned+'.'+base64Url(new Uint8Array(await crypto.subtle.sign('RSASSA-PKCS1-v1_5',key,new TextEncoder().encode(unsigned))));
 }
+
+async function runImageRetention(env,now){const {sweepChatImages}=await import('./chat-image-retention.js');const token=await googleToken(env);return sweepChatImages({root:'https://firestore.googleapis.com/v1/projects/'+env.FIREBASE_PROJECT_ID+'/databases/(default)/documents/',token,now});}

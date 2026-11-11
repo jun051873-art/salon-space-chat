@@ -1,0 +1,152 @@
+rules_version = '2';
+service cloud.firestore {
+ match /databases/{database}/documents {
+  function signedIn(){return request.auth != null;}
+  function admin(){return signedIn() && request.auth.uid == 'HcFJGmzHw6MYoWbFmtq9IyFSjvL2';}
+  function owner(uid){return signedIn() && request.auth.uid == uid;}
+  function active(uid){
+   let user=get(/databases/$(database)/documents/users/$(uid)).data;
+   return user.get('status','active') == 'active' && (user.get('conversationId','') == '' ||
+    get(/databases/$(database)/documents/conversations/$(user.conversationId)).data.get('blocked',false) == false);
+  }
+  function customerIdentity(){return ['name','phone','birthMonth','birthDay','gender','avatar','profileCover','statusText','profileEffect','profileWeatherCity','profileEffectDirection','profileRandom','marketingOptIn'];}
+  function salonProfileUpdate(uid){return admin() && (owner(uid) || (!request.resource.data.diff(resource.data).affectedKeys().hasAny(customerIdentity()) && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['adminProfile','adminName']) || !request.resource.data.keys().hasAny(['adminProfile','adminName']))));}
+  function salonChatUpdate(){return admin() && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['adminName']) || !request.resource.data.keys().hasAny(['adminName']));}
+  function profileFields(){return ['name','phone','birthMonth','birthDay','gender','avatar','profileCover','statusText','profileEffect','profileWeatherCity','profileEffectDirection','profileRandom','role','status','createdAt','joinedAt','updatedAt','marketingOptIn'];}
+  function validProfileScene(){return request.resource.data.get('profileRandom',false) is bool && request.resource.data.get('statusText','') is string && request.resource.data.get('statusText','').size() <= 120 && request.resource.data.get('profileEffect','none') in ["none", "sakura", "weather", "solar", "rain", "petals", "snow", "sun", "fireflies", "bubbles", "ripples", "leaves", "stars", "confetti", "wind", "clouds", "suncloud", "moon", "rainbow", "mist", "lanterns", "newyear", "fireworks", "christmas", "gifts", "midautumn", "dragonboat", "hearts", "birthday", "halloween", "sprouts", "wheat"] && request.resource.data.get('profileWeatherCity','yingge') in ['yingge','taipei','keelung','taoyuan','taichung','tainan','kaohsiung','hualien'] && request.resource.data.get('profileEffectDirection','left') in ['left','right','stay'];}
+  // Only owner-approved, active accounts can share historical conversation data.
+  function sharedRoom(room) {
+   let user = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+   let id = user.get('conversationId','');
+   let group = get(/databases/$(database)/documents/conversations/$(id)).data;
+   return signedIn() && user.get('role','') == 'customer' && user.get('status','') == 'active'
+    && user.get('adminDeleted',false) == false && id != ''
+    && group.state == 'active' && group.get('blocked',false) == false && group.memberIds.hasAny([request.auth.uid])
+    && group.historyRoomIds.hasAny([room]);
+  }
+  function sharedProfileUpdate(id){
+   let user=get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+   let p=request.resource.data.sharedProfile;
+   return signedIn() && user.get('conversationId','') == id && user.get('role','') == 'customer'
+    && user.get('status','') == 'active' && user.get('adminDeleted',false) == false
+    && resource.data.state == 'active' && resource.data.get('blocked',false) == false
+    && resource.data.memberIds.hasAny([request.auth.uid])
+    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['sharedProfile'])
+    && p is map && p.keys().hasOnly(['name','phone','birthMonth','birthDay','gender','avatar','profileCover','statusText','profileEffect','profileWeatherCity','profileEffectDirection','profileRandom'])
+    && p.get('name','') is string && p.get('name','').size() <= 60
+    && p.get('phone','') is string && p.get('phone','').size() <= 40
+    && p.get('avatar','') is string && p.get('avatar','').size() <= 250000
+    && p.get('profileCover','') is string && p.get('profileCover','').size() <= 400000
+    && p.get('statusText','') is string && p.get('statusText','').size() <= 120
+    && (p.get('birthMonth',null) == null || (p.birthMonth is number && p.birthMonth >= 1 && p.birthMonth <= 12) || (p.birthMonth is string && p.birthMonth.size() <= 2))
+    && (p.get('birthDay',null) == null || (p.birthDay is number && p.birthDay >= 1 && p.birthDay <= 31) || (p.birthDay is string && p.birthDay.size() <= 2))
+    && p.get('gender','') is string && p.get('gender','').size() <= 20
+    && p.get('profileEffect','none') is string && p.get('profileEffect','none').size() <= 30
+    && p.get('profileWeatherCity','yingge') is string && p.get('profileWeatherCity','yingge').size() <= 30
+    && p.get('profileEffectDirection','left') in ['left','right','stay']
+    && p.get('profileRandom',false) is bool;
+  }
+  match /conversationMergeAudit/{id} {allow read,write: if admin();}
+  match /conversations/{id} {
+   allow read: if admin() || (signedIn()
+    && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('conversationId','') == id
+    && active(request.auth.uid)
+    && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('adminDeleted',false) == false
+    && resource.data.state == 'active' && resource.data.memberIds.hasAny([request.auth.uid]));
+   allow create,delete: if admin();
+   allow update: if admin() || sharedProfileUpdate(id);
+  }
+  match /users/{uid} {
+   allow read: if admin() || owner(uid);
+   allow create: if (admin() && owner(uid)) || (owner(uid) && validProfileScene() && request.resource.data.keys().hasOnly(profileFields()) && request.resource.data.role == 'customer' && request.resource.data.get('status','') == 'pending');
+   allow update: if salonProfileUpdate(uid) || (owner(uid) && !admin() && validProfileScene() && resource.data.get('status','active') == 'active' && request.resource.data.diff(resource.data).affectedKeys().hasOnly(profileFields()) && request.resource.data.role == 'customer' && request.resource.data.get('status','active') == 'active');
+   allow delete: if admin() && owner(uid);
+  }
+  match /chats/{uid} {
+   allow read: if admin() || (owner(uid) && active(uid)) || (signedIn() && sharedRoom(uid));
+   allow create: if (admin() && !request.resource.data.keys().hasAny(['adminName'])) || (owner(uid) && active(uid) && request.resource.data.keys().hasOnly(['userId','name','phone','status','lastMessage','updatedAt','lastCustomerMessageAt']) && request.resource.data.get('status','active') == 'active');
+   allow update: if salonChatUpdate() || (owner(uid) && active(uid) && (
+    (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['readCustomerMs']) && request.resource.data.readCustomerMs is number && request.resource.data.readCustomerMs >= resource.data.get('readCustomerMs',0) && request.resource.data.readCustomerMs <= request.time.toMillis()) ||
+    (resource.data.get('status','active') != 'blocked' && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name','phone','userId','status','lastMessage','updatedAt','lastCustomerMessageAt']) && request.resource.data.get('status','active') == 'active')
+   ));
+   // A merged reader may acknowledge the source room, but cannot change its profile.
+   allow update: if signedIn() && sharedRoom(uid)
+    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['readCustomerMs'])
+    && request.resource.data.readCustomerMs is number
+    && request.resource.data.readCustomerMs >= resource.data.get('readCustomerMs',0)
+    && request.resource.data.readCustomerMs <= request.time.toMillis();
+   allow delete: if admin();
+   match /messages/{messageId} {
+    allow read: if admin() || (owner(uid) && active(uid)) || (signedIn() && sharedRoom(uid));
+    allow create: if (admin() || (owner(uid) && active(uid) && get(/databases/$(database)/documents/chats/$(uid)).data.get('status','active') == 'active')) && request.resource.data.senderId == request.auth.uid && request.resource.data.senderRole == (admin()?'admin':'customer') && request.resource.data.text is string && request.resource.data.text.size() <= 4000 && request.resource.data.createdAt == request.time;
+    // Never permit the legacy per-message readAt loop, including for admin.
+    allow update: if (admin() || (owner(uid) && resource.data.senderId == request.auth.uid && active(uid))) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['text','editedAt','retracted']) && request.resource.data.text is string && request.resource.data.text.size() <= 4000;
+    allow delete: if admin();
+   }
+   match /files/{fileId} {
+    function imageAvailable() {
+     let image = resource.data.get('type','').matches('image/.*');
+     let message = /databases/$(database)/documents/chats/$(uid)/messages/$(fileId);
+     return !image || (exists(message) && get(message).data.createdAt is timestamp
+      && request.time < get(message).data.createdAt + duration.value(90, 'd')
+      && get(message).data.get('attachment',{}).get('expired',false) != true);
+    }
+    allow read: if (admin() || (owner(uid) && active(uid)) || (signedIn() && sharedRoom(uid))) && imageAvailable();
+    allow create: if (admin() || (owner(uid) && active(uid))) && request.resource.data.senderId == request.auth.uid && request.resource.data.data is string && request.resource.data.data.size() <= 420000 && request.resource.data.type in ['image/jpeg','image/png','image/webp','application/pdf','text/plain'];
+    allow update: if false;
+    allow delete: if admin();
+   }
+  }
+  // Reports are private to the owner. Customers can create only their own report.
+  match /feedback/{id} {
+   allow read,update,delete: if admin();
+   allow create: if signedIn() && active(request.auth.uid)
+    && request.resource.data.keys().hasOnly(['userId','name','kind','text','page','createdAt','status'])
+    && request.resource.data.userId == request.auth.uid
+    && request.resource.data.name is string && request.resource.data.name.size() <= 100
+    && request.resource.data.kind in ['操作卡住','畫面問題','功能建議','其他']
+    && request.resource.data.text is string && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 1500
+    && request.resource.data.page is string && request.resource.data.page.size() <= 40
+    && request.resource.data.status == 'new' && request.resource.data.createdAt == request.time;
+  }
+  match /announcements/{id} {allow read: if signedIn();allow write: if admin();}
+  match /holidays/{id} {allow read: if signedIn();allow write: if admin();}
+  match /products/{id} {allow read: if signedIn();allow write: if admin();}
+  match /customerNotes/{uid} {allow read,write: if admin();}
+  match /broadcasts/{id} {allow read,write: if admin();}
+  match /pushTokens/{uid} {
+   allow read,write: if admin() || owner(uid);
+   match /devices/{id} {allow read,write: if admin() || owner(uid);}
+  }
+  function canBook(b){
+   let config=get(/databases/$(database)/documents/announcements/settings).data;
+   return owner(b.userId) && active(b.userId) && config.bookingEnabled == true && config.services.hasAny([b['service']]) && config.times.hasAny([b.time]) && b.status == 'confirmed' && b.startAt > request.time && b.startAt < request.time + duration.value(61,'d') && (!exists(/databases/$(database)/documents/holidays/$(b.date)) || get(/databases/$(database)/documents/holidays/$(b.date)).data.closed == false);
+  }
+  match /bookings/{id} {
+   allow read: if admin() || (signedIn() && resource.data.userId == request.auth.uid && active(request.auth.uid));
+   allow create: if admin() || (canBook(request.resource.data) && request.resource.data.slotId == id && id == request.resource.data.date + '_' + request.resource.data.time && getAfter(/databases/$(database)/documents/availability/$(request.resource.data.date)).data.slots[request.resource.data.time] == true);
+   allow update: if admin() || (
+    (owner(resource.data.userId) && active(resource.data.userId) && resource.data.status == 'confirmed' && request.resource.data.status == 'cancelled' && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status','updatedAt']) && getAfter(/databases/$(database)/documents/availability/$(resource.data.date)).data.slots[resource.data.time] == false) ||
+    (resource.data.status == 'cancelled' && canBook(request.resource.data) && request.resource.data.slotId == id && id == request.resource.data.date + '_' + request.resource.data.time && getAfter(/databases/$(database)/documents/availability/$(request.resource.data.date)).data.slots[request.resource.data.time] == true)
+   );
+   allow delete: if admin();
+  }
+  // Availability contains only occupied flags, never names, phones or user IDs.
+  match /availability/{day} {
+   allow read: if signedIn();
+   function validChange(){
+    let newSlots=request.resource.data.slots;
+    let oldSlots=resource == null ? {} : resource.data.slots;
+    let changed=newSlots.diff(oldSlots).affectedKeys();
+    let time=request.resource.data.changedTime;
+    let bookingId=request.resource.data.bookingId;
+    let booking=getAfter(/databases/$(database)/documents/bookings/$(bookingId)).data;
+    return request.resource.data.keys().hasOnly(['slots','changedTime','bookingId']) && changed.hasOnly([time]) && changed.size() == 1 && booking.date == day && booking.time == time && booking.slotId == bookingId && owner(booking.userId) && ((newSlots[time] == true && oldSlots.get(time,false) == false && booking.status == 'confirmed') || (newSlots[time] == false && oldSlots[time] == true && booking.status == 'cancelled'));
+   }
+   allow create,update: if admin() || (signedIn() && active(request.auth.uid) && validChange());
+   allow delete: if admin();
+  }
+  match /{document=**} {allow read,write: if false;}
+ }
+}
+

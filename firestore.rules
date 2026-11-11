@@ -84,7 +84,14 @@ service cloud.firestore {
     allow delete: if admin();
    }
    match /files/{fileId} {
-    allow read: if admin() || (owner(uid) && active(uid)) || (signedIn() && sharedRoom(uid));
+    function imageAvailable() {
+     let image = resource.data.get('type','').matches('image/.*');
+     let message = /databases/$(database)/documents/chats/$(uid)/messages/$(fileId);
+     return !image || (exists(message) && get(message).data.createdAt is timestamp
+      && request.time < get(message).data.createdAt + duration.value(90, 'd')
+      && get(message).data.get('attachment',{}).get('expired',false) != true);
+    }
+    allow read: if (admin() || (owner(uid) && active(uid)) || (signedIn() && sharedRoom(uid))) && imageAvailable();
     allow create: if (admin() || (owner(uid) && active(uid))) && request.resource.data.senderId == request.auth.uid && request.resource.data.data is string && request.resource.data.data.size() <= 420000 && request.resource.data.type in ['image/jpeg','image/png','image/webp','application/pdf','text/plain'];
     allow update: if false;
     allow delete: if admin();
