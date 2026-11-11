@@ -1,9 +1,10 @@
+import {prefetchSource} from './chat-prefetch.js?v=P151';
 // Cached documents must still emit the metadata-only server confirmation.
 export function watchServerDocument(subscribe,ref,next,error){return subscribe(ref,{includeMetadataChanges:true},snapshot=>{if(!snapshot.metadata.fromCache)next(snapshot.data());},error);}
 import {createPagedFeed} from './chat-feed.js?v=N117';
 // Every historical room retains its own cursor and original document path.
-export function createConversationFeed({room,watchAccount,watchGroup,makeSource,onGroup=()=>{},onChange,onError}) {
- let accountStop=null,groupStop=null,feeds=new Map(),states=new Map(),running=false,dead=false,generation=0,groupId=null,signature='';
+export function createConversationFeed({room,watchAccount,watchGroup,makeSource,onGroup=()=>{},onChange,onError,prefetchPrimary=false}) {
+ let accountStop=null,groupStop=null,feeds=new Map(),states=new Map(),running=false,dead=false,generation=0,groupId=null,signature='',pendingPrimary=null;
  const emit=reason=>{
   const all=[...states.values()],docs=all.flatMap(s=>s.docs).sort((a,b)=>{
    const x=a.data().createdAt,y=b.data().createdAt;
@@ -21,7 +22,8 @@ export function createConversationFeed({room,watchAccount,watchGroup,makeSource,
   signature=key;const gen=++generation;
   for(const f of feeds.values())f.destroy();feeds.clear();states.clear();
   for(const sourceRoom of ids){
-   const f=createPagedFeed({...makeSource(sourceRoom),field:'createdAt',pageSize:30,onError,
+   const source=sourceRoom===room&&pendingPrimary?pendingPrimary.source:makeSource(sourceRoom);if(sourceRoom===room)pendingPrimary=null;
+   const f=createPagedFeed({...source,field:'createdAt',pageSize:30,onError,
     onChange:s=>{
      if(dead||generation!==gen)return;
      const docs=s.docs.map(d=>({id:sourceRoom===room?d.id:sourceRoom+'/'+d.id,sourceRoom,sourceId:d.id,metadata:d.metadata,ref:d.ref,data:()=>d.data()}));
@@ -31,8 +33,9 @@ export function createConversationFeed({room,watchAccount,watchGroup,makeSource,
   }
   for(const f of feeds.values())f.start();
  }
- function fail(e){++generation;for(const f of feeds.values())f.destroy();feeds.clear();states.clear();signature='';onChange({docs:[],more:false,loading:false,ready:false,fromCache:false,reason:'reset'});onError(e);}
+ function fail(e){pendingPrimary?.cancel();pendingPrimary=null;++generation;for(const f of feeds.values())f.destroy();feeds.clear();states.clear();signature='';onChange({docs:[],more:false,loading:false,ready:false,fromCache:false,reason:'reset'});onError(e);}
  function start(){if(dead||running)return;running=true;
+  if(prefetchPrimary&&!feeds.size)pendingPrimary=prefetchSource(makeSource(room));
   accountStop=watchAccount(account=>{
    const id=account?.conversationId||null;
    if(id===groupId&&signature){for(const f of feeds.values())f.start();return;}
@@ -41,7 +44,7 @@ export function createConversationFeed({room,watchAccount,watchGroup,makeSource,
    groupStop=watchGroup(id,group=>{try{if(!group||group.state!=='active')throw Error('共用聊天室尚未啟用');configure(group);}catch(e){fail(e);}},fail);
   },fail);
  }
- function pause(){running=false;accountStop?.();accountStop=null;groupStop?.();groupStop=null;groupId=null;for(const f of feeds.values())f.pause();}
+ function pause(){pendingPrimary?.cancel();pendingPrimary=null;running=false;accountStop?.();accountStop=null;groupStop?.();groupStop=null;groupId=null;for(const f of feeds.values())f.pause();}
  return {start,pause,destroy(){pause();dead=true;++generation;for(const f of feeds.values())f.destroy();feeds.clear();states.clear();},
   async loadMore(){await Promise.all([...feeds.values()].map(f=>f.loadMore()));},entries:()=>[...states.values()].flatMap(s=>s.docs)};
 }
