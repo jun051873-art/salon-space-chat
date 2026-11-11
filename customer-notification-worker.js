@@ -1,4 +1,4 @@
-import {ensureNotificationWorker as sharedWorker,waitForNotificationVersion} from './notification-worker.js?v=N113';
+import {ensureNotificationWorker as sharedWorker,waitForNotificationVersion} from './notification-worker.js?v=P155';
 
 // Chrome resolves notification delegation using the service worker SCOPE,
 // not the message's click URL. Keep it equal to the APK's exact customer path.
