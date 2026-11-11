@@ -17,3 +17,9 @@ html body.adminApp #adminHome .inviteArrow{font-size:20px;color:#a08dac;flex:non
 html body.adminApp #adminAccount{margin:8px 0 0!important;border:0!important;min-height:0!important;padding:0!important;background:transparent!important;box-shadow:none!important}
 html body.adminApp #adminAccount summary{min-height:44px;box-sizing:border-box;padding:10px 16px;font-size:13px;font-weight:500;color:#8b7d95}
 html body.adminApp #adminAccount .accountContents{padding:0 16px 8px}
+
+/* P150: consistent baselines without truncating longer tool names. */
+body.adminApp #adminHome .toolCells{align-items:start}
+body.adminApp #adminHome .toolItem{justify-content:flex-start}
+body.adminApp #adminHome .toolItem>span:first-child{flex-shrink:0}
+body.adminApp #adminHome .toolItem>b{display:block;min-height:3em;line-height:1.5;text-align:center;overflow-wrap:anywhere}

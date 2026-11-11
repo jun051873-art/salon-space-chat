@@ -9,6 +9,6 @@ vm.createContext(scope);vm.runInContext(source.slice(start,end)+';this.products=
 (async()=>{const host=document.getElementById('gallery');await scope.products(host);
 const filters=[...host.querySelectorAll('[data-product-filter]')];assert.deepEqual(filters.map(b=>b.textContent),['全部','造型品類','護髮類','其他商品','<新分類>']);assert.equal(host.querySelectorAll('article').length,4);
 filters[2].click();assert.equal(host.querySelectorAll('section:not([hidden])').length,1);assert.equal(host.querySelector('section:not([hidden]) h3').textContent,'護髮類');assert.equal(filters[2].getAttribute('aria-pressed'),'true');
-host.querySelector('section:not([hidden]) [data-product]').click();assert.equal(chosen.id,'1');filters[0].click();assert.equal(host.querySelectorAll('section:not([hidden])').length,4);
+host.querySelector('section:not([hidden]) [data-product]').click();assert.equal(chosen.id,'1');await scope.products(host);assert.equal(host.querySelector('section:not([hidden]) h3').textContent,'護髮類','live update preserves chosen category');host.querySelector('[data-product-filter="-1"]').click();assert.equal(host.querySelectorAll('section:not([hidden])').length,4);
 rows.splice(0,rows.length,{id:'x',title:'下架',active:false});await scope.products(host);assert.equal(host.querySelectorAll('[data-product-filter]').length,0);
 console.log('PASS category order, filtering, all, uncategorized, escaped names, hidden products and inquiry');})();

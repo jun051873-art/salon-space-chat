@@ -1,0 +1,13 @@
+import fs from 'node:fs';import vm from 'node:vm';import assert from 'node:assert/strict';import {JSDOM} from 'jsdom';
+import {paintArtwork} from '../stable-artwork.js';import {icon} from '../salon-ui.js';
+const dom=new JSDOM('<body><button data-tool="display"><span>▤</span><b>客人頁面管理</b></button><nav class="bottomNav"><button class="navBtn active" data-admin-page="adminHome"><span>⌂</span>主頁</button></nav><div class="infoActions"><button id="infoProducts">商品</button></div></body>');
+const document=dom.window.document,source=fs.readFileSync('salon-suite.js','utf8');
+const start=source.indexOf(' function polishIcons()'),end=source.indexOf('\n',start);
+const scope={document,icon,paintArtwork,esc:String};vm.createContext(scope);vm.runInContext(source.slice(start,end),scope);
+scope.polishIcons();const original=[...document.querySelectorAll('svg')];assert.equal(original.length,3);
+const observer=new dom.window.MutationObserver(()=>{});observer.observe(document.body,{subtree:true,childList:true});
+for(let i=0;i<1000;i++)scope.polishIcons();assert.equal(observer.takeRecords().length,0,'repeat clicks must not replace icon or text nodes');
+assert.deepEqual([...document.querySelectorAll('svg')],original);assert.equal(document.querySelector('#infoProducts').textContent,'商品');
+const host=document.createElement('span');paintArtwork(host,icon('home'));host.replaceChildren();paintArtwork(host,icon('home'));assert.ok(host.querySelector('svg'));
+assert.match(source,/if\(admin\)organizeAdmin\(\);polishIcons\(\)/);assert.match(source,/hub.innerHTML='<span>'\+icon\('layout'\)/);
+console.log('PASS 1000 full icon refreshes: zero node replacements, stable labels, initial layout icon, cleared-node recovery');dom.window.close();
