@@ -2,8 +2,9 @@ const fs=require('fs'),vm=require('vm'),assert=require('assert/strict');
 const {JSDOM}=require('jsdom');
 (async()=>{
  const helpers=await import('data:text/javascript;base64,'+Buffer.from(fs.readFileSync('admin-designers.js','utf8')).toString('base64'));
+ const customerHelpers=await import('data:text/javascript;base64,'+Buffer.from(fs.readFileSync('customer-management.js','utf8')).toString('base64'));
  const source=fs.readFileSync('salon-suite.js','utf8'),dom=new JSDOM('<section id="admin"><div id="list"></div></section>');
- const config={designers:[{id:'tao',name:'小桃'},{id:'nana',name:'NaNa'}]},ctx={...helpers,document:dom.window.document,config,designerList:c=>c.designers||[],Map,Date,Number,esc:s=>String(s??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('"','&quot;'),$:id=>dom.window.document.getElementById(id),millis:v=>typeof v==='number'?v:v?.seconds*1000||0,unreadSummary:()=>({}),icon:()=>'<svg></svg>',avatar:()=>'',appointmentLabel:()=>'',hydrateInboxPhotos:()=>{},bindSwipe:()=>{},bindLongPress:()=>{},task:()=>{},openChat:()=>{},demo:false};
+ const config={designers:[{id:'tao',name:'小桃'},{id:'nana',name:'NaNa'}]},ctx={...helpers,...customerHelpers,watchInboxIdentities:()=>{},document:dom.window.document,config,designerList:c=>c.designers||[],Map,Date,Number,esc:s=>String(s??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('"','&quot;'),$:id=>dom.window.document.getElementById(id),millis:v=>typeof v==='number'?v:v?.seconds*1000||0,unreadSummary:()=>({}),icon:()=>'<svg></svg>',avatar:()=>'',appointmentLabel:()=>'',hydrateInboxPhotos:()=>{},bindSwipe:()=>{},bindLongPress:()=>{},task:()=>{},openChat:()=>{},demo:false};
  vm.createContext(ctx);
  const code=source.slice(source.indexOf(' let inboxDocs=[]'),source.indexOf(' async function loadDesignerHistory'));
  vm.runInContext('const inboxPhotos=new Map();'+code,ctx);

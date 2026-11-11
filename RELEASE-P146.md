@@ -14,7 +14,7 @@
 
 ## 本次驗證
 
-通過：完整npm test、test:dialogs、test:recovery、test:conversations、test:readiness及n101-stress。
+通過：完整npm test、test:dialogs、test:recovery、test:conversations、test:readiness及test:n101（含n101-stress）。補齊舊收件匣DOM測試缺少的合併資料依賴，保留真實篩選與空清單驗證。
 
 - 店家／客人各500輪，共1000輪卡片切換與開關；包含延後close事件、焦點、未送出訊息、巢狀卡片與取消過期讀取。
 - 執行實際預約開啟函式，測試成功、讀取中關閉、被另一張卡片取代、離線失敗。
