@@ -44,7 +44,7 @@ body.customerApp #customerHeader .noticeRibbon>div{width:100%!important;height:1
 body.customerApp #customerHeader .noticeRibbon p{position:relative!important;left:-100%;flex:0 0 auto!important;width:max-content!important;margin:0!important;padding:0!important;max-width:none!important;white-space:nowrap!important;animation:salonHeaderMarquee 24s linear infinite!important}
 @keyframes salonHeaderMarquee{0%,4%{left:-100%;opacity:0}12%{opacity:1}84%{opacity:1}96%,100%{left:100%;opacity:0}}
 body.customerApp #customerHeader .noticeRibbon[hidden]{display:none!important}
-body.customerApp.hasNotice:not(.conversationOpen) .app,body.customerApp:not(.hasNotice):not(.conversationOpen):not([data-page=setup]) .app{padding-top:calc(140px + env(safe-area-inset-top))!important}
+body.customerApp.hasNotice:not(.conversationOpen):not([data-page=setup]) .app,body.customerApp:not(.hasNotice):not(.conversationOpen):not([data-page=setup]) .app{padding-top:calc(140px + env(safe-area-inset-top))!important}
 body.customerApp #enterChat{width:calc(100% - 14px)!important;margin:18px auto 28px!important;min-height:118px!important;padding:19px 16px!important;border-radius:38px!important;background:linear-gradient(128deg,rgba(255,255,255,.88),rgba(230,244,243,.76) 50%,rgba(218,235,237,.84))!important;border:1px solid rgba(255,255,255,.96)!important;box-shadow:inset 0 1.5px 2px #fff,0 9px 25px rgba(53,88,91,.12)!important}
 body.customerApp #enterChat .conversationEnter{border-radius:999px!important;padding:13px 17px!important;white-space:nowrap!important}
 body.customerApp #enterChat:active{transform:none!important;filter:brightness(.99)!important}
