@@ -1,4 +1,5 @@
 const paths={
+ layout:'<rect x="3" y="3" width="18" height="18" rx="4"/><path d="M3 9h18M10 9v12M6 6h.01M9 6h.01"/>',
  edit:'<path d="m15 5 4 4M4 20l4-1L20 7a2.8 2.8 0 0 0-4-4L4 15v5Z"/>',
  close:'<path d="m6 6 12 12M18 6 6 18"/>',
  sparkle:'<path d="m12 3 2.4 6.6L21 12l-6.6 2.4L12 21l-2.4-6.6L3 12l6.6-2.4L12 3Z"/>',

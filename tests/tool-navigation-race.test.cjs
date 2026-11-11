@@ -9,7 +9,7 @@ async function run(rejectOld){
  const document=dom.window.document;
  let release;
  const gate=new Promise(resolve=>release=resolve);
- const scope={stopListIdentities(){},chatIdentityStop:null,document,$:id=>document.getElementById(id),activeTool:'',roomUnsub:null,contentUnsub:null,ctx:{},esc:String,
+ const scope={stopListIdentities(){},chatIdentityStop:null,document,$:id=>document.getElementById(id),activeTool:'',roomUnsub:null,contentUnsub:null,ctx:{},esc:String,icon:()=>'<svg></svg>',
  boardEditor:async body=>{await gate;if(rejectOld)throw Error('old request failed');body.innerHTML='<p>OLD BOARD</p>';}};
  vm.createContext(scope);vm.runInContext(code+';this.openTool=openTool;',scope);
  const pending=scope.openTool('board');
@@ -18,7 +18,7 @@ async function run(rejectOld){
  const current=document.getElementById('toolBody');
  assert.notEqual(current,old);
  release();await pending;
- assert.match(current.textContent,/新版四張卡片/);
+ assert.match(current.textContent,/選擇要更新的內容/);
  assert.doesNotMatch(current.textContent,/OLD BOARD|old request failed/);
  assert.equal(document.getElementById('toolTitle').textContent,'客人頁面管理');
  dom.window.close();
