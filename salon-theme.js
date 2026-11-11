@@ -73,10 +73,10 @@ export async function playAtmosphere(raw,{force=false,target=document.body}={}){
  const current=()=>atmosphereStates.get(target)===state&&target.isConnected&&!document.hidden;
  try{const {resolveScene,mountAmbient,scenes}=await import('./ambient-scenes.js?v=N66');let previous='',bag=[];
  const next=async()=>{if(!current())return;
- let scene;if(t.randomBackground&&t.effectLoop){if(!bag.length){bag=Object.keys(scenes);for(let i=bag.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[bag[i],bag[j]]=[bag[j],bag[i]];}if(bag.at(-1)===previous)[bag[0],bag[bag.length-1]]=[bag.at(-1),bag[0]];}scene={effect:bag.pop(),text:''};}else scene=await resolveScene(t.randomBackground?'random':t.backgroundMode==='weather'?'manual':t.backgroundMode,t.effect,t.randomBackground?'theme':t.weatherCity);
+ let scene;if(t.randomBackground&&t.effectLoop){if(!bag.length){bag=Object.keys(scenes);for(let i=bag.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[bag[i],bag[j]]=[bag[j],bag[i]];}if(bag.at(-1)===previous)[bag[0],bag[bag.length-1]]=[bag.at(-1),bag[0]];}scene={effect:bag.pop(),text:''};}else scene=await resolveScene(t.randomBackground?'random':t.backgroundMode,t.effect,t.randomBackground?'theme':t.weatherCity);
  if(!current())return;
  if(scene.effect!==previous||!t.effectLoop){state.stop?.();state.stop=mountAmbient(target,{...scene,direction:t.effectDirection,duration:t.effectDuration,loop:t.effectLoop});previous=scene.effect;}
- if(t.effectLoop)state.timer=setTimeout(next,t.randomBackground?t.effectDuration*1000:60000);
+ if(t.effectLoop)state.timer=setTimeout(next,t.randomBackground?t.effectDuration*1000:60000);else state.timer=setTimeout(()=>{if(atmosphereStates.get(target)===state)stopAtmosphere(target);},t.effectDuration*1000);
  };await next();}catch{if(atmosphereStates.get(target)===state)stopAtmosphere(target);}
 }
 if(typeof document!=='undefined')document.addEventListener('visibilitychange',()=>{for(const [target,state]of [...atmosphereStates]){if(!target.isConnected){stopAtmosphere(target);continue;}if(document.hidden){clearTimeout(state.timer);state.stop?.();state.stop=null;}else void playAtmosphere(state.raw,{target,force:true});}});

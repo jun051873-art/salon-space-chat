@@ -172,3 +172,13 @@ body .pageBack,body .dialogHead button{align-items:center!important;justify-cont
 /* Keep the greeting preview inside a roomy, independent chat stage. */
 .greetingPreviewDialog .effectPreviewStage{position:relative;min-height:420px;overflow:hidden}
 .greetingPreviewDialog .salonGreeting{position:absolute;max-width:calc(100% - 24px)}
+
+/* P149: live chat is z-index 1000; independent effects must be above it. */
+body>.ambientScene{z-index:1100}
+body>.salonGreeting{z-index:1101}
+.productFilters{display:flex;gap:8px;overflow-x:auto;max-width:100%;padding:5px 2px 12px;margin:8px 0 16px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.productFilters::-webkit-scrollbar{display:none}
+.productFilters button{flex:0 0 auto;width:auto!important;min-height:40px;margin:0!important;padding:9px 18px!important;border:1px solid #ffffffd9!important;border-radius:999px!important;background:#ffffff80!important;color:#72647c!important;font-size:14px!important;font-weight:500;box-shadow:none!important;white-space:nowrap}
+.productFilters button[aria-pressed=true]{background:linear-gradient(120deg,#e7d8f2,#eee4f8)!important;color:#493858!important;border-color:#d5bfe5!important;box-shadow:0 2px 8px #78539612!important}
+.productFilters button:focus-visible{outline:2px solid #9876b3;outline-offset:2px}
+.productCategorySection[hidden]{display:none!important}

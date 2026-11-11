@@ -6,3 +6,14 @@ body.adminApp #toolBody .managementCard:nth-of-type(2n){background:linear-gradie
 .managementCopy{min-width:0}.managementCopy b,.managementCopy small{display:block}.managementCopy b{font-size:17px;font-weight:750}.managementCopy small{margin-top:5px;font-size:13px;font-weight:400;color:#72617f;line-height:1.65}.managementIcon{width:44px;height:44px;display:grid;place-items:center;background:#ffffffa6;border-radius:16px;color:#8864a6}.managementIcon svg{width:25px;height:25px}
 body.adminApp #adminAccount{margin:22px 0 0;border-top:1px solid #e5daed;padding:0;font-size:14px}#adminAccount summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;min-height:52px;padding:8px 12px;color:#74667f;font-weight:600}#adminAccount summary::-webkit-details-marker{display:none}#adminAccount[open] summary>span{transform:rotate(180deg)}#adminAccount .accountContents{padding:0 12px 16px}#adminAccount .accountContents p{font-size:13px;line-height:1.7;color:#74667f}body.adminApp #adminAccount #adminSignOut{background:#f3edf7!important;color:#725e80!important;border:1px solid #dfd3e8;border-radius:16px;padding:10px 16px;font-size:14px;margin:0}#adminAccount summary:focus-visible,.managementCard:focus-visible{outline:3px solid #9876b3;outline-offset:3px}
 @media(max-width:360px){body.adminApp #toolBody[data-color-page=display] .managementCard{grid-template-columns:36px minmax(0,1fr) 12px;gap:9px;padding:14px!important}.managementIcon{width:36px;height:36px}.managementCopy b{font-size:16px}}
+
+/* Compact utility rows; the page scroll container already reserves bottom navigation space. */
+html body.adminApp #adminHome{padding-bottom:20px!important;min-height:0!important}
+html body.adminApp #adminHome .inviteCard{display:grid!important;grid-template-columns:30px minmax(0,1fr) 16px;gap:12px;align-items:center;width:100%;box-sizing:border-box;min-height:0!important;margin:8px 0 0!important;padding:14px 16px!important;border-radius:20px!important;border:1px solid #ffffffcf!important;background:linear-gradient(115deg,#f8f4fbc9,#efe9f6a8)!important;box-shadow:0 3px 12px #74608008!important;text-align:left}
+html body.adminApp #adminHome .inviteCard svg{width:24px;height:24px;color:#887398}
+html body.adminApp #adminHome .inviteCard b{font-size:15px;line-height:1.5;font-weight:600}
+html body.adminApp #adminHome .inviteCard small{font-size:12px;line-height:1.5;margin-top:2px;color:#8b7d95}
+html body.adminApp #adminHome .inviteArrow{font-size:20px;color:#a08dac;flex:none}
+html body.adminApp #adminAccount{margin:8px 0 0!important;border:0!important;min-height:0!important;padding:0!important;background:transparent!important;box-shadow:none!important}
+html body.adminApp #adminAccount summary{min-height:44px;box-sizing:border-box;padding:10px 16px;font-size:13px;font-weight:500;color:#8b7d95}
+html body.adminApp #adminAccount .accountContents{padding:0 16px 8px}

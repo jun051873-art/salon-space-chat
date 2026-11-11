@@ -1,0 +1,14 @@
+const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict'),{JSDOM}=require('jsdom');
+const source=fs.readFileSync('salon-suite.js','utf8');
+const start=source.indexOf(' async function products('),end=source.indexOf('\n',start);
+const dom=new JSDOM('<main id="gallery"></main>'),document=dom.window.document;
+const rows=[{id:'1',title:'護髮',category:'護髮類'},{id:'2',title:'造型',category:'造型品類'},{id:'3',title:'舊品',category:'不顯示',active:false},{id:'4',title:'其他'},{id:'5',title:'特殊',category:'<新分類>'}];
+let chosen;
+const scope={document,listOnce:async()=>rows,config:{productCategoryOrder:['造型品類','護髮類']},esc:s=>String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('"','&quot;'),productPrice:()=>'',productDetail:p=>chosen=p,productInquiry:p=>chosen=p};
+vm.createContext(scope);vm.runInContext(source.slice(start,end)+';this.products=products',scope);
+(async()=>{const host=document.getElementById('gallery');await scope.products(host);
+const filters=[...host.querySelectorAll('[data-product-filter]')];assert.deepEqual(filters.map(b=>b.textContent),['全部','造型品類','護髮類','其他商品','<新分類>']);assert.equal(host.querySelectorAll('article').length,4);
+filters[2].click();assert.equal(host.querySelectorAll('section:not([hidden])').length,1);assert.equal(host.querySelector('section:not([hidden]) h3').textContent,'護髮類');assert.equal(filters[2].getAttribute('aria-pressed'),'true');
+host.querySelector('section:not([hidden]) [data-product]').click();assert.equal(chosen.id,'1');filters[0].click();assert.equal(host.querySelectorAll('section:not([hidden])').length,4);
+rows.splice(0,rows.length,{id:'x',title:'下架',active:false});await scope.products(host);assert.equal(host.querySelectorAll('[data-product-filter]').length,0);
+console.log('PASS category order, filtering, all, uncategorized, escaped names, hidden products and inquiry');})();
