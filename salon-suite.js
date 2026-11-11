@@ -1,5 +1,5 @@
 import {mountCustomerRecovery} from './customer-recovery-admin.js?v=P144';
-import {cleanupClient,openCleanup} from './customer-cleanup-ui.js?v=P141';
+import {cleanupClient,openCleanup} from './customer-cleanup-ui.js?v=P145';
 import {fitProductPhotos} from './product-photo-budget.js?v=N135';
 import {privateAlias,savePrivateProfile} from './customer-private-profile.js?v=P132';
 import {ownerProfile,mergedProfileFields,sharedProfile as sharedProfileForList,customerListProfile,createMergedProfileReader,ensureSharedProfile,watchIdentity} from './merged-customer-profile.js?v=P140';
@@ -104,8 +104,8 @@ export function installSuite(ctx){
  function bindMergedCleanup(dialog,u,isSample){
  if(!demo&&!isSample){
   const ids=[...new Set([...(u.linkedCustomerIds||[]),...(u.cleanupLock?[u.cleanupLock]:[])])];
-  if(ids.length){const panel=document.createElement('section');panel.className='settingsGroup';panel.innerHTML='<b>永久清除舊帳號</b><p class="small">保留主對話與紀錄。清除後舊帳號登入的手機會失效。</p><p data-cleanup-ready role="status">正在檢查服務…</p>'+ids.map((id,i)=>'<button class="dangerBtn" disabled data-permanent-linked="'+esc(id)+'">'+(u.cleanupLock===id?'接續清除':'永久清除舊帳號 '+(i+1))+'</button>').join('');dialog.append(panel);
-   fetch('https://salon-space-notify.jun051873.workers.dev/',{cache:'no-store',signal:AbortSignal.timeout(7000)}).then(r=>r.json()).then(r=>{if(!dialog.isConnected)return;const ready=r.features?.permanentMergeCleanup===true;panel.querySelector('[data-cleanup-ready]').textContent=ready?'請先確認要保留的手機與帳號。':'永久清除尚待後端啟用，目前不會刪除資料。';panel.querySelectorAll('[data-permanent-linked]').forEach(b=>{b.disabled=!ready;if(ready)task(b,()=>openCleanup({primaryUid:u.id,sourceUid:b.dataset.permanentLinked,call:cleanupClient({auth}),modal,esc,onDone:async()=>{mergedProfiles.clear();cache.clear();dialog.close();await refreshCustomerData();toast('永久清除完成，紀錄已保留在主檔');}}));});}).catch(()=>{if(dialog.isConnected)panel.querySelector('[data-cleanup-ready]').textContent='服務暫時無法確認，請稍後重新開啟。';});
+  if(ids.length){const panel=document.createElement('section');panel.className='settingsGroup';panel.innerHTML='<b>永久清除舊帳號</b><p class="small">保留主對話與紀錄。第20版後端清除後，原手機會自動接回保留主檔。</p><p data-cleanup-ready role="status">正在檢查服務…</p>'+ids.map((id,i)=>'<button class="dangerBtn" disabled data-permanent-linked="'+esc(id)+'">'+(u.cleanupLock===id?'接續清除':'永久清除舊帳號 '+(i+1))+'</button>').join('');dialog.append(panel);
+   fetch('https://salon-space-notify.jun051873.workers.dev/',{cache:'no-store',signal:AbortSignal.timeout(7000)}).then(r=>r.json()).then(r=>{if(!dialog.isConnected)return;const ready=r.features?.permanentMergeCleanup===true&&r.features?.automaticMergedRecovery===true;panel.querySelector('[data-cleanup-ready]').textContent=ready?'請先確認要保留的手機與帳號。':'請先部署第20版後端以保留客人登入，目前不會刪除資料。';panel.querySelectorAll('[data-permanent-linked]').forEach(b=>{b.disabled=!ready;if(ready)task(b,()=>openCleanup({primaryUid:u.id,sourceUid:b.dataset.permanentLinked,call:cleanupClient({auth}),modal,esc,onDone:async()=>{mergedProfiles.clear();cache.clear();dialog.close();await refreshCustomerData();toast('永久清除完成，紀錄已保留在主檔');}}));});}).catch(()=>{if(dialog.isConnected)panel.querySelector('[data-cleanup-ready]').textContent='服務暫時無法確認，請稍後重新開啟。';});
   }
  }
  dialog.querySelectorAll('[data-hide-linked],[data-restore-linked]').forEach(b=>task(b,async()=>{

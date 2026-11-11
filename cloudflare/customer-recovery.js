@@ -9,6 +9,7 @@ export function createCustomerRecovery({db,actor,checkAuth,mint,now=Date.now}){
   if(!validUid(uid))fail();
   const [profile,retired,job]=await Promise.all([db.get('users/'+uid),db.get('retiredCustomers/'+uid),db.get('customerCleanup/'+uid)]);
   const p=profile?.data;
+  if(p?.cleanupLock)throw Object.assign(new Error('MERGE_IN_PROGRESS'),{code:'MERGE_IN_PROGRESS',status:409});
   if(!p||p.role!=='customer'||p.status!=='active'||p.adminDeleted||p.adminMergedInto||p.cleanupLock||retired||job)fail();
   const group=p.conversationId?await db.get('conversations/'+p.conversationId):null;
   if(p.conversationId&&(!group||group.data.state!=='active'||group.data.blocked||group.data.cleanupLock||group.data.primaryUid!==uid||!group.data.memberIds?.includes(uid)))fail();
@@ -17,6 +18,27 @@ export function createCustomerRecovery({db,actor,checkAuth,mint,now=Date.now}){
  }
  const guards=docs=>docs.map(d=>({path:d.path,raw:d.raw,version:d.version}));
  return {
+  async follow(){
+   if(!validUid(actor))fail();
+   let uid=actor;const seen=new Set(),links=[];
+   for(let i=0;i<32;i++){
+    if(seen.has(uid))fail();seen.add(uid);
+    const alias=await db.get('retiredCustomers/'+uid);
+    if(!alias){
+     if(!links.length)return {ok:true,linked:false};
+     const docs=await target(uid),customToken=await mint(uid);
+     await db.commit([...guards(docs),...guards(links)]);
+     return {ok:true,linked:true,customToken};
+    }
+    if(!alias.data.automatic||!validUid(alias.data.primaryUid)){
+     const job=await db.get('customerCleanup/'+uid);
+     if(job&&job.data.stage!=='done')throw Object.assign(new Error('MERGE_IN_PROGRESS'),{code:'MERGE_IN_PROGRESS',status:409});
+     fail();
+    }
+    links.push(alias);uid=alias.data.primaryUid;
+   }
+   fail();
+  },
   async issue(uid){
    if(actor!==RECOVERY_OWNER)throw Object.assign(new Error('NOT_AUTHORIZED'),{code:'NOT_AUTHORIZED',status:403});
    const docs=await target(uid),path='customerRecovery/'+uid,old=await db.get(path);

@@ -12,7 +12,7 @@ export function cleanupClient({auth,fetcher=fetch,endpoint='https://salon-space-
 export async function openCleanup({primaryUid,sourceUid,call,modal,esc,onDone}){
  const preview=await call('cleanup-preview',{primaryUid,sourceUid});
  if(preview.done){await onDone();return;}
- const d=modal(preview.resume?'接續永久清除':'永久清除舊帳號',`<p>保留：<b>${esc(preview.primaryName||'目前主檔')}</b>（${esc(primaryUid.slice(-8))}）</p><p>清除：${esc(preview.sourceName||'已確認的舊帳號')}（${esc(sourceUid.slice(-8))}）</p><p>會先搬移並核對聊天、附件與備註，再永久刪除舊帳號和裝置連結。清除期間這組顧客暫停寫入，完成後恢復。</p><p><b>舊帳號登入的手機會失效。請先確認要繼續使用的手機登入的是保留主檔。</b>舊帳號不能復原；已搬移的紀錄會留在主對話。</p><label><input type="checkbox" data-cleanup-confirm> 我已核對要保留的帳號及手機</label><button data-cleanup-run class="dangerBtn" disabled>${preview.resume?'繼續完成清除':'確認永久清除'}</button><p data-cleanup-status role="status"></p>`);
+ const d=modal(preview.resume?'接續永久清除':'永久清除舊帳號',`<p>保留：<b>${esc(preview.primaryName||'目前主檔')}</b>（${esc(primaryUid.slice(-8))}）</p><p>清除：${esc(preview.sourceName||'已確認的舊帳號')}（${esc(sourceUid.slice(-8))}）</p><p>會先搬移並核對聊天、附件與備註，再永久刪除舊帳號和裝置連結。清除期間這組顧客暫停寫入，完成後恢復。</p><p><b>第20版後端會保留原手機的登入對應，自動接回保留主檔。</b>舊資料不能復原；已搬移的紀錄會留在主對話。若後端仍是舊版，請先更新後再清除。</p><label><input type="checkbox" data-cleanup-confirm> 我已核對要保留的帳號及手機</label><button data-cleanup-run class="dangerBtn" disabled>${preview.resume?'繼續完成清除':'確認永久清除'}</button><p data-cleanup-status role="status"></p>`);
  const button=d.querySelector('[data-cleanup-run]'),check=d.querySelector('[data-cleanup-confirm]'),status=d.querySelector('[data-cleanup-status]');
  check.onchange=()=>button.disabled=!check.checked;
  let job=preview.resume?preview:null,busy=false;

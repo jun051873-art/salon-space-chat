@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {followMergedSession} from '../customer-merged-session.js';
+const auth={currentUser:{uid:'old',getIdToken:async()=>'verified-token'}};let signed=0,body;
+const run=(reply,ok=true)=>followMergedSession({auth,signInWithCustomToken:async(a,t)=>{assert.equal(a,auth);assert.equal(t,'custom');signed++;},fetcher:async(url,o)=>{if(!o.method)return {ok:true,json:async()=>({features:{automaticMergedRecovery:true}})};body=JSON.parse(o.body);return {ok,json:async()=>reply};}});
+assert.equal(await run({linked:true,customToken:'custom'}),true);assert.deepEqual(body,{action:'recovery-follow',idToken:'verified-token'});assert.equal(signed,1);
+assert.equal(await run({linked:false}),false);assert.equal(signed,1);
+await assert.rejects(run({error:'MERGE_IN_PROGRESS'},false),e=>e.code==='MERGE_IN_PROGRESS');assert.equal(signed,1);
+await assert.rejects(run({error:'RECOVERY_UNAVAILABLE'},false));assert.equal(signed,1);
+assert.equal(await followMergedSession({auth,fetcher:async()=>({ok:true,json:async()=>({features:{}})})}),false);
+assert.equal(await followMergedSession({auth:{currentUser:{uid:'HcFJGmzHw6MYoWbFmtq9IyFSjvL2'}}}),false);
+console.log('PASS customer reconnect: authenticated request, successful session switch, new-user/older-backend compatibility, pending/blocked errors, admin protection');

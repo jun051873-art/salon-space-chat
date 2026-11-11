@@ -24,3 +24,15 @@ f=fixture();ticket=await f.api(RECOVERY_OWNER).issue('main');f.disable();await a
 f=fixture();ticket=await f.api(RECOVERY_OWNER).issue('main');f.hook(()=>f.seed('users/main',{role:'customer',status:'blocked'}));await assert.rejects(f.api('temporary').redeem(ticket.code),/CAS/);assert.equal(f.docs.get('customerRecovery/main').data.used,false);
 f=fixture();ticket=await f.api(RECOVERY_OWNER).issue('main');await assert.rejects(f.api(RECOVERY_OWNER).redeem(ticket.code));await assert.rejects(f.api('temporary').redeem('main.bad'));await assert.rejects(f.api(RECOVERY_OWNER).issue(RECOVERY_OWNER));await assert.rejects(f.api(RECOVERY_OWNER).issue('../main'));
 console.log('PASS recovery: owner authorization, hash-only storage, preservation, expiry, replacement, replay, concurrent CAS, blocked/retired/merged/missing-auth rejection, role isolation and race guards');
+// Existing authenticated aliases can follow repeated merges, without names/phone matching.
+f=fixture();assert.deepEqual(await f.api('fresh').follow(),{ok:true,linked:false});assert.equal(f.mints(),0);
+f.seed('retiredCustomers/old',{retired:true,automatic:true,primaryUid:'middle'});f.seed('retiredCustomers/middle',{retired:true,automatic:true,primaryUid:'main'});
+assert.deepEqual(await f.api('old').follow(),{ok:true,linked:true,customToken:'token:main'});
+assert.equal(f.docs.has('users/old'),false);assert.equal(f.docs.has('users/middle'),false);
+f.seed('users/main',{role:'customer',status:'blocked'});await assert.rejects(f.api('old').follow());
+f=fixture();f.seed('retiredCustomers/old',{retired:true});f.seed('customerCleanup/old',{stage:'copy-files'});await assert.rejects(f.api('old').follow(),/MERGE_IN_PROGRESS/);
+f.seed('customerCleanup/old',{stage:'done'});await assert.rejects(f.api('old').follow(),/RECOVERY_UNAVAILABLE/);
+f=fixture();f.seed('retiredCustomers/old',{retired:true,automatic:true,primaryUid:'old'});await assert.rejects(f.api('old').follow());
+f=fixture();f.seed('retiredCustomers/old',{retired:true,automatic:true,primaryUid:RECOVERY_OWNER});await assert.rejects(f.api('old').follow());
+f=fixture();f.seed('retiredCustomers/old',{retired:true,automatic:true,primaryUid:'main'});f.hook(()=>f.seed('retiredCustomers/old',{retired:true,automatic:true,primaryUid:'changed'}));await assert.rejects(f.api('old').follow(),/CAS/);
+console.log('PASS automatic merge recovery: authenticated alias, transitive redirects, no new profiles, blocked destination, in-progress cleanup, legacy deleted identities, cycles and concurrent mapping changes');

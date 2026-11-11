@@ -43,7 +43,7 @@ export function createCustomerCleanup({db,auth,project,actor,enabled=false,now=D
   const pending=await db.get('customerCleanup/'+sourceUid);
   if(pending){requireValue(pending.data.primaryUid===primaryUid,'此舊帳號已有其他清除工作');return {ok:true,resume:true,jobId:sourceUid,...publicJob(pending.data)};}
   const t=await target(primaryUid,sourceUid);
-  return {ok:true,primaryUid,sourceUid,primaryName:t.primary.data.name||'保留主檔',sourceName:t.source.data.name||'舊帳號',token:await cleanupHash([t.primary.version,t.source.version,t.group.version]),warning:'舊帳號登入的裝置將停用；對話、附件與備註會保留在主檔。此操作無法復原。'};
+  return {ok:true,primaryUid,sourceUid,primaryName:t.primary.data.name||'保留主檔',sourceName:t.source.data.name||'舊帳號',token:await cleanupHash([t.primary.version,t.source.version,t.group.version]),warning:'舊資料清除後，保留必要的登入對應，讓原手機自動接回主檔；已清除的舊資料無法復原。'};
  }
  async function start(primaryUid,sourceUid,token){
   authorize();requireValue(idOK(sourceUid),'舊帳號無效');
@@ -53,7 +53,7 @@ export function createCustomerCleanup({db,auth,project,actor,enabled=false,now=D
   requireValue(token===await cleanupHash([t.primary.version,t.source.version,t.group.version]),'資料已變更，請重新查看刪除確認');
   const members=await Promise.all(t.group.data.memberIds.map(id=>db.get('users/'+id)));
   requireValue(members.every(x=>x&&x.data.conversationId===t.primary.data.conversationId&&!x.data.cleanupLock),'群組資料已變更');
-  const job={schema:1,primaryUid,sourceUid,groupId:t.primary.data.conversationId,memberIds:t.group.data.memberIds,stage:'auth-disable',cursor:'',copiedMessages:0,copiedFiles:0,deletedMessages:0,deletedFiles:0,startedAt:now(),updatedAt:now(),serial:0};
+  const job={schema:2,primaryUid,sourceUid,groupId:t.primary.data.conversationId,memberIds:t.group.data.memberIds,stage:'auth-disable',cursor:'',copiedMessages:0,copiedFiles:0,deletedMessages:0,deletedFiles:0,startedAt:now(),updatedAt:now(),serial:0};
   await db.commit([
    ...members.map(x=>patch(x,{cleanupLock:sourceUid})),patch(t.group,{cleanupLock:sourceUid}),
    put('retiredCustomers/'+sourceUid,{retired:true},null),put('customerCleanup/'+sourceUid,job,null)
@@ -88,7 +88,7 @@ export function createCustomerCleanup({db,auth,project,actor,enabled=false,now=D
     }
     return commit(bookings.map(x=>patch(x,{userId:j.primaryUid})),{pendingBookings});
    }
-   await auth.disable(j.sourceUid);return commit([],{stage:'copy-files'});
+   if(j.schema!==2)await auth.disable(j.sourceUid);return commit([],{stage:'copy-files'});
   }
   const kind=j.stage.endsWith('files')?'files':'messages';
   const collection='chats/'+j.sourceUid+'/'+kind;
@@ -149,14 +149,15 @@ export function createCustomerCleanup({db,auth,project,actor,enabled=false,now=D
    const join=await db.get('notificationJobs/join_'+j.sourceUid);if(join)return commit([erase(join)]);
    return commit([],{stage:'auth-delete'});
   }
-  if(j.stage==='auth-delete'){requireValue(!(await db.query('bookings','userId','EQUAL',j.sourceUid,1)).length,'仍有舊帳號預約關聯，暫停清除');await auth.remove(j.sourceUid);return commit([],{stage:'finish'});}
+  if(j.stage==='auth-delete'){requireValue(!(await db.query('bookings','userId','EQUAL',j.sourceUid,1)).length,'仍有舊帳號預約關聯，暫停清除');if(j.schema!==2)await auth.remove(j.sourceUid);return commit([],{stage:'finish'});}
   if(j.stage==='finish'){
    requireValue(j.copiedMessages===j.deletedMessages&&j.copiedFiles===j.deletedFiles,'搬移與清除數量不符');
    for(const c of ['chats/'+j.sourceUid+'/messages','chats/'+j.sourceUid+'/files','pushTokens/'+j.sourceUid+'/devices'])requireValue(!(await db.list(c,'',1)).length,'仍有舊資料，請繼續核對');
    const survivors=await Promise.all(without(j.memberIds,j.sourceUid).map(id=>db.get('users/'+id)));
    requireValue(survivors.every(x=>x?.data.cleanupLock===jobId),'保留帳號狀態已變更');
+   const alias=j.schema===2?await db.get('retiredCustomers/'+j.sourceUid):null;
    const roots=await Promise.all(['users','chats','pushTokens','customerNotes'].map(c=>db.get(c+'/'+j.sourceUid)));
-   return commit([...roots.filter(Boolean).map(erase),...survivors.map(x=>patch(x,{cleanupLock:''})),patch(group,{cleanupLock:''})],{stage:'done',memberIds:[],finishedAt:now()});
+   return commit([...(alias?[patch(alias,{primaryUid:j.primaryUid,automatic:true})]:[]),...roots.filter(Boolean).map(erase),...survivors.map(x=>patch(x,{cleanupLock:''})),patch(group,{cleanupLock:''})],{stage:'done',memberIds:[],finishedAt:now()});
   }
   throw cleanupError('未知處理階段，未刪除資料');
  }

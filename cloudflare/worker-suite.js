@@ -11,7 +11,7 @@ export default {
  async fetch(request, env, ctx) {
   const cors = {"Access-Control-Allow-Origin":SITE,"Access-Control-Allow-Methods":"GET, POST, OPTIONS","Access-Control-Allow-Headers":"Content-Type, Authorization","Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store","Vary":"Origin"};
   if(request.method === "OPTIONS") return new Response(null,{status:204,headers:cors});
-  if(request.method === "GET") return json({ok:true,service:"salon-space-notify",version:"19-customer-recovery",authenticated:true,features:{customerRecovery:true,permanentMergeCleanup:env.CUSTOMER_CLEANUP_RULES_VERSION==='P141',androidNativePush:true,unifiedConversations:true,activeChatAutoReplySuppression:true,newCustomerNotifications:true,timeReplies:true,keywordReplies:true,keywordContains:true,scheduledCare:true,visitCare:true,personalVisitCare:true,appointmentReminders:true}},200,cors);
+  if(request.method === "GET") return json({ok:true,service:"salon-space-notify",version:"20-preserve-customer-access",authenticated:true,features:{automaticMergedRecovery:true,customerRecovery:true,permanentMergeCleanup:env.CUSTOMER_CLEANUP_RULES_VERSION==='P141',androidNativePush:true,unifiedConversations:true,activeChatAutoReplySuppression:true,newCustomerNotifications:true,timeReplies:true,keywordReplies:true,keywordContains:true,scheduledCare:true,visitCare:true,personalVisitCare:true,appointmentReminders:true}},200,cors);
   if(request.method !== "POST") return json({ok:false,error:"METHOD_NOT_ALLOWED"},405,cors);
   try {
    if(request.headers.get("Origin") && request.headers.get("Origin") !== SITE) throw fault("ORIGIN_NOT_ALLOWED",403);
@@ -24,14 +24,14 @@ export default {
    const who = await readJSON("https://identitytoolkit.googleapis.com/v1/accounts:lookup?key="+WEB_API_KEY,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({idToken})},"AUTH");
    const user = who.users?.[0];
    if(!user?.localId || user.disabled) throw fault("LOGIN_INVALID",401);
-   if(['recovery-issue','recovery-redeem'].includes(body.action)){
+   if(['recovery-issue','recovery-redeem','recovery-follow'].includes(body.action)){
     if(body.action==='recovery-issue'&&user.localId!==ADMIN_UID)throw fault('NOT_AUTHORIZED',403);
     const [{createCustomerRecovery},{createCleanupRest}]=await Promise.all([import('./customer-recovery.js'),import('./cleanup-rest.js')]);
     const access=await googleToken(env),connection=createCleanupRest({project:env.FIREBASE_PROJECT_ID,token:access});
     const recovery=createCustomerRecovery({db:connection.db,actor:user.localId,
      checkAuth:async uid=>{const result=await readJSON('https://identitytoolkit.googleapis.com/v1/projects/'+encodeURIComponent(env.FIREBASE_PROJECT_ID)+'/accounts:lookup',{method:'POST',headers:{Authorization:'Bearer '+access,'Content-Type':'application/json'},body:JSON.stringify({localId:[uid]})},'RECOVERY_AUTH');if(!result.users?.some(u=>u.localId===uid&&!u.disabled))throw fault('RECOVERY_UNAVAILABLE',409);},
      mint:uid=>recoveryCustomToken(env,uid)});
-    return json(body.action==='recovery-issue'?await recovery.issue(body.primaryUid):await recovery.redeem(body.code),200,cors);
+    return json(body.action==='recovery-follow'?await recovery.follow():body.action==='recovery-issue'?await recovery.issue(body.primaryUid):await recovery.redeem(body.code),200,cors);
    }
    if(['cleanup-preview','cleanup-start','cleanup-step'].includes(body.action)){
     if(user.localId!==ADMIN_UID)throw fault('NOT_AUTHORIZED',403);

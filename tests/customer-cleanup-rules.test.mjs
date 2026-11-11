@@ -4,6 +4,7 @@ import {initializeTestEnvironment,assertFails,assertSucceeds} from '@firebase/ru
 import {doc,setDoc,getDoc,updateDoc,deleteDoc,serverTimestamp,runTransaction} from 'firebase/firestore';
 import {createCleanupRest} from '../cloudflare/cleanup-rest.js';
 import {createCustomerCleanup,CLEANUP_OWNER,CLEANUP_PROJECT} from '../cloudflare/customer-cleanup.js';
+import {createCustomerRecovery} from '../cloudflare/customer-recovery.js';
 import {mergeConversations} from '../conversation-merge.js';
 const env=await initializeTestEnvironment({projectId:'demo-salon',firestore:{host:'127.0.0.1',port:8089,rules:fs.readFileSync('release-preparation/P141/firestore.rules','utf8')}});
 const db=id=>env.authenticatedContext(id).firestore(),owner=db(CLEANUP_OWNER);
@@ -36,7 +37,7 @@ try{
  assert.deepEqual((await transport.db.get('availability/day')).data,{slots:{'10:00':true}});
  await assertSucceeds(getDoc(doc(db('a'),'bookings/booking0')));
  await assertFails(getDoc(doc(db('b'),'bookings/booking0')));
-assert.deepEqual(calls,['disable:b','delete:b']);
+assert.deepEqual(calls,[]);assert.equal((await transport.db.get('retiredCustomers/b')).data.primaryUid,'a');
  assert.equal((await transport.db.get('users/b')),null);assert.equal((await transport.db.list('chats/b/messages','',10)).length,0);
  const messages=await transport.db.list('chats/a/messages','',10);assert.equal(messages.length,1);assert.ok(messages[0].raw.createdAt.timestampValue,'timestamp retained as native timestamp');
  await assertFails(setDoc(doc(owner,'users/b'),{role:'customer',status:'active'}));
@@ -45,5 +46,7 @@ assert.deepEqual(calls,['disable:b','delete:b']);
  await assertFails(updateDoc(doc(owner,'customerNotes/a'),{linkedCustomerIds:['b']}));
  await assertSucceeds(updateDoc(doc(db('a'),'users/a'),{name:'still works'}));
  await assertSucceeds(updateDoc(doc(db('a'),'conversations/a'),{sharedProfile:{name:'still works',avatar:''}}));
+ const restored=await createCustomerRecovery({db:transport.db,actor:'b',checkAuth:async()=>{},mint:async id=>'custom:'+id}).follow();assert.equal(restored.customToken,'custom:a');
+ console.log('PASS emulator P145 alias follows completed cleanup while retired direct access stays forbidden');
  console.log('PASS emulator P141: normal merge/profile sync, locks, stale clients, retired ID, real REST copy/verify/delete, timestamp preservation, surviving account');
 }finally{await env.cleanup();}
