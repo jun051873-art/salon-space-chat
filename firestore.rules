@@ -80,7 +80,11 @@ service cloud.firestore {
     allow read: if admin() || (owner(uid) && active(uid)) || (signedIn() && sharedRoom(uid));
     allow create: if (admin() || (owner(uid) && active(uid) && get(/databases/$(database)/documents/chats/$(uid)).data.get('status','active') == 'active')) && request.resource.data.senderId == request.auth.uid && request.resource.data.senderRole == (admin()?'admin':'customer') && request.resource.data.text is string && request.resource.data.text.size() <= 4000 && request.resource.data.createdAt == request.time;
     // Never permit the legacy per-message readAt loop, including for admin.
-    allow update: if (admin() || (owner(uid) && resource.data.senderId == request.auth.uid && active(uid))) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['text','editedAt','retracted']) && request.resource.data.text is string && request.resource.data.text.size() <= 4000;
+    allow update: if (admin() || (owner(uid) && resource.data.senderId == request.auth.uid && active(uid)
+     && resource.data.createdAt is timestamp
+     && request.time >= resource.data.createdAt
+     && request.time < resource.data.createdAt + duration.value(30,'m')
+     && resource.data.get('retracted',false) != true)) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['text','editedAt','retracted']) && request.resource.data.text is string && request.resource.data.text.size() <= 4000;
     allow delete: if admin();
    }
    match /files/{fileId} {

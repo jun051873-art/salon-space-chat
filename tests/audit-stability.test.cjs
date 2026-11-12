@@ -2,9 +2,10 @@ const fs=require('fs'),vm=require('vm'),assert=require('assert/strict');
 const source=fs.readFileSync('salon-suite.js','utf8');
 const start=source.indexOf(' async function reviseMessage('),end=source.indexOf(' async function chatFileURL(',start);
 assert(start>0&&end>start);
-let message={senderId:'customer',createdAt:100,text:'original'},parent={updatedAt:100,lastMessage:'original'},updates=[];
+let message={senderId:'customer',createdAt:Date.now()-1000,text:'original'},parent={updatedAt:message.createdAt,lastMessage:'original'},updates=[];
 const c=vm.createContext({auth:{currentUser:{uid:'customer'}},admin:false,db:{},doc:(_, ...p)=>p.join('/'),stamp:()=>999,millis:x=>Number(x)||0,runTransaction:async(_,fn)=>fn({get:async ref=>({exists:()=>true,data:()=>ref.includes('/messages/')?message:parent}),update:(ref,data)=>updates.push({ref,data})})});
 vm.runInContext(fs.readFileSync('conversation-feed.js','utf8').match(/export function sourceOf[^\n]+/)[0].replace('export ',''),c);
+vm.runInContext(source.slice(source.indexOf('function customerRevisionOpen('),source.indexOf('export function installSuite')),c);
 vm.runInContext(source.slice(start,end),c);
 (async()=>{
  await c.reviseMessage({room:'a'},'m',{text:'changed',senderId:'intruder'});

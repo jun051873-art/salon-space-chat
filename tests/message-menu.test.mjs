@@ -7,7 +7,7 @@ const src=fs.readFileSync('salon-suite.js','utf8');const code=src.slice(src.inde
 let clicks=0;root.querySelector('button').onclick=()=>clicks++;
 fire('contextmenu');root.querySelector('button').click();assert.equal(clicks,1);
 fire('pointerdown');await new Promise(r=>setTimeout(r,550));root.querySelector('button').dispatchEvent(new w.MouseEvent('click',{bubbles:true,cancelable:true,detail:1}));assert.equal(clicks,2);
-for(const viewer of ['shop','guest']){const html=c.messageHTML({id:'own',senderId:viewer,senderRole:viewer==='shop'?'admin':'customer',text:'hello'},viewer);assert.match(html,/data-edit="own"/);assert.match(html,/data-retract="own"/);}
+for(const viewer of ['shop','guest']){const html=c.messageHTML({id:'own',senderId:viewer,senderRole:viewer==='shop'?'admin':'customer',text:'hello',createdAt:Date.now()-1000},viewer);assert.match(html,/data-edit="own"/);assert.match(html,/data-retract="own"/);}
 assert.doesNotMatch(c.messageHTML({id:'peer',senderId:'guest',text:'hello'},'shop'),/data-retract/);
 // Actual long-press action callback must not depend on a DOM row surviving a snapshot.
 assert.doesNotMatch(src.slice(src.indexOf(' bindMessageMenu(v.el,'),src.indexOf('\n clearTimeout',src.indexOf(' bindMessageMenu(v.el,'))),/\.click\(|row.isConnected/);
