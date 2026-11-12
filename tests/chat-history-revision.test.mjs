@@ -8,3 +8,7 @@ oldCallback(snap([{...d('1'),data:()=>({createdAt:{seconds:1},text:'訊息已收
 feed.pause();assert.equal(stops,1);oldCallback(snap([]));assert.equal(state.docs.length,3);
 feed.start();latest(snap([d('3'),d('2')]));oldCallback(snap([]));assert.equal(state.docs.length,2);feed.destroy();assert.equal(stops,2);
 console.log('PASS loaded historical edit/retraction/delete sync, pause cleanup, stale listener isolation, resume');
+let pageResolve,pageNext,historyStarts=0;
+const pending=createPagedFeed({field:'createdAt',pageSize:1,subscribe:cb=>{pageNext=cb;return()=>{}},fetchPage:()=>new Promise(r=>pageResolve=r),subscribeHistory:()=>{historyStarts++;return()=>{}},onChange:()=>{},onError:e=>{throw e}});
+pending.start();pageNext(snap([d('2')]));const request=pending.loadMore();pending.pause();pageResolve(snap([d('1')]));await request;assert.equal(historyStarts,0);pending.destroy();
+console.log('PASS in-flight page cannot start background listeners after chat closes');

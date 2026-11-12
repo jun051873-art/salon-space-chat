@@ -1,7 +1,7 @@
 import {prefetchSource} from './chat-prefetch.js?v=P151';
 // Cached documents must still emit the metadata-only server confirmation.
 export function watchServerDocument(subscribe,ref,next,error){return subscribe(ref,{includeMetadataChanges:true},snapshot=>{if(!snapshot.metadata.fromCache)next(snapshot.data());},error);}
-import {createPagedFeed} from './chat-feed.js?v=P157';
+import {createPagedFeed} from './chat-feed.js?v=P157.1';
 // Every historical room retains its own cursor and original document path.
 export function createConversationFeed({room,watchAccount,watchGroup,makeSource,onGroup=()=>{},onChange,onError,prefetchPrimary=false}) {
  let accountStop=null,groupStop=null,feeds=new Map(),states=new Map(),running=false,dead=false,generation=0,groupId=null,signature='',pendingPrimary=null;

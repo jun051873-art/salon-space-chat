@@ -1,4 +1,4 @@
-import {bindMessageMenu} from './message-menu.js?v=P157';
+import {bindMessageMenu} from './message-menu.js?v=P157.1';
 import {chatImageExpired,imageTime,CHAT_IMAGE_TTL} from './chat-image-retention.js?v=P152';
 import {paintArtwork} from './stable-artwork.js?v=P151';
 import {presentDialog,beginDialogRequest} from './dialog-lifecycle.js?v=P146';

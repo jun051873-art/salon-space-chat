@@ -1,7 +1,7 @@
 // Bounded live window + explicit cursor pages. No writes, polling or offsets.
 export function createPagedFeed({subscribe,subscribeHistory,fetchPage,field,pageSize=30,onChange,onError,requestTimeout=15000}) {
  let docs=new Map(),liveIds=new Set(),cursor=null,more=false,ready=false,paged=false;
- let history=new Map();
+ let history=new Map(),running=false;
  let unsubscribe=null,loading=false,epoch=0,pageEpoch=0,retryTimer=null,retryAttempts=0;
  function reconnect(){if(retryTimer)return;const delay=Math.min(30000,500*2**Math.min(retryAttempts++,6));retryTimer=setTimeout(()=>{retryTimer=null;start();},delay);}
  const compare=(a,b)=>{
@@ -12,7 +12,7 @@ export function createPagedFeed({subscribe,subscribeHistory,fetchPage,field,page
  const emit=(reason,fromCache=false)=>onChange({docs:sorted(),more,loading,ready,reason,fromCache});
  // Watch only historical messages actually loaded by this open chat.
  function syncHistory(){
-  if(!subscribeHistory)return;
+  if(!subscribeHistory||!running)return;
   const ids=[...docs.keys()].filter(id=>!liveIds.has(id)).sort(),wanted=new Set();
   for(let i=0;i<ids.length;i+=30){
    const batch=ids.slice(i,i+30),key=JSON.stringify(batch);wanted.add(key);
@@ -31,7 +31,7 @@ export function createPagedFeed({subscribe,subscribeHistory,fetchPage,field,page
  function stopHistory(){for(const token of history.values())token.stop?.();history.clear();}
  function start(){
   if(unsubscribe||retryTimer)return;
-  const generation=++epoch;
+  running=true;const generation=++epoch;
   unsubscribe=subscribe(s=>{
    if(generation!==epoch)return;
    // Do not let a partial SDK cache overwrite an established server window.
@@ -53,7 +53,7 @@ export function createPagedFeed({subscribe,subscribeHistory,fetchPage,field,page
    syncHistory();emit(disconnectedGap?'reset':'live');
   },e=>{if(generation===epoch){++epoch;const stop=unsubscribe;unsubscribe=null;stop?.();onError(e);reconnect();}});
  }
- function pause(){stopHistory();++epoch;clearTimeout(retryTimer);retryTimer=null;unsubscribe?.();unsubscribe=null;}
+ function pause(){running=false;stopHistory();++epoch;clearTimeout(retryTimer);retryTimer=null;unsubscribe?.();unsubscribe=null;}
  async function loadMore(){
   if(loading||!ready||!more||!cursor)return;
   paged=true;loading=true;emit('loading');const generation=pageEpoch,after=cursor;
