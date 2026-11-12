@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';import {createPagedFeed} from '../chat-feed.js';
+const d=(id,text=id)=>({id,data:()=>({createdAt:{seconds:Number(id)},text}),metadata:{hasPendingWrites:false}}),snap=docs=>({docs,metadata:{fromCache:false}});
+let latest,state,oldCallback,stops=0;
+const feed=createPagedFeed({field:'createdAt',pageSize:2,subscribe:next=>{latest=next;return()=>{}},fetchPage:async()=>snap([d('1')]),subscribeHistory:(ids,next)=>{assert.deepEqual(ids,['1']);oldCallback=next;return()=>stops++},onChange:s=>state=s,onError:e=>{throw e}});
+feed.start();latest(snap([d('3'),d('2')]));await feed.loadMore();assert.equal(state.docs.length,3);
+oldCallback(snap([d('1','edited')]));assert.equal(state.docs.find(d=>d.id==='1').data().text,'edited');
+oldCallback(snap([{...d('1'),data:()=>({createdAt:{seconds:1},text:'訊息已收回',retracted:true})}]));assert.equal(state.docs.find(d=>d.id==='1').data().retracted,true);
+feed.pause();assert.equal(stops,1);oldCallback(snap([]));assert.equal(state.docs.length,3);
+feed.start();latest(snap([d('3'),d('2')]));oldCallback(snap([]));assert.equal(state.docs.length,2);feed.destroy();assert.equal(stops,2);
+console.log('PASS loaded historical edit/retraction/delete sync, pause cleanup, stale listener isolation, resume');
