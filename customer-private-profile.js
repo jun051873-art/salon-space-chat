@@ -28,3 +28,11 @@ export async function savePrivateProfile({db,uid,alias,notes,doc,runTransaction,
   return {...previous,...patch};
  });
 }
+
+// Presentation only: never write this combined name into customer-owned records.
+export function shopDisplayName(name,alias){
+ name=String(name||'客人').trim();alias=privateAlias(alias);
+ if(!alias||alias===name)return name;
+ if(alias.startsWith(name+'（')||alias.startsWith(name+'('))return alias;
+ return name+'（'+alias.replace(/^[（(](.*)[）)]$/u,'$1')+'）';
+}
