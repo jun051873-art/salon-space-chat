@@ -6,17 +6,18 @@ const admin='HcFJGmzHw6MYoWbFmtq9IyFSjvL2';
 const env={FIREBASE_PROJECT_ID:'test',FIREBASE_CLIENT_EMAIL:'test',FIREBASE_PRIVATE_KEY:'test'};
 const root='https://firestore.googleapis.com/v1/projects/test/databases/(default)/documents/';
 const pack=x=>typeof x==='string'?{stringValue:x}:typeof x==='boolean'?{booleanValue:x}:typeof x==='number'?{integerValue:String(x)}:Array.isArray(x)?{arrayValue:{values:x.map(pack)}}:{mapValue:{fields:Object.fromEntries(Object.entries(x).map(([k,v])=>[k,pack(v)]))}};
-function harness({presence=null,users=[],chats=[],rules=[],settings={},holiday=false,caller="c1",sourceMessage={senderId:"c1",text:"預約"},sharedDevice=false,failMessage=false}={}){
+function harness({presence=null,notes={},groups={},users=[],chats=[],rules=[],settings={},holiday=false,caller="c1",sourceMessage={senderId:"c1",text:"預約"},sharedDevice=false,failMessage=false}={}){
  const calls=[],payloads=[],messages=new Map();let writes=0,pushes=0;
  const doc=(id,x)=>({name:root+id,fields:pack(x).mapValue.fields});
  const context=vm.createContext({Response,Request,URLSearchParams,AbortController,TextEncoder,Uint8Array,atob,btoa,setTimeout,clearTimeout,console,fetch:async(url,opt={})=>{
   calls.push(String(url));const u=String(url),body=opt.body?JSON.parse(opt.body):null;
   const ok=x=>Response.json(x);
   if(u.includes('accounts:lookup'))return ok({users:[{localId:caller}]});
-  if(u===root+'customerNotes/c1')return presence?ok(doc('c1',presence)):Response.json({error:{status:'NOT_FOUND'}},{status:404});
+  if(u.startsWith(root+'customerNotes/')){const id=u.slice((root+'customerNotes/').length),value=notes[id]||(id==='c1'?presence:null);return value?ok(doc(id,value)):Response.json({error:{status:'NOT_FOUND'}},{status:404});}
+  if(u.startsWith(root+'conversations/')){const id=u.slice((root+'conversations/').length);return ok(doc(id,groups[id]||{}));}
   if(u===root+'announcements/settings')return ok(doc('settings',settings));
   if(u.startsWith(root+'holidays/'))return holiday?ok(doc('holiday',{closed:true})):Response.json({error:{status:'NOT_FOUND'}},{status:404});
-  if(u===root+'users/c1')return ok(doc('c1',users.find(x=>x.id==='c1')||{}));
+  if(u.startsWith(root+'users/')&&!u.includes('/devices')){const id=u.slice((root+'users/').length);if(!id.includes('/'))return ok(doc(id,users.find(x=>x.id===id)||{}));}
   if(u.includes('/messages/source'))return ok(doc('source',sourceMessage));
   if(u.includes('/devices?'))return ok({documents:[doc('device',{token:sharedDevice?'shared-device':u.includes('/'+admin+'/')?'owner-device':'customer-device'})]});
   if(u.includes('/pushTokens/'))return Response.json({error:{status:'NOT_FOUND'}},{status:404});
@@ -148,3 +149,18 @@ assert.equal(renamed.payloads.at(-1).android.ttl,"86400s");
 assert.equal(timedHarness.payloads[0].android.priority,"HIGH");
 assert.equal(named.payloads.at(-1).android,undefined);
 console.log("PASS Android native high priority for manual/automatic customer push; owner web payload unchanged");
+
+for(const [label,presence,expected] of [
+ ['manual pauses without open device',{chatMode:'manual',manualChatStartedAt:new Date(Date.now()-900000).toISOString(),manualChatHours:1},0],
+ ['expired manual ignores legacy presence',{chatMode:'manual',manualChatStartedAt:new Date(Date.now()-3600001).toISOString(),manualChatHours:1,adminChatPresence:{x:{active:true,at:Date.now()}}},2],
+ ['extend retains pause',{chatMode:'manual',manualChatStartedAt:new Date(Date.now()-5400000).toISOString(),manualChatHours:2},0],
+ ['explicit auto',{chatMode:'auto',adminChatPresence:{x:{active:true,at:Date.now()}}},2]
+]){const test=harness({presence,settings:{keywordRepliesEnabled:true,quickReplies:[{title:'預約',answer:'收到'}]}});await test.api.automaticReply(env,root,'test','c1','source','預約');assert.equal(test.writes,expected,label);}
+console.log('PASS manual hour expiry, extend, background pause and explicit automatic mode');
+
+const activeMode={chatMode:'manual',manualChatStartedAt:new Date().toISOString(),manualChatHours:1};
+const mergedManual=harness({users:[{id:'c1',conversationId:'g'}],groups:{g:{state:'active',historyRoomIds:['c1','a0']}},notes:{a0:activeMode},settings:{keywordRepliesEnabled:true,quickReplies:[{title:'預約',answer:'收到'}]}});
+await mergedManual.api.automaticReply(env,root,'test','c1','source','預約');assert.equal(mergedManual.writes,0);
+const carePaused=harness({presence:activeMode,users:[{id:'c1',name:'甲',birthMonth:day[1],birthDay:day[2]},{id:'c2',name:'乙',birthMonth:day[1],birthDay:day[2]}],rules:[{id:'birthday',type:'automation',kind:'birthday',enabled:true,text:'生日快樂'}]});
+await carePaused.api.runCare(env);assert.equal(carePaused.messages.size,1);assert([...carePaused.messages.keys()][0].includes('/c2/'));
+console.log('PASS merged room canonical mode and per-customer scheduled care isolation');

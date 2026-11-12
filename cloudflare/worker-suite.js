@@ -11,7 +11,7 @@ export default {
  async fetch(request, env, ctx) {
   const cors = {"Access-Control-Allow-Origin":SITE,"Access-Control-Allow-Methods":"GET, POST, OPTIONS","Access-Control-Allow-Headers":"Content-Type, Authorization","Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store","Vary":"Origin"};
   if(request.method === "OPTIONS") return new Response(null,{status:204,headers:cors});
-  if(request.method === "GET") return json({ok:true,service:"salon-space-notify",version:"21-chat-image-retention",authenticated:true,features:{chatImageRetentionDays:90,automaticMergedRecovery:true,customerRecovery:true,permanentMergeCleanup:env.CUSTOMER_CLEANUP_RULES_VERSION==='P141',androidNativePush:true,unifiedConversations:true,activeChatAutoReplySuppression:true,newCustomerNotifications:true,timeReplies:true,keywordReplies:true,keywordContains:true,scheduledCare:true,visitCare:true,personalVisitCare:true,appointmentReminders:true}},200,cors);
+  if(request.method === "GET") return json({ok:true,service:"salon-space-notify",version:"22-timed-manual-chat",authenticated:true,features:{timedManualChat:true,chatImageRetentionDays:90,automaticMergedRecovery:true,customerRecovery:true,permanentMergeCleanup:env.CUSTOMER_CLEANUP_RULES_VERSION==='P141',androidNativePush:true,unifiedConversations:true,activeChatAutoReplySuppression:true,newCustomerNotifications:true,timeReplies:true,keywordReplies:true,keywordContains:true,scheduledCare:true,visitCare:true,personalVisitCare:true,appointmentReminders:true}},200,cors);
   if(request.method !== "POST") return json({ok:false,error:"METHOD_NOT_ALLOWED"},405,cors);
   try {
    if(request.headers.get("Origin") && request.headers.get("Origin") !== SITE) throw fault("ORIGIN_NOT_ALLOWED",403);
@@ -171,6 +171,7 @@ function unpack(v){if(v==null)return null;if('stringValue'in v)return v.stringVa
 function fieldsOf(d){return Object.fromEntries(Object.entries(d.fields||{}).map(([k,v])=>[k,unpack(v)]));}
 async function salonConfig(root,token,fresh=false){if(!fresh&&salonConfigCache?.until>Date.now())return salonConfigCache.data;let data={};try{data=fieldsOf(await readJSON(root+'announcements/settings',{headers:{Authorization:'Bearer '+token}},'SETTINGS'));}catch(e){if(e.status!==404)throw e;}salonConfigCache={until:Date.now()+300000,data};return data;}
 async function systemMessage(env,root,token,uid,id,text,customer={},shopName='專屬空間'){
+ if(await adminViewingChat(root,token,uid,true))return false;
  const name='projects/'+env.FIREBASE_PROJECT_ID+'/databases/(default)/documents/';
  const s=v=>({stringValue:v});
  const cleanupGuard=await cleanupWriteGuard(env,root,token,uid);if(cleanupGuard===null)return false;
@@ -199,19 +200,22 @@ function timeReply(config,instant,holiday=false){
 }
 // Only the owner can write customerNotes. A crashed/closed app cannot leave a permanent pause.
 function hasActiveAdminChat(notes,now=Date.now()){
+ if(notes?.chatMode==='auto')return false;
+ if(notes?.chatMode==='manual')return manualChatActive(notes,now);
  return Object.values(notes?.adminChatPresence||{}).some(value=>{
   const at=typeof value==='string'?Date.parse(value):NaN;
   return Number.isFinite(at)&&now-at>=0&&now-at<45000;
  });
 }
-async function adminViewingChat(root,token,uid){
- const direct=async id=>{try{return hasActiveAdminChat(fieldsOf(await readJSON(root+'customerNotes/'+encodeURIComponent(id),{headers:{Authorization:'Bearer '+token}},'ADMIN_PRESENCE')));}catch(e){if(e.status===404)return false;throw e;}};
- if(await direct(uid))return true;
+function manualChatActive(notes,now=Date.now()){
+ const start=Date.parse(notes?.manualChatStartedAt||''),hours=Number(notes?.manualChatHours);
+ return notes?.chatMode==='manual'&&Number.isFinite(start)&&Number.isFinite(hours)&&hours>=1&&now>=start&&now<start+hours*3600000;
+}
+async function adminViewingChat(root,token,uid,manualOnly=false){
  const user=fieldsOf(await readJSON(root+'users/'+encodeURIComponent(uid),{headers:{Authorization:'Bearer '+token}},'CUSTOMER'));
- if(!user.conversationId)return false;
- const group=fieldsOf(await readJSON(root+'conversations/'+encodeURIComponent(user.conversationId),{headers:{Authorization:'Bearer '+token}},'CONVERSATION'));
- if(group.state!=='active'||!Array.isArray(group.historyRoomIds)||group.historyRoomIds.length>40)return false;
- return (await Promise.all(group.historyRoomIds.filter(id=>id!==uid).map(direct))).some(Boolean);
+ let id=uid;
+ if(user.conversationId){const group=fieldsOf(await readJSON(root+'conversations/'+encodeURIComponent(user.conversationId),{headers:{Authorization:'Bearer '+token}},'CONVERSATION'));if(group.state==='active'&&Array.isArray(group.historyRoomIds)&&group.historyRoomIds.length>0&&group.historyRoomIds.length<=40)id=[...group.historyRoomIds].sort()[0];}
+ try{const notes=fieldsOf(await readJSON(root+'customerNotes/'+encodeURIComponent(id),{headers:{Authorization:'Bearer '+token}},'ADMIN_PRESENCE'));return manualOnly?manualChatActive(notes):hasActiveAdminChat(notes);}catch(e){if(e.status===404)return false;throw e;}
 }
 async function automaticReply(env,root,token,uid,sourceId,text,sourceTime){
  if(await adminViewingChat(root,token,uid))return;
@@ -313,6 +317,7 @@ async function processAppointment(env,root,token,queueDoc,now=Date.now()){
  const [userDoc,configDoc]=await Promise.all([appointmentDoc(root,'users/'+job.userId,token),appointmentDoc(root,'announcements/settings',token)]),user=userDoc?{...fieldsOf(userDoc),id:job.userId}:null,config=fieldsOf(configDoc||{}),decision=appointmentDue(job,user,config,now);
  if(env.CUSTOMER_CLEANUP_RULES_VERSION==='P141'&&(!user||user.cleanupLock))return false;
  if(decision==='skip'||decision==='future')return false;
+ if(decision==='send'&&await adminViewingChat(root,token,job.userId,true))return false;
  const base='projects/'+env.FIREBASE_PROJECT_ID+'/databases/(default)/documents/',headers={Authorization:'Bearer '+token,'Content-Type':'application/json'};
  // REST v1 has no verify operation. Compare-and-set unchanged fields to guard both snapshots atomically.
  const guard=(document,path,field)=>({update:{name:base+path,fields:document.fields?.[field]?{[field]:document.fields[field]}:{}},updateMask:{fieldPaths:[field]},currentDocument:{updateTime:document.updateTime}});

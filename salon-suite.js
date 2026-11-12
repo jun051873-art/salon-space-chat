@@ -1,3 +1,4 @@
+import {mountChatMode,manualDeadline} from './chat-manual-mode.js?v=P159';
 import {bindMessageMenu} from './message-menu.js?v=P158';
 import {chatImageExpired,imageTime,CHAT_IMAGE_TTL} from './chat-image-retention.js?v=P152';
 import {paintArtwork} from './stable-artwork.js?v=P151';
@@ -466,7 +467,14 @@ $('appointmentSettings').onclick=()=>appointmentSettings().catch(fail);const edi
  function stopReceipt(){chatIdentityStop?.();chatIdentityStop=null;roomUnsub?.();roomUnsub=null;clearTimeout(receiptTimer);roomId='';document.getElementById('receiptRetry')?.remove();}
  let atmosphereView=null;
  function presentChatEffects(v){if(atmosphereView&&atmosphereView!==v){hideGreeting();stopAtmosphere();atmosphereView=null;}if(!v||!v.messagesReady||atmosphereView===v||v.el.closest('.hidden'))return;atmosphereView=v;void playAtmosphere(currentTheme());showGreeting(currentTheme());}
- function attachChat(v){if(!v)return;presentChatEffects(v);if(v.sourceRooms?.length>1)return attachSharedChat(v);if(roomId===v.room&&roomUnsub)return;stopReceipt();roomId=v.room;ownRead=0;peerRead=0;receiptWanted=0;receiptFailed=false;v.peerRead=0;if(admin){followChatIdentity(v);}else v.person={name:config?.name||defaults.name,avatar:config?.salonAvatar||'',profileCover:config?.cover||'',statusText:config?.statusText||config?.intro,profileEffect:config?.profileEffect,profileWeatherCity:config?.profileWeatherCity,profileRandom:config?.profileRandom===true,profileEffectDirection:config?.profileEffectDirection};const ownField=admin?'readAdminMs':'readCustomerMs',peerField=admin?'readCustomerMs':'readAdminMs';roomUnsub=onSnapshot(doc(db,'chats',v.room),{includeMetadataChanges:true},s=>{if(getChat()!==v||s.metadata.fromCache)return;ownRead=Math.max(ownRead,Number(s.data()?.[ownField]||0));peerRead=Math.max(peerRead,Number(s.data()?.[peerField]||0));v.peerRead=peerRead;const blocked=s.data()?.status==='blocked';if(!admin){$('send').disabled=blocked;$('text').disabled=blocked;$('text').placeholder=blocked?'目前無法傳送，請聯絡店家':'輸入訊息…';}renderChat('receipt');},e=>{roomUnsub?.();roomUnsub=null;receiptFailed=true;receiptIssue(e,()=>writeReceipt());});v.el.addEventListener('scroll',queueReceipt,{passive:true});requestAnimationFrame(queueReceipt);}
+ let chatMode=null;
+ function setupChatMode(v){if(!admin||demo)return;if(!chatMode)chatMode=mountChatMode({host:$('adminChat'),
+  ready:async()=>{const r=await fetch('https://salon-space-notify.jun051873.workers.dev/',{cache:'no-store',signal:AbortSignal.timeout(7000)});return (await r.json()).features?.timedManualChat===true;},
+  watch:(id,next,error)=>onSnapshot(doc(db,'customerNotes',id),{includeMetadataChanges:true},s=>{if(!s.metadata.fromCache&&!s.metadata.hasPendingWrites)next(s.data()||{});},error),
+  save:(id,action)=>runTransaction(db,async tx=>{const ref=doc(db,'customerNotes',id),snap=await tx.get(ref),data=snap.data()||{};if(action==='init'&&data.chatMode)return;const patch=action==='init'||action==='auto'?{chatMode:'auto',manualChatHours:0}:action==='extend'&&manualDeadline(data)>Date.now()?{chatMode:'manual',manualChatHours:Math.max(1,Number(data.manualChatHours)||1)+1}:{chatMode:'manual',manualChatStartedAt:stamp(),manualChatHours:1};tx.set(ref,patch,{merge:true});})
+ });chatMode.enter([...(v.sourceRooms||[v.room])].sort()[0]);}
+ function stopChatMode(){chatMode?.leave();}
+ function attachChat(v){if(!v)return;setupChatMode(v);presentChatEffects(v);if(v.sourceRooms?.length>1)return attachSharedChat(v);if(roomId===v.room&&roomUnsub)return;stopReceipt();roomId=v.room;ownRead=0;peerRead=0;receiptWanted=0;receiptFailed=false;v.peerRead=0;if(admin){followChatIdentity(v);}else v.person={name:config?.name||defaults.name,avatar:config?.salonAvatar||'',profileCover:config?.cover||'',statusText:config?.statusText||config?.intro,profileEffect:config?.profileEffect,profileWeatherCity:config?.profileWeatherCity,profileRandom:config?.profileRandom===true,profileEffectDirection:config?.profileEffectDirection};const ownField=admin?'readAdminMs':'readCustomerMs',peerField=admin?'readCustomerMs':'readAdminMs';roomUnsub=onSnapshot(doc(db,'chats',v.room),{includeMetadataChanges:true},s=>{if(getChat()!==v||s.metadata.fromCache)return;ownRead=Math.max(ownRead,Number(s.data()?.[ownField]||0));peerRead=Math.max(peerRead,Number(s.data()?.[peerField]||0));v.peerRead=peerRead;const blocked=s.data()?.status==='blocked';if(!admin){$('send').disabled=blocked;$('text').disabled=blocked;$('text').placeholder=blocked?'目前無法傳送，請聯絡店家':'輸入訊息…';}renderChat('receipt');},e=>{roomUnsub?.();roomUnsub=null;receiptFailed=true;receiptIssue(e,()=>writeReceipt());});v.el.addEventListener('scroll',queueReceipt,{passive:true});requestAnimationFrame(queueReceipt);}
  function sharedCandidates(v){return (v.sourceRooms||[v.room]).map(room=>({room,value:receiptCandidate(v.docs.filter(d=>(d.sourceRoom||v.room)===room),v.viewer,v.ownReads?.[room]||0)})).filter(x=>x.value>(v.ownReads?.[x.room]||0));}
  function attachSharedChat(v){
   const key=v.sourceRooms.join('|');if(roomId===v.room&&roomUnsub&&v.receiptSources===key)return;
@@ -614,7 +622,7 @@ $('appointmentSettings').onclick=()=>appointmentSettings().catch(fail);const edi
   if(refreshRoute()===route)await page(route,{throwOnError:true});
  }
  mountPullRefresh({enabled:()=>!customerRefreshBusy&&!!refreshRoute(),refresh:refreshVisiblePage});
- return {renderInbox,openTool,page,authReady,attachChat,bindChat,stopReceipt,stopUnread,startDemo,demoList,toast,get demo(){return demo;}};
+ return {renderInbox,openTool,page,authReady,stopChatMode,attachChat,bindChat,stopReceipt,stopUnread,startDemo,demoList,toast,get demo(){return demo;}};
 }
 
 
