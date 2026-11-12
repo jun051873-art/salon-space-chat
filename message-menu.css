@@ -1,0 +1,4 @@
+/* App controls and messages are actions; editable fields retain native selection. */
+button,nav,summary,.senderName,.messageActions,.msg{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+input,textarea,[contenteditable="true"]{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
+.bubbleRow[hidden]{display:none!important}
