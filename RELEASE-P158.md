@@ -6,8 +6,8 @@
 - firestore.rules 以 request.time 強制期限，防止舊客戶端、修改裝置時鐘、重設 createdAt 或直接刪除繞過。
 
 ## 發布注意
-網頁由 GitHub Pages 發布。Firebase 正式規則必須另外部署；此工作階段沒有 Firebase 授權帳號，不能宣稱後端規則已上線。
-部署前核對正式規則與本檔差異，避免覆蓋後台另外修改的規則。
+網頁 P158 已由 GitHub Pages 發布。2026-11-12 已在 Firebase Console 發布正式規則，控制台顯示「今天 • 11:29 上午」的啟用版本。
+部署前讀取正式規則，只替換 messages 的客人更新條件；發布後確認啟用版本包含 30 分鐘限制。下列測試為本機／模擬器驗證，不宣稱已完成兩支實機的半小時測試。
 
 新增的限制只位於 /chats/{uid}/messages/{messageId} 的 allow update 客人分支，保留 admin() 分支：
 
