@@ -2,7 +2,7 @@ const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict'),{JS
 const dom=new JSDOM('<body><div id="chat" style="position:fixed;z-index:1000"></div></body>',{pretendToBeVisual:true});
 const document=dom.window.document;let n=0,modeSeen;const timers=new Map();
 const scope={document,matchMedia:()=>({matches:false}),Date,Math,console,setTimeout:fn=>{timers.set(++n,fn);return n},clearTimeout:id=>timers.delete(id),ambientModule:{scenes:{rain:{},snow:{}},resolveScene:async(mode,effect)=>{modeSeen=mode;return {effect:mode==='manual'?effect:'rain'}},mountAmbient:target=>{const el=document.createElement('div');el.className='ambientScene';target.append(el);return ()=>el.remove()}}};
-vm.createContext(scope);vm.runInContext(fs.readFileSync('salon-theme.js','utf8').replace(/^export /mg,'').replace("import('./ambient-scenes.js?v=N66')",'Promise.resolve(ambientModule)'),scope);
+vm.createContext(scope);vm.runInContext(fs.readFileSync('salon-theme.js','utf8').replace(/^export /mg,'').replace("import('./ambient-scenes.js?v=P168')",'Promise.resolve(ambientModule)'),scope);
 (async()=>{let cases=0;for(const role of ['admin','customer'])for(const mode of ['manual','random','solar','weather'])for(const greetingEnabled of [false,true])for(const atmosphereEnabled of [false,true])for(const effectLoop of [false,true]){
  document.body.className=role+'App';const raw={effect:'rain',backgroundMode:mode==='random'?'manual':mode,randomBackground:mode==='random',greetingEnabled,atmosphereEnabled,effectLoop};
  await scope.playAtmosphere(raw);scope.showGreeting(raw,{force:true});assert.equal(!!document.querySelector('.ambientScene'),atmosphereEnabled);assert.equal(!!document.querySelector('.salonGreeting'),greetingEnabled);

@@ -1,6 +1,6 @@
-import {startAtmosphere} from './ambient-renderer.js?v=N43';
+import {startAtmosphere} from './home-festival-renderer.js?v=P168';
 import {solarDates} from './solar-terms-data.js?v=N43';
-export const scenes={rain:['細雨','💧','fall'],petals:['櫻花','🌸','fall'],snow:['飄雪','❄','fall'],sun:['暖陽','☀️','stay'],fireflies:['螢火','✧','float'],bubbles:['泡泡','○','rise'],ripples:['水波','◯','pulse'],leaves:['秋葉','🍂','fall'],stars:['星光','✦','pulse'],confetti:['彩紙','▰','fall'],wind:['微風','〰','cross'],clouds:['流雲','☁️','cross'],suncloud:['雲間晴光','🌤️','cross'],moon:['月光','🌙','stay'],rainbow:['雨後彩虹','🌈','stay'],mist:['晨霧','☁','cross'],lanterns:['元宵燈籠','🏮','rise'],newyear:['新春祝福','🧧','fall'],fireworks:['跨年煙火','✺','pulse'],christmas:['聖誕小樹','🎄','float'],gifts:['聖誕禮物','🎁','fall'],midautumn:['中秋月兔','🐇','cross'],dragonboat:['端午粽香','🍃','fall'],hearts:['情人愛心','♡','rise'],birthday:['生日氣球','🎈','rise'],halloween:['萬聖南瓜','🎃','float'],sprouts:['春日嫩芽','🌱','rise'],wheat:['金色麥穗','🌾','cross']};
+export const scenes={rain:['細雨','💧','fall'],petals:['櫻花','🌸','fall'],snow:['飄雪','❄','fall'],sun:['暖陽','☀️','stay'],fireflies:['螢火','✧','float'],bubbles:['泡泡','○','rise'],ripples:['水波','◯','pulse'],leaves:['秋葉','🍂','fall'],stars:['星光','✦','pulse'],confetti:['彩紙','▰','fall'],wind:['微風','〰','cross'],clouds:['流雲','☁️','cross'],suncloud:['雲間晴光','🌤️','cross'],moon:['月光','🌙','stay'],rainbow:['雨後彩虹','🌈','stay'],mist:['晨霧','☁','cross'],lanterns:['元宵燈籠','🏮','rise'],newyear:['新春祝福','🧧','fall'],fireworks:['跨年煙火','✺','pulse'],christmas:['聖誕小樹','🎄','float'],gifts:['禮物','🎁','fall'],midautumn:['中秋月亮燈籠','🌕','cross'],dragonboat:['粽子與龍舟','🛶','fall'],hearts:['情人愛心','♡','rise'],birthday:['生日氣球','🎈','rise'],halloween:['萬聖南瓜','🎃','float'],sprouts:['春日嫩芽','🌱','rise'],wheat:['金色麥穗','🌾','cross']};
 export const cities={yingge:['新北・鶯歌',24.96,121.35],taipei:['台北',25.04,121.56],keelung:['基隆',25.13,121.74],taoyuan:['桃園',24.99,121.31],taichung:['台中',24.15,120.67],tainan:['台南',23,120.21],kaohsiung:['高雄',22.63,120.30],hualien:['花蓮',23.99,121.60]};
 const termScenes=['wind','snow','sprouts','rain','fireflies','petals','clouds','rain','suncloud','wheat','wheat','sun','bubbles','sun','leaves','wind','mist','moon','leaves','wind','moon','snow','snow','lanterns'];
 export function localDate(date=new Date()){return new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Taipei'}).format(date);}
@@ -51,7 +51,7 @@ export function mountAmbient(target,{effect,text='',direction='left',duration=12
  layer.setAttribute('aria-hidden','true');
  const entry=scenes[effect],reduced=matchMedia('(prefers-reduced-motion: reduce)').matches||document.documentElement.dataset.readingMotion==='off'||document.documentElement.dataset.readingMotion==='reduced';
  let stop=()=>{};
- if(entry&&!reduced){layer.dataset.motion='art';const canvas=document.createElement('canvas');canvas.className='atmosphereCanvas';layer.append(canvas);target.append(layer);stop=startAtmosphere(canvas,effect,{direction});}else target.append(layer);
+ if(entry&&!reduced){layer.dataset.motion='art';const canvas=document.createElement('canvas');canvas.className='atmosphereCanvas';layer.append(canvas);target.append(layer);stop=startAtmosphere(canvas,effect,{direction,variant:'chat'});}else target.append(layer);
  const remove=()=>{clearTimeout(timer);stop();layer.remove();document.removeEventListener('visibilitychange',hidden)};const hidden=()=>{if(document.hidden)remove()};const timer=loop?null:setTimeout(remove,Math.max(5,Math.min(20,duration))*1000);document.addEventListener('visibilitychange',hidden);return remove;
 }
 

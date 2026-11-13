@@ -5,10 +5,12 @@ let next,cancelled=0,disconnected=0;
 globalThis.requestAnimationFrame=fn=>(next=fn,1);
 globalThis.cancelAnimationFrame=()=>cancelled++;
 globalThis.ResizeObserver=class{observe(){}disconnect(){disconnected++}};
-function run(effect){const calls=[];const ctx=new Proxy({}, {get:(_,key)=>key==='createRadialGradient'||key==='createLinearGradient'?()=>({addColorStop(){}}):(...args)=>{assert.ok(args.filter(x=>typeof x==='number').every(Number.isFinite));calls.push([key,...args])},set:()=>true});const canvas={isConnected:true,getContext:()=>ctx,getBoundingClientRect:()=>({width:390,height:680})};const stop=startAtmosphere(canvas,effect,{rng:()=>.4});next(100);next(1500);stop();return JSON.stringify(calls)}
+function run(effect,variant="home"){const calls=[];const ctx=new Proxy({}, {get:(_,key)=>key==='createRadialGradient'||key==='createLinearGradient'?()=>({addColorStop(){}}):(...args)=>{assert.ok(args.filter(x=>typeof x==='number').every(Number.isFinite));calls.push([key,...args])},set:()=>true});const canvas={isConnected:true,getContext:()=>ctx,getBoundingClientRect:()=>({width:390,height:680})};const stop=startAtmosphere(canvas,effect,{rng:()=>.4,variant});next(100);next(1500);stop();return JSON.stringify(calls)}
 const outputs=Object.fromEntries(Object.keys(scenes).map(effect=>[effect,run(effect)]));
 assert.notEqual(outputs.petals,outputs.rain);assert.notEqual(outputs.rain,outputs.snow);assert.notEqual(outputs.sun,outputs.clouds);assert.equal(cancelled,28);assert.equal(disconnected,28);
 assert.doesNotThrow(()=>startAtmosphere({getContext:()=>null},'rain')());
 console.log('PASS all 28 canvas scenes render finite geometry, distinct rain/snow/petals, cleanup and no-canvas fallback');
 
 assert.notEqual(outputs.halloween,outputs.gifts);assert.notEqual(outputs.midautumn,outputs.moon);assert.notEqual(outputs.dragonboat,outputs.leaves);console.log('PASS distinct ghost/pumpkin, moon/lantern and boat/dumpling artwork');
+
+for(const effect of ["snow","petals","fireworks","halloween","newyear","dragonboat","midautumn","gifts"]){assert.notEqual(run(effect,"home"),run(effect,"chat"),effect+" must have different home/chat choreography");}console.log("PASS 8 home/chat choreography comparisons");

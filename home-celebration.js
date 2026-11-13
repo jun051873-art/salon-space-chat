@@ -1,6 +1,6 @@
-import {currentTerm,localDate} from './ambient-scenes.js?v=N66';
+import {currentTerm,localDate} from './ambient-scenes.js?v=P168';
 import {lunarMonthStarts,lunarCoverage} from './home-lunar-calendar.js?v=P166';
-import {startAtmosphere} from './home-festival-renderer.js?v=P166';
+import {startAtmosphere} from './home-festival-renderer.js?v=P168';
 export const homeEffects={gifts:'生日禮物',snow:'聖誕雪花',halloween:'南瓜與幽靈',midautumn:'月亮與燈籠',dragonboat:'粽子與龍舟',newyear:'喜氣紅包',lanterns:'元宵燈籠',fireworks:'跨年煙火',hearts:'愛心',christmas:'聖誕小樹',petals:'花瓣',leaves:'秋葉',sprouts:'春日嫩芽'};
 export const festivals={newyear:'元旦・跨年',lunarNewyear:'除夕・春節初一至初五',lantern:'元宵',dragonboat:'端午',qixi:'七夕',midautumn:'中秋',valentine:'西洋情人節',halloween:'萬聖節',christmas:'平安夜・聖誕節'};
 export function validISODate(s){if(typeof s!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(s))return false;const d=new Date(s+'T00:00:00Z');return Number.isFinite(+d)&&d.toISOString().slice(0,10)===s;}
@@ -29,6 +29,12 @@ export function homeCelebration(raw,person={},date=new Date()){
  if(c.automatic){const event=festivalOn(date);if(event&&c.festivals[event[0]])return {effect:event[1],label:festivals[event[0]],day};}
  if(c.solar){const term=currentTerm(date);if(term)return {effect:term.effect,label:term.name,day};}
  return null;
+}
+// Shared date decision, separate scene artwork and independent chat switch.
+export function resolveChatTheme(theme={},celebration,person={},date=new Date()){
+ if(!theme.followHomeCelebration)return theme;
+ const scene=homeCelebration(celebration,person,date);
+ return scene?{...theme,effect:scene.effect,randomBackground:false,backgroundMode:'manual'}:theme;
 }
 export function mountHomeEffect(target,{effect,preview=false,duration=12000}={}){
  if(document.hidden||matchMedia('(prefers-reduced-motion: reduce)').matches||['off','reduced'].includes(document.documentElement.dataset.readingMotion))return ()=>{};
