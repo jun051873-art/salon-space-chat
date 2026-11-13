@@ -1,0 +1,11 @@
+const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict'),{JSDOM}=require('jsdom');
+const source=fs.readFileSync('home-celebration.js','utf8').replace(/^import .*;$/mg,'').replace(/export /g,'');
+const dom=new JSDOM('<section id="editor"></section>'),body=dom.window.document.querySelector('section');let saved,previews=0;
+const scope={document:dom.window.document,Intl,Date,localDate:()=> '2026-11-13',currentTerm:()=>null,matchMedia:()=>({matches:false}),setTimeout,clearTimeout};vm.createContext(scope);vm.runInContext(source,scope);vm.runInContext('mountHomeEffect=()=>{this.previewCount=(this.previewCount||0)+1;return()=>{}}',scope);
+(async()=>{scope.mountHomeCelebrationEditor(body,{enabled:true,automatic:true},async value=>saved=value);
+const q=s=>body.querySelector(s);assert.match(q('[data-today]').textContent,/今天沒有符合/);assert.equal(body.querySelectorAll('[data-festival]').length,9);
+q('[data-preview]').click();assert.equal(scope.previewCount,1);assert.equal(saved,undefined,'preview cannot save');
+q('[data-home=manual]').checked=true;q('[data-home=start]').value='2026-12-20';q('[data-home=end]').value='2027-01-05';q('[data-home=effect]').value='snow';q('[data-festival=halloween]').checked=false;
+await q('[data-save]').onclick({currentTarget:q('[data-save]')});assert.equal(saved.end,'2027-01-05');assert.equal(saved.festivals.halloween,false);assert.match(q('[data-status]').textContent,/已儲存/);
+saved=null;q('[data-home=end]').value='2026-01-05';await q('[data-save]').onclick({currentTarget:q('[data-save]')});assert.equal(saved,null);assert.match(q('[data-status]').textContent,/下一年/);
+console.log('PASS editor preview without writes, holiday selections, cross-year save, invalid range and today explanation');dom.window.close();})().catch(e=>{console.error(e);process.exitCode=1});
