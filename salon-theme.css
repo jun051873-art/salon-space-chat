@@ -182,3 +182,14 @@ body>.salonGreeting{z-index:1101}
 .productFilters button[aria-pressed=true]{background:linear-gradient(120deg,#e7d8f2,#eee4f8)!important;color:#493858!important;border-color:#d5bfe5!important;box-shadow:0 2px 8px #78539612!important}
 .productFilters button:focus-visible{outline:2px solid #9876b3;outline-offset:2px}
 .productCategorySection[hidden]{display:none!important}
+
+/* P163: local explanation and expandable examples. */
+.appearanceNote{display:block;font-size:12px;font-weight:400;line-height:1.65;color:#66616d;margin:8px 0 2px;white-space:normal}
+.appearanceExample{padding:12px 16px;margin:8px 0 18px;border:1px solid #d8cbe4;border-radius:20px;background:#f8f3fc99}
+.appearanceExample>summary{cursor:pointer;min-height:32px;color:#725983;font-weight:650}
+.appearanceSample{pointer-events:none;margin:12px auto;max-width:360px}
+.appearanceSample .previewIcon svg{color:var(--salon-icon)}
+
+.themePreview .previewOther{background:var(--salon-customer-bubble);color:var(--salon-customer-text);border:1px solid var(--salon-bubble-border)}
+.themePreview .previewMine{background:var(--salon-shop-bubble);color:var(--salon-shop-text);border:1px solid var(--salon-bubble-border)}
+.themePreview .previewBottom{font-size:var(--salon-nav-font-size)}

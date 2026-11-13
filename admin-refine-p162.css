@@ -5,9 +5,9 @@ body.adminApp .ownerTools162 .toolGroup>h3,body.adminApp .ownerTools162 summary{
 body.adminApp .ownerTools162 details{border-top:1px solid #9c86ad25}
 body.adminApp .ownerTools162 summary{cursor:pointer;min-height:44px;box-sizing:border-box}
 body.adminApp .ownerTools162 .toolCells{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important;padding:8px 0!important}
-body.adminApp .ownerTools162 .toolItem{display:grid!important;grid-template-columns:40px minmax(0,1fr);grid-template-rows:auto auto;column-gap:12px;align-items:center!important;text-align:left!important;width:100%!important;min-width:0!important;min-height:98px!important;margin:0!important;padding:16px 12px!important;border:1px solid #fff!important;border-radius:24px!important;background:linear-gradient(135deg,#f9f5ffdf,#ece5f6a8)!important;box-shadow:0 4px 14px #70598308!important;color:#39343e!important}
+body.adminApp .ownerTools162 .toolItem{display:grid!important;grid-template-columns:auto minmax(0,1fr);grid-template-rows:auto auto;column-gap:12px;align-items:center!important;text-align:left!important;width:100%!important;min-width:0!important;min-height:98px!important;margin:0!important;padding:16px 12px!important;border:1px solid #fff!important;border-radius:24px!important;background:linear-gradient(135deg,#f9f5ffdf,#ece5f6a8)!important;box-shadow:0 4px 14px #70598308!important;color:#39343e!important}
 body.adminApp .ownerTools162 .toolItem>span{grid-row:1/3;width:40px!important;height:40px!important;margin:0!important;background:#ffffff90!important;border-radius:14px!important;box-shadow:none!important}
-body.adminApp .ownerTools162 .toolItem svg{width:25px!important;height:25px!important;color:#806795}
+body.adminApp .ownerTools162 .toolItem svg{width:25px!important;height:25px!important;color:var(--salon-icon,#806795)}
 body.adminApp .ownerTools162 .toolItem b{font-size:15px!important;line-height:1.5!important;overflow-wrap:anywhere}
 body.adminApp .ownerTools162 .toolHint{font-size:11px;line-height:1.5;color:#7c7186;overflow-wrap:anywhere}
 body.adminApp .ownerTools162 [data-tool=broadcast]{background:linear-gradient(135deg,#e8d9f6,#f6e9f1)!important;border-color:#dac5e8!important}
@@ -22,3 +22,16 @@ body.adminApp .broadcastEligibility summary{min-height:32px;cursor:pointer}
 body.adminApp .broadcastBlockHead button[hidden]{display:none!important}
 body.adminApp #bSend{width:100%;min-height:48px}
 @media(max-width:360px){body.adminApp .ownerTools162 .toolItem{grid-template-columns:30px minmax(0,1fr);column-gap:8px;padding:12px 10px!important}body.adminApp .ownerTools162 .toolItem>span{width:30px!important;height:34px!important}body.adminApp .ownerTools162 .toolItem b{font-size:14px!important}}
+
+/* P163: keep theme controls effective on compact shortcuts. */
+body.adminApp .ownerTools162 .toolItem>span:not(.countBadge){width:var(--salon-icon-width,60px)!important;height:60px!important;border-radius:var(--salon-icon-radius,999px)!important;background:linear-gradient(135deg,#ffffffbd,color-mix(in srgb,var(--salon-icon-fill) 78%,transparent))!important;color:var(--salon-icon)!important}
+[data-icon-shape=none] body.adminApp .ownerTools162 .toolItem>span:not(.countBadge){background:transparent!important;border-color:transparent!important;box-shadow:none!important}
+[data-salon-layout=list] body.adminApp .ownerTools162 .toolCells,[data-salon-layout=ribbon] body.adminApp .ownerTools162 .toolCells{grid-template-columns:1fr!important}
+[data-salon-layout=editorial] body.adminApp .ownerTools162 .toolItem:first-child,[data-salon-layout=wide] body.adminApp .ownerTools162 .toolItem:first-child{grid-column:1/-1}
+[data-salon-layout=mosaic] body.adminApp .ownerTools162 .toolItem:nth-child(3n),[data-salon-layout=offset] body.adminApp .ownerTools162 .toolItem:nth-child(3n){grid-column:1/-1}
+body.adminApp .ownerTools162 details.toolGroup{border:1px solid #ffffffd9;border-radius:24px;background:linear-gradient(125deg,#ffffffab,#eee8f34d);padding:4px 14px!important;box-shadow:0 5px 18px #66577508}
+body.adminApp .ownerTools162 details.toolGroup>summary{display:flex;align-items:center;justify-content:space-between;list-style:none;padding:16px 4px!important;gap:12px}
+body.adminApp .ownerTools162 details.toolGroup>summary::-webkit-details-marker{display:none}
+body.adminApp .ownerTools162 details.toolGroup>summary::after{content:'＋';font-size:22px;color:var(--salon-icon,#806795);font-weight:400}
+body.adminApp .ownerTools162 details.toolGroup[open]>summary::after{content:'−'}
+@media(max-width:420px){body.adminApp .ownerTools162 .toolItem{grid-template-columns:1fr!important;text-align:center!important;justify-items:center}body.adminApp .ownerTools162 .toolItem>span:not(.countBadge){grid-row:auto;margin:0 auto!important}.ownerTools162 .toolHint{margin-top:4px}}

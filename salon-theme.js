@@ -31,7 +31,7 @@ export function mountThemeEditor(body,raw,onSave,{audience="admin"}={}){let draf
   const group=document.createElement('section');group.className='settingsGroup';
   group.innerHTML='<h3>店家主頁功能排列</h3><p class="small">只影響店家主頁的功能入口，不改客人主頁。雙欄卡片整齊、直式長卡好找、交錯拼塊較活潑、主次卡片突顯每組第一個功能。選好後按「發布主題」。</p>';
   body.querySelector('.sectionIntro').after(group);group.append(layoutLabel);
-  const select=layoutLabel.querySelector('select');
+  const select=layoutLabel.querySelector('select');for(const option of [...select.options])if(!['grid','list','mosaic','editorial'].includes(option.value))option.remove();if(!['grid','list','mosaic','editorial'].includes(draft.layout))draft.layout='grid';
   const labels={grid:'雙欄小卡',list:'直式長卡',mosaic:'錯落拼塊',editorial:'主次卡片'};
   for(const option of select.options)if(labels[option.value])option.textContent=labels[option.value];
  }else {layoutLabel.hidden=true;
@@ -45,7 +45,7 @@ export function mountThemeEditor(body,raw,onSave,{audience="admin"}={}){let draf
 
  for(const key of ['glass','blur','radius','bubble'])body.querySelector('[data-theme="'+key+'"]').closest('label').hidden=true;
  const shapeHeading=[...body.querySelectorAll('h3')].find(h=>h.textContent==='透亮與形狀');if(shapeHeading)shapeHeading.textContent='字體與留白';
- const preview=body.querySelector('.themePreview'),fields=[...body.querySelectorAll('[data-theme]')];const paint=()=>{applyTheme({...draft,...(body.querySelector('#pageColorEnabled')?.checked?draft.pageColors[body.querySelector('#colorPage').value]:{})},preview);body.querySelectorAll('[data-effect]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.effect===draft.effect)));body.querySelector('#effectSelected').textContent='目前：'+(draft.randomBackground?'每次進入隨機換一種':draft.backgroundMode==='solar'?'依台灣日期切換二十四節氣':effectOptions[draft.effect][0]);body.querySelectorAll('[data-preset]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.preset===draft.preset)));};const fill=()=>{fields.forEach(el=>{if(el.type==='checkbox')el.checked=draft[el.dataset.theme];else el.value=draft[el.dataset.theme];});fillPage();paint();refreshSurfaces?.();};fields.forEach(el=>el.oninput=()=>{const key=el.dataset.theme,value=el.type==='checkbox'?el.checked:el.value;draft=normalizeTheme({...draft,...(key==='randomBackground'&&value?{backgroundMode:'manual'}:{}),[key]:value});fields.forEach(f=>{if(f.type==='checkbox')f.checked=draft[f.dataset.theme];else f.value=draft[f.dataset.theme];});paint();body.querySelector('#themeStatus').textContent='預覽中，尚未發布。';});body.querySelectorAll('[data-preset]').forEach(b=>b.onclick=()=>{draft=normalizeTheme({...draft,...presets[b.dataset.preset],preset:b.dataset.preset});fill();});body.querySelectorAll('[data-effect]').forEach(b=>b.onclick=()=>{draft=normalizeTheme({...draft,effect:b.dataset.effect,backgroundMode:'manual',randomBackground:false});fill();body.querySelector('#themeStatus').textContent='預覽中，尚未發布。';});body.querySelector('#themeEffectTest').onclick=()=>{const d=document.createElement('dialog');d.className='effectPreviewDialog';d.innerHTML='<header><b>聊天特效預覽</b><button type="button" aria-label="關閉預覽">返回</button></header><p class="effectPreviewStatus"></p><div class="effectPreviewStage"><p>您好，想詢問服務與預約。</p><p>可以的，想安排哪一天呢？</p></div>';document.body.append(d);const stage=d.querySelector('.effectPreviewStage');applyTheme(draft,stage);const reduced=!draft.atmosphereEnabled||matchMedia('(prefers-reduced-motion: reduce)').matches||['off','reduced'].includes(document.documentElement.dataset.readingMotion);d.querySelector('.effectPreviewStatus').textContent=reduced?'裝置已減少或關閉動態，因此不播放動畫。':(draft.randomBackground?'隨機特效':draft.backgroundMode==='solar'?'當期二十四節氣':effectOptions[draft.effect][0])+(draft.effectLoop?' · 持續播放':' · 單次播放');d.querySelector('button').onclick=()=>d.close();d.addEventListener('close',()=>{stopAtmosphere(stage);d.remove();},{once:true});d.showModal();void playAtmosphere(draft,{force:true,target:stage});};body.querySelector('#themeGreetingTest').onclick=()=>{
+ const preview=body.querySelector('.themePreview'),fields=[...body.querySelectorAll('[data-theme]')];const paint=()=>{applyTheme({...draft,...(body.querySelector('#pageColorEnabled')?.checked?draft.pageColors[body.querySelector('#colorPage').value]:{})},preview);refreshAppearanceHelp(body,draft);body.querySelectorAll('[data-effect]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.effect===draft.effect)));body.querySelector('#effectSelected').textContent='目前：'+(draft.randomBackground?'每次進入隨機換一種':draft.backgroundMode==='solar'?'依台灣日期切換二十四節氣':effectOptions[draft.effect][0]);body.querySelectorAll('[data-preset]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.preset===draft.preset)));};const fill=()=>{fields.forEach(el=>{if(el.type==='checkbox')el.checked=draft[el.dataset.theme];else el.value=draft[el.dataset.theme];});fillPage();paint();refreshSurfaces?.();};fields.forEach(el=>el.oninput=()=>{const key=el.dataset.theme,value=el.type==='checkbox'?el.checked:el.value;draft=normalizeTheme({...draft,...(key==='randomBackground'&&value?{backgroundMode:'manual'}:{}),[key]:value});fields.forEach(f=>{if(f.type==='checkbox')f.checked=draft[f.dataset.theme];else f.value=draft[f.dataset.theme];});paint();body.querySelector('#themeStatus').textContent='預覽中，尚未發布。';});body.querySelectorAll('[data-preset]').forEach(b=>b.onclick=()=>{draft=normalizeTheme({...draft,...presets[b.dataset.preset],preset:b.dataset.preset});fill();});body.querySelectorAll('[data-effect]').forEach(b=>b.onclick=()=>{draft=normalizeTheme({...draft,effect:b.dataset.effect,backgroundMode:'manual',randomBackground:false});fill();body.querySelector('#themeStatus').textContent='預覽中，尚未發布。';});body.querySelector('#themeEffectTest').onclick=()=>{const d=document.createElement('dialog');d.className='effectPreviewDialog';d.innerHTML='<header><b>聊天特效預覽</b><button type="button" aria-label="關閉預覽">返回</button></header><p class="effectPreviewStatus"></p><div class="effectPreviewStage"><p>您好，想詢問服務與預約。</p><p>可以的，想安排哪一天呢？</p></div>';document.body.append(d);const stage=d.querySelector('.effectPreviewStage');applyTheme(draft,stage);const reduced=!draft.atmosphereEnabled||matchMedia('(prefers-reduced-motion: reduce)').matches||['off','reduced'].includes(document.documentElement.dataset.readingMotion);d.querySelector('.effectPreviewStatus').textContent=reduced?'裝置已減少或關閉動態，因此不播放動畫。':(draft.randomBackground?'隨機特效':draft.backgroundMode==='solar'?'當期二十四節氣':effectOptions[draft.effect][0])+(draft.effectLoop?' · 持續播放':' · 單次播放');d.querySelector('button').onclick=()=>d.close();d.addEventListener('close',()=>{stopAtmosphere(stage);d.remove();},{once:true});d.showModal();void playAtmosphere(draft,{force:true,target:stage});};body.querySelector('#themeGreetingTest').onclick=()=>{
  const d=document.createElement('dialog');d.className='effectPreviewDialog greetingPreviewDialog';
  d.innerHTML='<header><b>招呼預覽</b><button type="button" aria-label="關閉預覽">返回</button></header><p class="effectPreviewStatus"></p><div class="effectPreviewStage"><p>進入聊天室時，招呼會出現在你設定的位置。</p></div>';
  document.body.append(d);const stage=d.querySelector('.effectPreviewStage');applyTheme(draft,stage);
@@ -58,7 +58,7 @@ export function mountThemeEditor(body,raw,onSave,{audience="admin"}={}){let draf
  page.onchange=()=>{fillPage();paint();};
  pageEnabled.onchange=()=>{if(pageEnabled.checked)draft.pageColors[page.value]=Object.fromEntries(Object.keys(paletteFields).map(k=>[k,draft[k]]));else delete draft.pageColors[page.value];fillPage();paint();};
  pageFields.forEach(el=>el.oninput=()=>{draft.pageColors[page.value]={...draft.pageColors[page.value],[el.dataset.pageColor]:el.value};paint();body.querySelector('#themeStatus').textContent='預覽中，尚未發布。';});
- const refreshSurfaces=mountSurfaceEditor(body,()=>draft,surfaces=>{draft=normalizeTheme({...draft,surfaces});paint();body.querySelector('#themeStatus').textContent='預覽中，尚未發布。';},audience);body.querySelector('#themeReset').onclick=()=>{draft=normalizeTheme(raw);fill();};body.querySelector('#themePublish').onclick=async e=>{const b=e.currentTarget;b.disabled=true;const saved=normalizeTheme(draft);try{await onSave(saved);raw=saved;body.querySelector('#themeStatus').textContent='已發布。客戶端開啟時會同步套用；已開啟的客戶端會收到設定更新。';}catch(err){body.querySelector('#themeStatus').textContent='發布失敗：'+err.message;}finally{b.disabled=false;}};fill();organizeAppearance(body,audience);}
+ const refreshSurfaces=mountSurfaceEditor(body,()=>draft,surfaces=>{draft=normalizeTheme({...draft,surfaces});paint();body.querySelector('#themeStatus').textContent='預覽中，尚未發布。';},audience);body.querySelector('#themeReset').onclick=()=>{draft=normalizeTheme(raw);fill();};body.querySelector('#themePublish').onclick=async e=>{const b=e.currentTarget;b.disabled=true;const saved=normalizeTheme(draft);try{await onSave(saved);raw=saved;body.querySelector('#themeStatus').textContent='已發布。客戶端開啟時會同步套用；已開啟的客戶端會收到設定更新。';}catch(err){body.querySelector('#themeStatus').textContent='發布失敗：'+err.message;}finally{b.disabled=false;}};fill();organizeAppearance(body,audience);mountAppearanceHelp(body,audience);refreshAppearanceHelp(body,draft);}
 
 // Each target owns its own animation. Preview teardown never touches the live chat.
 const atmosphereStates=new Map();
@@ -111,7 +111,7 @@ const helpFor = title => {
  [/換膚/, '整體預設配色。已設定獨立配色的頁面會保留自己的顏色。'],
  [/自動回覆/, '聊天室內系統自動回覆的訊息外觀。'],
  [/按鈕與標籤/, '目前所選介面的按鈕及小標籤配色。'],
- [/主頁圖示/, '主頁功能入口的圖示、大小與排列。'],
+ [/主頁圖示/, '店家主頁快捷入口的小圖示：線條、底色、文字與外框形狀。'],
  [/導覽/, '畫面底部切換分頁的導覽列及文字。'],
  [/透亮與形狀/, '目前所選介面的玻璃透明度與形狀。'],
  [/背景氣氛/, '進入聊天室時的櫻花、雨雪等動畫；個人封面特效請點頭像 → 編輯 → 氣氛特效。'],
@@ -149,5 +149,38 @@ export function organizeAppearance(host,audience){
   const nodes=[h];let next=h.nextElementSibling;
   while(next&&!next.matches('h3,.settingsDrawer,.toolbar,#themeStatus')){nodes.push(next);next=next.nextElementSibling;}
   makeDrawer(host,nodes,h.textContent,(audience==='admin'?'店家端｜':'客人端｜')+helpFor(h.textContent));h.hidden=true;
+ }
+}
+
+// P163: explanations live beside the controls and preview the unsaved draft.
+const appearanceNotes={
+ randomBackground:'每次進入聊天室選不同背景特效；與節氣模式擇一，仍需開啟聊天背景動態。',effectLoop:'讓背景特效持續播放；離開聊天室會停止。',backgroundMode:'自選使用你指定的特效；節氣依台灣日期自動選擇。',effectDirection:'改變聊天室背景特效的移動方向，不影響訊息順序。',effectDuration:'每段聊天室背景特效播放的秒數。',greetingStyle:'改變進入聊天室的小招呼呈現方式。',greetingPosition:'小招呼在聊天室畫面出現的位置。',greetingSide:'角色圖案相對於招呼文字泡泡的位置。',greetingDirection:'小招呼進入與離開畫面的方向。',greeting:'進入聊天室時顯示的短句；不是自動傳送的聊天訊息。',motif:'小招呼的角色或外框圖案，不是聊天室背景特效。',duration:'小招呼停留與播放的總秒數。',greetingSize:'小招呼整體寬度，會依螢幕可用空間縮小。',greetingFontSize:'小招呼文字的大小。',greetingColor:'小招呼文字顏色。',greetingFill:'小招呼泡泡或造型的底色。',greetingOpacity:'小招呼造型的不透明程度，不改整個頁面。',greetingFont:'小招呼使用的字型，依裝置支援顯示。',
+
+ iconColor:'改變主頁快捷入口圖示的線條顏色。',iconFill:'改變圖示後方的小底框；選「只有圖示」時底框不顯示。',iconText:'改變圖示旁的功能名稱，例如「商品管理」。',iconShape:'只改圖示的小底框：圓形、橫向膠囊、圓角方形或無底框，不改整張快捷卡片。',
+ navBackground:'改變畫面最下方「主頁／訊息／分析」導覽列的玻璃底色；透明玻璃會混合後方背景。',navActiveText:'改變目前選中分頁的圖示與文字，例如選中「主頁」。',navText:'改變未選中分頁的圖示與文字。',bottomDroplet:'改變底部導覽列內，跟著目前分頁移動的選取底色。',topDroplet:'改變上方分頁切換的選取底色；沒有分頁切換的畫面不會出現。',navFontSize:'只改底部導覽列的文字大小。',
+ buttonColor:'主要操作按鈕底色，例如儲存、發布；文字會配合明暗調整。',softColor:'次要操作按鈕底色，例如返回與取消。',tagColor:'小標籤底色；不是商品分類的名稱。',background:'目前所選端的整體頁面底色；有獨立頁面配色時，以獨立設定為準。',accent:'全站重點色；已獨立設定的按鈕與圖示使用各自顏色。',secondary:'背景漸層與裝飾的點綴色，不是所有卡片底色。',customerBubble:'聊天室中客人傳送訊息的泡泡底色。',customerText:'客人訊息內的文字顏色。',shopBubble:'店家手動傳送訊息的泡泡底色。',shopText:'店家手動訊息的文字顏色。',bubbleBorder:'聊天訊息泡泡的邊框色。',autoReplyFill:'系統自動回覆泡泡的底色，與手動訊息分開。',autoReplyText:'系統自動回覆的文字色。',autoReplyBorder:'系統自動回覆的邊框色。',autoReplyRadius:'系統自動回覆泡泡的圓角。',layout:'只調整店家主頁快捷卡片排列，不影響客人主頁。',density:'調整支援留白設定的內容間距；不縮小操作按鈕的可點範圍。',font:'目前所選端的介面字型；實際字型依裝置支援。',motion:'只控制按鈕與卡片動作，與招呼、聊天背景動態分開。',atmosphereEnabled:'只開關聊天室背景動畫；不影響招呼。',greetingEnabled:'只開關進入聊天室的小招呼；不影響背景動畫。',greetingMotion:'只控制招呼的進出動作；關閉仍可顯示靜態招呼。'
+};
+function mountAppearanceHelp(host,audience){
+ const side=audience==='admin'?'店家端':'客人端';
+ for(const field of host.querySelectorAll('[data-theme]')){
+  const label=field.closest('label');if(!label||label.hidden||label.querySelector('.appearanceNote'))continue;
+  const note=document.createElement('small');note.className='appearanceNote';
+  note.textContent=side+'｜'+(appearanceNotes[field.dataset.theme]||('調整本區塊的「'+(label.firstChild?.textContent||'選項').trim().split('（')[0]+'」；效果以本區預覽為準。'));
+  label.append(note);
+ }
+ for(const drawer of host.querySelectorAll('.settingsDrawer')){
+  if(drawer.querySelector('.surfaceEditor')||drawer.querySelector('#themeEffectTest')||drawer.querySelector('#themeGreetingTest'))continue;
+  const box=document.createElement('details');box.className='appearanceExample';
+  box.innerHTML='<summary>查看效果示意</summary><p class="small">'+side+' · 顯示目前未發布的配色；按「發布主題」才會儲存。</p><div class="themePreview appearanceSample" aria-label="外觀設定預覽"></div>';
+  drawer.querySelector('.settingsDrawerBody').prepend(box);
+ }
+}
+function refreshAppearanceHelp(host,draft){
+ const original=host.querySelector('.themePreview:not(.appearanceSample)');if(!original)return;
+ for(const sample of host.querySelectorAll('.appearanceSample')){
+  const drawer=sample.closest('.settingsDrawer');const keys=[...drawer.querySelectorAll('[data-theme]')].map(el=>el.dataset.theme);const selector=keys.includes('iconShape')?'.previewControls':keys.includes('navBackground')||keys.includes('navFontSize')?'.previewBottom':keys.includes('autoReplyFill')?'.automaticReply':null;sample.innerHTML=selector?original.querySelector(selector).outerHTML:original.innerHTML;
+  sample.querySelectorAll('[id]').forEach(el=>el.removeAttribute('id'));
+  sample.querySelectorAll('button').forEach(el=>{el.disabled=true;el.tabIndex=-1;});
+  applyTheme(draft,sample);
  }
 }
