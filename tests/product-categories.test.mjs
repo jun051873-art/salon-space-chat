@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import {categoryName,renameCategory} from '../product-categories.js';
+let config={productCategoryOrder:['護髮','洗髮','造型品']};
+config={...config,...renameCategory(config,'護髮','居家護理')};
+assert.equal(categoryName('護髮',config),'居家護理');assert.equal(config.productCategoryOrder[0],'居家護理');
+config={...config,...renameCategory(config,'居家護理','保養')};assert.equal(categoryName('護髮',config),'保養');assert.equal(categoryName('居家護理',config),'保養');
+config={...config,...renameCategory(config,'保養','護髮')};assert.equal(categoryName('保養',config),'護髮');assert.equal(categoryName('護髮',config),'護髮');assert.equal(categoryName('居家護理',config),'護髮');
+for(const bad of ['', '全部','字'.repeat(31)])assert.throws(()=>renameCategory(config,'護髮',bad));
+assert.equal(renameCategory(config,'護髮','護髮'),null);
+const empty=renameCategory({},'其他商品','未分類商品');assert.equal(categoryName('',empty),'未分類商品');
+const many=Array.from({length:10000},(_,i)=>({id:i,category:i%2?'護髮':'洗髮',title:'商品'+i}));const before=JSON.stringify(many);const renamed={...config,...renameCategory(config,'護髮','護髮類')};assert.equal(many.filter(p=>categoryName(p.category,renamed)==='護髮類').length,5000);assert.equal(JSON.stringify(many),before);
+console.log('PASS category rename, repeated rename, reverting name without cycles, validation, uncategorized and 10,000 unchanged product records');

@@ -9,5 +9,5 @@ const observer=new dom.window.MutationObserver(()=>{});observer.observe(document
 for(let i=0;i<1000;i++)scope.polishIcons();assert.equal(observer.takeRecords().length,0,'repeat clicks must not replace icon or text nodes');
 assert.deepEqual([...document.querySelectorAll('svg')],original);assert.equal(document.querySelector('#infoProducts').textContent,'商品');
 const host=document.createElement('span');paintArtwork(host,icon('home'));host.replaceChildren();paintArtwork(host,icon('home'));assert.ok(host.querySelector('svg'));
-assert.match(source,/if\(admin\)organizeAdmin\(\);polishIcons\(\)/);assert.match(source,/hub.innerHTML='<span>'\+icon\('layout'\)/);
+assert.match(source,/if\(admin\)organizeAdmin\(\);polishIcons\(\)/);assert.ok(source.includes("key==='display'?'layout'"));
 console.log('PASS 1000 full icon refreshes: zero node replacements, stable labels, initial layout icon, cleared-node recovery');dom.window.close();

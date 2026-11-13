@@ -4,7 +4,7 @@ const start=source.indexOf(' async function products('),end=source.indexOf('\n',
 const dom=new JSDOM('<main id="gallery"></main>'),document=dom.window.document;
 const rows=[{id:'1',title:'護髮',category:'護髮類'},{id:'2',title:'造型',category:'造型品類'},{id:'3',title:'舊品',category:'不顯示',active:false},{id:'4',title:'其他'},{id:'5',title:'特殊',category:'<新分類>'}];
 let chosen,edited;const jobs=[];
-const scope={document,listOnce:async()=>rows,config:{productCategoryOrder:['造型品類','護髮類']},esc:s=>String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('"','&quot;'),productPrice:()=>'',productDetail:p=>chosen=p,productInquiry:p=>chosen=p,editProduct:p=>edited=p,toast:()=>{},saveConfig:async patch=>Object.assign(scope.config,patch),task:(b,fn)=>b.onclick=()=>{jobs.push(fn());}};
+const scope={document,categoryName:(value,c)=>c.productCategoryAliases?.[value]||value?.trim()||'其他商品',bindLongPress:()=>{},editProductCategory:()=>{},listOnce:async()=>rows,config:{productCategoryOrder:['造型品類','護髮類']},esc:s=>String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('"','&quot;'),productPrice:()=>'',productDetail:p=>chosen=p,productInquiry:p=>chosen=p,editProduct:p=>edited=p,toast:()=>{},saveConfig:async patch=>Object.assign(scope.config,patch),task:(b,fn)=>b.onclick=()=>{jobs.push(fn());}};
 vm.createContext(scope);vm.runInContext(source.slice(start,end)+';this.products=products',scope);
 (async()=>{const host=document.getElementById('gallery');await scope.products(host);
 const filters=[...host.querySelectorAll('[data-product-filter]')];assert.deepEqual(filters.map(b=>b.textContent),['全部','造型品類','護髮類','其他商品','<新分類>']);assert.equal(host.querySelectorAll('article').length,4);
