@@ -5,7 +5,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('nod
  vm.runInNewContext(html.slice(html.indexOf('function restoreNotificationRoute()'),html.indexOf('$("chatShortcuts").onclick')),ctx);
  swHandlers.message({data:{type:'OPEN_NOTIFICATION_URL'}});assert.equal(ctx.location.hash,'#chat');assert.equal(ctx.document.documentElement.dataset.notificationChat,'pending');assert.equal(pages.length,0,'not accessible before auth');
  ctx.uid='test';ctx.profileReady=true;handlers.hashchange();assert.deepEqual(pages,['chat']);
- ctx.location.hash='';handlers.hashchange();assert.equal(pages.at(-1),'inbox');handlers['salon:open-notification']();assert.equal(pages.at(-1),'chat');
+ ctx.location.hash='';handlers.hashchange();assert.equal(pages.at(-1),'chat','hash removal must not reset the restored page');ctx.backCustomerPage=()=>pages.push('gallery');handlers.popstate();assert.equal(pages.at(-1),'gallery');handlers.hashchange();assert.equal(pages.at(-1),'gallery','popstate plus hashchange returns only once');handlers['salon:open-notification']();assert.equal(pages.at(-1),'chat');
  const sw=fs.readFileSync('firebase-messaging-sw.js','utf8'),events={},calls=[];let pending;
  const origin='https://example.test';let url=origin+'/salon-space-chat/customer.html#chat';
  const client={url:origin+'/salon-space-chat/customer.html',navigate:async dest=>{calls.push(['navigate',dest]);return client},postMessage:m=>calls.push(['message',m.url]),focus:async()=>calls.push(['focus'])};

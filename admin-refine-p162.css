@@ -70,3 +70,10 @@ body.adminApp #toolBody:has(#bComposer) .settingsGroup{background:#ffffff99!impo
 .broadcastBlockHead{flex-wrap:wrap;gap:8px}.broadcastBlockHead>div{display:flex;flex-wrap:wrap;gap:6px}
 .broadcastBlockHead button{font-size:12px!important;padding:8px 10px!important}
 @media(min-width:900px){.broadcastWorkspace{grid-template-columns:minmax(0,1fr) minmax(240px,.8fr);align-items:start}.broadcastLivePreview{position:sticky;top:12px}}
+
+/* P165: equal rows and shared baselines, including 428px iPhone viewports. */
+body.adminApp .ownerTools162 .toolCells{align-items:stretch!important;grid-auto-rows:1fr}
+body.adminApp .ownerTools162 .toolCells .toolItem{height:100%!important;box-sizing:border-box;align-self:stretch;align-content:start;grid-template-columns:76px minmax(0,1fr);grid-template-rows:minmax(3em,auto) minmax(3em,auto);column-gap:12px}
+body.adminApp .ownerTools162 .toolCells .toolItem>b{align-self:start;margin:0;line-height:1.5;overflow-wrap:anywhere}
+body.adminApp .ownerTools162 .toolCells .toolItem>.toolHint{align-self:start;margin:0;line-height:1.5}
+@media(max-width:600px){body.adminApp .ownerTools162 .toolCells .toolItem{grid-template-columns:1fr;grid-template-rows:64px minmax(3em,auto) minmax(3em,auto);justify-items:center;text-align:center!important;padding:16px 10px!important;gap:8px;min-width:0}body.adminApp .ownerTools162 .toolCells .toolItem>span:first-child{grid-row:auto!important;align-self:center;height:60px;width:var(--tool-icon-width,60px)}body.adminApp .ownerTools162 .toolCells .toolItem>b{font-size:15px!important}body.adminApp .ownerTools162 .toolCells .toolItem>.toolHint{font-size:12px!important}}

@@ -193,3 +193,6 @@ body>.salonGreeting{z-index:1101}
 .themePreview .previewOther{background:var(--salon-customer-bubble);color:var(--salon-customer-text);border:1px solid var(--salon-bubble-border)}
 .themePreview .previewMine{background:var(--salon-shop-bubble);color:var(--salon-shop-text);border:1px solid var(--salon-bubble-border)}
 .themePreview .previewBottom{font-size:var(--salon-nav-font-size)}
+/* Home effects are confined to the home card, never over chat or controls. */
+#inbox{position:relative;isolation:isolate}
+#inbox>.ambientScene,[data-home-preview]>.ambientScene{position:absolute;inset:0;z-index:4;pointer-events:none}
