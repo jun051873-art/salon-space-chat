@@ -44,7 +44,7 @@ body.adminApp .customerProfileDialog .customerFacts>div{padding:8px 0!important}
 body.adminApp .customerProfileDialog .customerPrivateHeading{margin:16px 0 10px!important}
 body.adminApp .customerProfileDialog :is(.tagPicker,.profileAdvanced){padding:14px!important;margin:12px 0!important;border:1px solid #dfd4eb!important;border-radius:20px!important;background:#ffffff70!important}
 body.adminApp .customerProfileDialog :is(button,.menuCard):not([data-close]){background:#eee7f6!important;color:#59436e!important;border:1px solid #dfd2ed!important;border-radius:18px!important;box-shadow:none!important;min-height:44px;padding:10px 14px!important}
-body.adminApp .customerProfileDialog [aria-pressed=true]{background:#e1cdec!important;border-color:#b49ac9!important;color:#493356!important}
+body.adminApp .customerProfileDialog button[aria-pressed=true]:not([data-close]){background:#e1cdec!important;border-color:#b49ac9!important;color:#493356!important}
 body.adminApp .customerProfileDialog #pfDesigner{display:flex;align-items:center;gap:10px;width:100%;text-align:left;margin:10px 0}
 body.adminApp .customerProfileDialog #pfDesigner>span:first-of-type{flex:1}
 body.adminApp .customerProfileDialog #pfDesigner small{display:block;margin-top:3px}
