@@ -196,3 +196,31 @@ body>.salonGreeting{z-index:1101}
 /* Home effects are confined to the home card, never over chat or controls. */
 #inbox{position:relative;isolation:isolate}
 #inbox>.ambientScene,[data-home-preview]>.ambientScene{position:absolute;inset:0;z-index:4;pointer-events:none}
+
+/* P168: a short entrance, then character action; reading stays unblocked. */
+.salonGreeting:not(.still){--hello-x:-38px;--hello-y:0px;animation:helloQuickIn .42s cubic-bezier(.16,.8,.25,1.15) both,helloQuickOut .28s calc(var(--greeting-duration,4s) - .28s) forwards}
+.salonGreeting[data-direction=right]:not(.still){--hello-x:38px;animation-name:helloQuickIn,helloQuickOut}
+.salonGreeting[data-direction=left]:not(.still){animation-name:helloQuickIn,helloQuickOut}
+.salonGreeting[data-direction=top]:not(.still){--hello-x:0px;--hello-y:-32px}
+.salonGreeting .greetingMark{transform-origin:50% 80%}
+.salonGreeting:not(.still) .greetingSpeech{animation:greetingSpeechIn .24s .12s both}
+.salonGreeting:not(.still)[data-action=wave] .greetingMark{animation:helloWave 1.1s .28s 2}
+.salonGreeting:not(.still)[data-action=hop] .greetingMark{animation:helloHop .8s .25s 2}
+.salonGreeting:not(.still)[data-action=twirl] .greetingMark{animation:helloTwirl 1.2s .2s 2}
+.salonGreeting:not(.still)[data-action=launch] .greetingMark{animation:helloLaunch 1.3s .2s 2}
+.salonGreeting:not(.still)[data-action=snip] .greetingMark{animation:helloSnip .65s .25s 3}
+.salonGreeting:not(.still)[data-action=pop] .greetingMark{animation:helloPop 1s .2s 2}
+.salonGreeting:not(.still)[data-action=sway] .greetingMark{animation:helloSway 1.4s .2s 2}
+.salonGreeting:not(.still)[data-action=float] .greetingMark{animation:helloFloat 1.6s .2s 2}
+.salonGreeting.still,.salonGreeting.still *{animation:none!important}
+@keyframes helloQuickIn{from{opacity:0;transform:translate(var(--hello-x),var(--hello-y)) scale(.88)}to{opacity:1;transform:translate(0,0) scale(1)}}
+@keyframes helloQuickOut{to{opacity:0;transform:translate(var(--hello-x),var(--hello-y)) scale(.94)}}
+@keyframes helloWave{0%,100%{transform:rotate(0)}25%{transform:rotate(-13deg)}50%{transform:rotate(11deg)}75%{transform:rotate(-7deg)}}
+@keyframes helloHop{0%,100%{transform:translateY(0) scale(1)}35%{transform:translateY(-14px) scale(.96,1.04)}70%{transform:translateY(1px) scale(1.05,.95)}}
+@keyframes helloTwirl{0%,100%{transform:rotate(0) scale(1)}50%{transform:rotate(24deg) scale(1.13)}}
+@keyframes helloLaunch{0%,100%{transform:translate(0,0)}45%{transform:translate(7px,-15px) rotate(-8deg)}65%{transform:translate(5px,-12px) rotate(3deg)}}
+@keyframes helloSnip{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(13deg) scale(.94,1.06)}}
+@keyframes helloPop{0%,100%{transform:scale(1)}40%{transform:scale(1.16) rotate(-6deg)}65%{transform:scale(.96) rotate(5deg)}}
+@keyframes helloSway{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(8deg)}}
+@keyframes helloFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@media(prefers-reduced-motion:reduce){.salonGreeting,.salonGreeting *{animation:none!important}}

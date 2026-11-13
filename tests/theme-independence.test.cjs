@@ -2,7 +2,7 @@ const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict'),{JS
 const dom=new JSDOM('<body><main id="editor"></main><aside id="preview"></aside></body>',{pretendToBeVisual:true});
 const document=dom.window.document;let nextTimer=0;const timers=new Map();
 const c=vm.createContext({document,matchMedia:()=>({matches:false}),Date,Math,console,setTimeout:fn=>{timers.set(++nextTimer,fn);return nextTimer},clearTimeout:id=>timers.delete(id),ambientModule:{scenes:{rain:{},snow:{}},resolveScene:async(mode,effect)=>({effect}),mountAmbient:(target,scene)=>{const el=document.createElement('div');el.className='testAmbient';el.dataset.effect=scene.effect;target.append(el);return ()=>el.remove();}}});
-const source=fs.readFileSync('salon-theme.js','utf8').replace(/^export /mg,'').replace("import('./ambient-scenes.js?v=N66')",'Promise.resolve(ambientModule)');vm.runInContext(source,c);
+const source=fs.readFileSync('salon-theme.js','utf8').replace(/^export /mg,'').replace("import('./ambient-scenes.js?v=P168')",'Promise.resolve(ambientModule)');vm.runInContext(source,c);
 (async()=>{
 let combos=0,fieldsChecked=0;
 for(const role of ['admin','customer']){
@@ -46,7 +46,7 @@ const suite=fs.readFileSync('salon-suite.js','utf8'),themeSettings=suite.match(/
 for(const hasOwner of [false,true]){
  const cfg={theme:{greetingEnabled:true,effect:'rain'},...(hasOwner?{adminTheme:{effect:'snow'}}:{})};let save;
  const shell=document.createElement('div');document.body.append(shell);
- const saveContext=vm.createContext({readConfig:async()=>cfg,$:id=>document.getElementById(id),mountThemeEditor:(_host,_raw,fn)=>save=fn,saveConfig:async patch=>Object.assign(cfg,patch),setTimeout:()=>{},syncBrand:()=>{}});
+ const saveContext=vm.createContext({readConfig:async()=>cfg,$:id=>document.getElementById(id),mountHomeCelebrationEditor:()=>{},resolveChatTheme:t=>t,config:cfg,profile:null,mountThemeEditor:(_host,_raw,fn)=>save=fn,saveConfig:async patch=>Object.assign(cfg,patch),setTimeout:()=>{},syncBrand:()=>{}});
  vm.runInContext(themeSettings,saveContext);await saveContext.themeSettings(shell);
  const oldOwner=JSON.parse(JSON.stringify(cfg.adminTheme||cfg.theme));await save({greetingEnabled:false,effect:'petals'});assert.deepEqual(cfg.adminTheme,oldOwner);
  const oldCustomer=JSON.parse(JSON.stringify(cfg.theme));document.getElementById('themeOwner').click();await save({effect:'sun'});assert.deepEqual(cfg.theme,oldCustomer);shell.remove();
