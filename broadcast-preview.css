@@ -1,0 +1,16 @@
+/* Customer perspective, scoped so admin chat and outgoing delivery stay unchanged. */
+.broadcastChatPreview{width:100%;max-width:430px;margin:12px auto;box-sizing:border-box;background:var(--salon-bg,#f4f0f8);color:var(--salon-ink,#303535);border:1px solid #ffffffcc;border-radius:24px;overflow:hidden;font-family:var(--salon-font,system-ui)}
+.broadcastChatHeader{text-align:center;padding:16px;font-size:17px;font-weight:700;border-bottom:1px solid #ffffffaa}
+.broadcastChatFeed{padding:16px 10px;min-height:120px}
+.broadcastChatPreview .bubbleRow{display:flex;justify-content:flex-start;align-items:flex-end;gap:8px;margin:14px 0}
+.broadcastChatPreview .bubbleStack{min-width:0;width:fit-content;max-width:calc(100% - 44px);align-items:flex-start}
+.broadcastChatPreview .messageAvatar{width:30px;height:30px;flex:0 0 30px;border-radius:50%;overflow:hidden;background:#ffffffb0;display:grid;place-items:center}
+.broadcastChatPreview .messageAvatar img{width:100%;height:100%;object-fit:cover}
+.broadcastChatPreview .senderName{display:block;margin:0 0 5px;font-size:12px;color:var(--salon-ink)}
+body .broadcastChatPreview .msg{width:fit-content;max-width:100%;box-sizing:border-box;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;padding:12px 14px;font-size:16px;line-height:1.6;border:1px solid var(--salon-bubble-border,#d5d0d8);border-radius:18px 18px 18px 5px;background:var(--salon-shop-bubble,#fff);color:var(--salon-shop-text,#292722)}
+.broadcastChatPreview .chatImageAttachment{width:250px;max-width:100%;min-height:0;aspect-ratio:auto;margin-top:6px}
+.broadcastChatPreview .chatImageAttachment img{display:block;position:static;width:100%;height:auto;max-height:none;object-fit:contain;border-radius:12px;cursor:default}
+.broadcastConfirmDialog{width:min(94vw,560px);max-height:88vh;max-height:88dvh;overflow-y:auto;overscroll-behavior:contain}
+.broadcastConfirmActions{position:sticky;bottom:0;display:flex;flex-wrap:wrap;gap:10px;padding:12px 0;background:var(--salon-bg,#f5f1fa);z-index:2}
+.broadcastConfirmActions button{flex:1;min-height:46px;white-space:nowrap}
+@media(max-width:480px){.broadcastConfirmDialog{padding:16px}.broadcastConfirmDialog .dialogHead h2{font-size:21px}.broadcastChatFeed{padding:10px 8px}}

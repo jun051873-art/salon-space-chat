@@ -22,7 +22,8 @@
     "test:message-deadline": "node tests/message-deadline.test.mjs && node tests/message-revision.test.mjs",
     "test:message-deadline-rules": "firebase emulators:exec --project demo-salon --only firestore 'node tests/message-deadline-rules.test.mjs'",
     "test:home-celebration": "node tests/home-celebration.test.mjs && node tests/home-celebration-lifecycle.cjs && node tests/home-renderer.test.mjs && node tests/home-editor.test.cjs && node tests/home-layout.test.cjs",
-    "test:home-celebration-rules": "firebase emulators:exec --project demo-salon --only firestore 'node tests/home-celebration-rules.test.mjs'"
+    "test:home-celebration-rules": "firebase emulators:exec --project demo-salon --only firestore 'node tests/home-celebration-rules.test.mjs'",
+    "test:broadcast-preview": "node tests/broadcast-preview.test.cjs"
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "^5.0.2",
