@@ -1,4 +1,4 @@
-import {createHomeCelebration,mountHomeCelebrationEditor} from './home-celebration.js?v=P165';
+import {createHomeCelebration,mountHomeCelebrationEditor} from './home-celebration.js?v=P166';
 import {categoryName,renameCategory} from './product-categories.js?v=P162';
 import {mountChatMode,manualDeadline} from './chat-manual-mode.js?v=P159';
 import {bindMessageMenu} from './message-menu.js?v=P158';
