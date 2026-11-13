@@ -8,3 +8,5 @@
 
 驗證：npm test；npm run test:appearance；node tests/appearance-help-p163.cjs；python tests/appearance-cascade-p163.py。測試不向真實客人傳送訊息。
 限制：未完成實體 iPhone 視覺驗收；預覽為示意，不是實機截圖。未修改 Worker、Firestore 規則或 Android 原生程式。
+
+補充：導覽玻璃已由獨立頁面材質控制，移除無效的重複舊色塊，增加直接前往真正生效設定的入口。
