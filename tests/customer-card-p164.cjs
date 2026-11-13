@@ -1,0 +1,20 @@
+const {JSDOM}=require('jsdom'),fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict');
+const src=fs.readFileSync('salon-suite.js','utf8');
+(async()=>{
+ const dom=new JSDOM('<body><main></main></body>'),document=dom.window.document,body=document.querySelector('main');
+ let callbacks=[],stops=0,resolveLoad;
+ const rows=[{id:'a',name:'A'}];
+ const c={document,activeTool:'customers',customerIdentityStops:[],demo:false,config:{},customerDesignerFilter:'',loadCustomers:async()=>rows,customerScope:()=>'',hasDuplicateCustomers:()=>false,countHTML:()=>'',filterHTML:()=>'',designerFilterOptions:()=>[],designerList:()=>[],filterDesignerRooms:x=>x,manualMatch:()=>true,getFilter:()=>({}),esc:x=>x??'',avatar:()=>'',ago:()=>'',pills:()=>'',customTags:()=>[],assignedDesignerLabel:()=>'',followOwner:(id,cb)=>{callbacks.push(cb);return()=>stops++},customerListProfile:(r,p)=>p,bindFilter:()=>{},bindGroups:()=>{},task:()=>{},refreshCustomerData:()=>{},moreCustomers:()=>{},$:id=>document.getElementById(id)};
+ vm.createContext(c);vm.runInContext(src.slice(src.indexOf('async function customerPage(body)'),src.indexOf(' function profileFields(')),c);
+ await c.customerPage(body);const stale=callbacks[0];assert(body.querySelector('#customerResults'));
+ c.loadCustomers=()=>new Promise(r=>resolveLoad=r);const refresh=c.customerPage(body);assert.equal(stops,1);
+ assert.doesNotThrow(()=>stale({name:'late'},{}));assert(!body.querySelector('#customerResults'));
+ resolveLoad(rows);await refresh;const current=body.querySelector('#customerResults');stale({name:'old callback'},{});assert.equal(body.querySelector('#customerResults'),current);
+ c.activeTool='theme';body.innerHTML='外觀';assert.doesNotThrow(()=>callbacks.at(-1)({name:'later'},{}));assert.equal(body.textContent,'外觀');
+ vm.runInContext(src.slice(src.indexOf(' function organizeCustomerCard('),src.indexOf(' async function editCustomer(')),c);
+ const dialog=document.createElement('dialog');dialog.innerHTML='<section class="customerIdentity">照片與基本資料</section><label><input id="pfAlias"></label><label><textarea id="pfNotes"></textarea></label><p>狀態說明</p><div class="toolbar"><button id="pfSave">儲存</button><button id="pfDuplicate">合併</button><button id="pfChat">聊天</button></div><div><button id="pfDelete">刪除</button></div><section data-recovery>本人核對</section>';
+ let clicks=0;dialog.querySelector('#pfSave').onclick=()=>clicks++;c.organizeCustomerCard(dialog);
+ assert.equal(dialog.lastElementChild.className,'profileSaveFooter');assert(dialog.querySelector('#pfDuplicate').closest('details'));assert(dialog.querySelector('[data-recovery]').closest('details'));assert(!dialog.querySelector('#pfAlias').closest('details'));dialog.querySelector('#pfSave').click();assert.equal(clicks,1);
+ assert(!src.includes("$('customerResults').innerHTML"));
+ console.log('PASS stale live callback during save/reload/navigation, stopped subscriptions, compact card ordering and preserved handlers');
+})().catch(e=>{console.error(e);process.exitCode=1});

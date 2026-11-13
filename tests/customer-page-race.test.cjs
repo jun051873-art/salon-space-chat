@@ -4,7 +4,7 @@ const vm=require('node:vm');
 const source=fs.readFileSync('salon-suite.js','utf8');
 const fn=source.slice(source.indexOf('async function customerPage(body)'),source.indexOf(' function profileFields('));
 const pending=[];
-const context=vm.createContext({activeTool:'customers',document:{createElement:()=>({})},loadCustomers:()=>new Promise(resolve=>pending.push(resolve))});
+const context=vm.createContext({customerIdentityStops:[],activeTool:'customers',document:{createElement:()=>({})},loadCustomers:()=>new Promise(resolve=>pending.push(resolve))});
 vm.runInContext(fn,context);
 const body={firstElementChild:null,html:'',replaceChildren(child){this.firstElementChild=child;this.html=child.textContent;},set innerHTML(value){throw Error('Stale customer request tried to render');}};
 (async()=>{

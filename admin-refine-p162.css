@@ -35,3 +35,38 @@ body.adminApp .ownerTools162 details.toolGroup>summary::-webkit-details-marker{d
 body.adminApp .ownerTools162 details.toolGroup>summary::after{content:'＋';font-size:22px;color:var(--salon-icon,#806795);font-weight:400}
 body.adminApp .ownerTools162 details.toolGroup[open]>summary::after{content:'−'}
 @media(max-width:420px){body.adminApp .ownerTools162 .toolItem{grid-template-columns:1fr!important;text-align:center!important;justify-items:center}body.adminApp .ownerTools162 .toolItem>span:not(.countBadge){grid-row:auto;margin:0 auto!important}.ownerTools162 .toolHint{margin-top:4px}}
+/* P164: compact customer card and ordered broadcast workspace. */
+body.adminApp dialog.customerProfileDialog{padding:18px!important;background:linear-gradient(150deg,#fcfbfe,#f0edf8)!important;max-height:88dvh!important}
+body.adminApp .customerProfileDialog .customerIdentity{padding:16px!important;border-radius:22px!important;background:#ffffffbd!important}
+body.adminApp .customerProfileDialog .customerCover{display:block!important;width:100%!important;height:100px!important;max-height:100px!important;object-fit:cover;border-radius:16px!important;margin:12px 0!important}
+body.adminApp .customerProfileDialog .customerFacts{margin:12px 0 0!important;gap:10px!important}
+body.adminApp .customerProfileDialog .customerFacts>div{padding:8px 0!important}
+body.adminApp .customerProfileDialog .customerPrivateHeading{margin:16px 0 10px!important}
+body.adminApp .customerProfileDialog :is(.tagPicker,.profileAdvanced){padding:14px!important;margin:12px 0!important;border:1px solid #dfd4eb!important;border-radius:20px!important;background:#ffffff70!important}
+body.adminApp .customerProfileDialog :is(button,.menuCard):not([data-close]){background:#eee7f6!important;color:#59436e!important;border:1px solid #dfd2ed!important;border-radius:18px!important;box-shadow:none!important;min-height:44px;padding:10px 14px!important}
+body.adminApp .customerProfileDialog [aria-pressed=true]{background:#e1cdec!important;border-color:#b49ac9!important;color:#493356!important}
+body.adminApp .customerProfileDialog #pfDesigner{display:flex;align-items:center;gap:10px;width:100%;text-align:left;margin:10px 0}
+body.adminApp .customerProfileDialog #pfDesigner>span:first-of-type{flex:1}
+body.adminApp .customerProfileDialog #pfDesigner small{display:block;margin-top:3px}
+body.adminApp .customerProfileDialog :is(input,textarea){border-radius:16px!important;background:#fffdfefa!important;padding:12px!important;margin:6px 0 10px!important}
+body.adminApp .customerProfileDialog textarea{min-height:72px!important}
+body.adminApp .profileAdvanced>summary{list-style:none;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px;cursor:pointer;min-height:44px;font-weight:650;color:#59436e}
+body.adminApp .profileAdvanced>summary::-webkit-details-marker{display:none}
+body.adminApp .profileAdvanced>summary span{font-size:12px;font-weight:400;color:#80728d}
+body.adminApp .profileAdvanced>summary::after{content:'＋'}body.adminApp .profileAdvanced[open]>summary::after{content:'−'}
+body.adminApp .profileSaveFooter{padding:12px 0 0;border-top:1px solid #ded4e7;margin-top:14px}
+body.adminApp .profileSaveFooter #pfSave{width:100%;background:#e2d3f0!important;font-weight:700}
+body.adminApp .profileQuickActions{display:flex;justify-content:flex-end;margin:10px 0}
+body.adminApp #toolBody:has(#bComposer) :is(button,.settingsGroup){border-radius:20px!important;box-shadow:none!important}
+body.adminApp #toolBody:has(#bComposer) button{background:#eee7f6!important;color:#59436e!important;border:1px solid #dfd2ed!important;min-height:44px}
+body.adminApp #toolBody:has(#bComposer) button[aria-pressed=true]{background:#e1cdec!important;border-color:#b49ac9!important}
+body.adminApp #toolBody:has(#bComposer) .settingsGroup{background:#ffffff99!important;border:1px solid #e1d8eb!important;padding:16px!important}
+.broadcastWorkspace{display:grid;gap:16px;grid-template-columns:minmax(0,1fr)}
+.broadcastLivePreview{min-width:0;background:#f5f0fa;padding:16px;border:1px solid #e0d3ed;border-radius:22px}
+.broadcastLivePreview h3{font-size:16px;margin:0 0 8px}
+.broadcastPreviewBubble{max-width:90%;width:fit-content;margin:10px 0 10px auto;padding:12px;background:#fff;border:1px solid #dfd2e9;border-radius:18px 18px 5px 18px;overflow-wrap:anywhere}
+.broadcastPreviewBubble p{white-space:pre-wrap;margin:0;font-size:15px;line-height:1.6}
+.broadcastPreviewBubble img{display:block;max-width:100%;max-height:240px;object-fit:contain;border-radius:12px;margin-bottom:6px}
+.broadcastBlockHead{flex-wrap:wrap;gap:8px}.broadcastBlockHead>div{display:flex;flex-wrap:wrap;gap:6px}
+.broadcastBlockHead button{font-size:12px!important;padding:8px 10px!important}
+@media(min-width:900px){.broadcastWorkspace{grid-template-columns:minmax(0,1fr) minmax(240px,.8fr);align-items:start}.broadcastLivePreview{position:sticky;top:12px}}
