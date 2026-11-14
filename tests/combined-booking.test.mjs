@@ -1,3 +1,4 @@
+import {dayState,inquiryConfig} from '../holiday-editor.js';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
@@ -13,9 +14,9 @@ class Node {
  setAttribute(k,v){this.attrs[k]=v;}
  scrollIntoView(){}
 }
-const config={services:['剪髮'],times:['12:00','14:00']};let closures=[{id:'2030-11-03',closed:true}],sent=[],page='';
+const config={weeklyHours:{6:{closed:true}},services:['剪髮'],times:['12:00','14:00']};let closures=[{id:'2030-11-03',closed:true}],sent=[],page='';
 class Clock extends Date {static now(){return Date.parse('2030-11-01T00:00:00+08:00');}}
-const context={Date:Clock,readConfig:async()=>config,listOnce:async()=>closures,localDay:date=>date?date.toISOString().slice(0,10):'2030-11-01',DAY:86400000,esc:String,icon:()=>'',hoursForDay:(_,day)=>({closed:day==='2030-11-02'}),task:(b,f)=>b.onclick=f,inquiryTimes,inquiryText,designerChoices:()=>[{id:'',name:'不指定'}],profile:{status:'active'},auth:{currentUser:{uid:'guest'}},demo:false,delivery:{enqueue:v=>sent.push(v)},showPage:id=>page=id,toast(){}};
+const context={dayState,inquiryConfig,Date:Clock,readConfig:async()=>config,listOnce:async()=>closures,localDay:date=>date?date.toISOString().slice(0,10):'2030-11-01',DAY:86400000,esc:String,icon:()=>'',hoursForDay:(_,day)=>({closed:day==='2030-11-02'}),task:(b,f)=>b.onclick=f,inquiryTimes,inquiryText,designerChoices:()=>[{id:'',name:'不指定'}],profile:{status:'active'},auth:{currentUser:{uid:'guest'}},demo:false,delivery:{enqueue:v=>sent.push(v)},showPage:id=>page=id,toast(){}};
 vm.createContext(context);vm.runInContext(source.slice(start,end)+';this.calendar=calendar;',context);
 const first=new Node(),second=new Node();await context.calendar(first,false,true);await context.calendar(second,false,true);
 const buttons=first.querySelector('#calendar').buttons;
