@@ -24,3 +24,16 @@ body.adminApp #adminHome .toolItem>span.countBadge,body.adminApp .countBadge{bac
 body.adminApp #newCustomerAlert{background:#fff0ef!important;color:#a82e2c!important;border:1px solid #edc1bd!important}
 body.adminApp #newCustomerAlert[hidden],body.adminApp .countBadge[hidden]{display:none!important}
 .mergedRoomRow{display:flex;gap:8px;align-items:center;margin:8px 0}.mergedRoomRow>button:first-child{flex:1}.mergedRoomRow .linkBtn{font-size:13px}
+
+/* P169 compact customer actions: readable rows without oversized tiles. */
+body.adminApp dialog.roomMenuCompact{width:min(92vw,460px);max-height:calc(100dvh - 32px);padding:18px;box-sizing:border-box}
+body.adminApp dialog.roomMenuCompact .dialogHead{margin-bottom:12px;padding:10px 12px;min-height:0}
+body.adminApp dialog.roomMenuCompact .dialogHead h2{font-size:19px;line-height:1.4;overflow-wrap:anywhere}
+body.adminApp dialog.roomMenuCompact .menuCard{min-height:54px;padding:10px 14px;margin:8px 0;border-radius:18px!important;font-size:15px}
+body.adminApp dialog.roomMenuCompact .roundActions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0}
+body.adminApp dialog.roomMenuCompact .roundActions button{display:flex;flex-direction:row;align-items:center;justify-content:flex-start;min-height:52px;padding:12px;gap:9px;margin:0;font-size:14px;border-radius:16px!important;text-align:left}
+body.adminApp dialog.roomMenuCompact svg{width:21px;height:21px}
+body.adminApp dialog.roomMenuCompact .roomMoreManagement{margin-top:12px;border-top:1px solid #83948b26;padding-top:10px}
+body.adminApp dialog.roomMenuCompact .roomMoreManagement summary{cursor:pointer;padding:10px 4px;font-size:14px;color:#65766f}
+body.adminApp dialog.roomMenuCompact .small{font-size:12px;line-height:1.6;margin:8px 0}
+@media(max-width:360px){body.adminApp dialog.roomMenuCompact{padding:14px}body.adminApp dialog.roomMenuCompact .roundActions button{font-size:13px;padding:10px}}
