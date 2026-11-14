@@ -1,0 +1,25 @@
+/* P170: calendar status colours are independent of general action-button colours. */
+body .calendarSurface,body .holidayPaper{max-width:600px;margin:24px auto 12px;padding:clamp(12px,3vw,22px);box-sizing:border-box;border:1px solid #ffffffc9;border-radius:24px;background:linear-gradient(145deg,#ffffffd9,#faf8fce6);box-shadow:0 8px 24px #65537908}
+body .calendarSurface .calHeader,body .holidayPaper .holidayMonthNav{display:grid;grid-template-columns:44px minmax(0,1fr) 44px;gap:12px;align-items:center;text-align:center;margin:0 0 18px;padding:0;background:transparent;border:0;box-shadow:none}
+body .calendarSurface .calHeader h3{font-size:clamp(18px,4vw,24px);line-height:1.4;margin:0;font-weight:650;letter-spacing:.04em}
+body .calendarSurface .calHeader button,body .holidayPaper .holidayMonthNav button{width:44px;min-width:44px;min-height:44px;height:44px;margin:0;padding:10px!important;border-radius:50%!important;background:transparent!important;color:#786589!important;border:1px solid #d6cbe366!important;box-shadow:none!important;display:grid;place-items:center}
+body .calendarSurface .calHeader svg{width:20px;height:20px}body .calendarSurface #calNext svg{transform:rotate(180deg)}
+body .calendarSurface #calendar,body .holidayPaper .holidayDates{grid-template-columns:repeat(7,minmax(0,1fr));gap:clamp(4px,1.4vw,10px)!important;padding:0!important;font-variant-numeric:tabular-nums}
+body .calendarSurface #calendar>span,body .holidayPaper .holidayWeek{font-size:12px;color:#948a9c;padding:8px 0 12px;letter-spacing:.05em}
+body .calendarSurface #calendar button,body .holidayPaper .holidayDates button{min-width:0!important;min-height:48px!important;aspect-ratio:1;height:auto;margin:0!important;padding:4px 1px!important;border-radius:14px!important;border:1px solid transparent!important;background:transparent!important;background-image:none!important;color:#4e4855!important;box-shadow:none!important;font-size:clamp(14px,3.8vw,18px)!important;font-weight:550;opacity:1!important;line-height:1.25;transition:background .15s ease,border-color .15s ease}
+body .calendarSurface #calendar button small,body .holidayPaper .holidayDates button small{font-size:10px;font-weight:400;line-height:1.4;color:#877393}
+body .calendarSurface #calendar button.closed,body .holidayPaper .holidayDates button.isClosed{background:#eee5f7!important;color:#6b537f!important;border-color:#e1d3ee!important;box-shadow:none!important}
+body .calendarSurface #calendar button.isToday,body .holidayPaper .holidayDates button.isToday{border-color:#a18ab3!important;box-shadow:inset 0 0 0 1px #a18ab3!important}
+body .calendarSurface #calendar button.chosen{background:transparent!important;color:#62447a!important;outline:2px solid #9476ab;outline-offset:-2px;box-shadow:none!important}
+body .calendarSurface #calendar button:focus-visible,body .calendarSurface .calHeader button:focus-visible{outline:2px solid #9476ab;outline-offset:2px}
+body .calendarSurface #calendar button:disabled{cursor:default}
+body .calendarSurface .calLegend{display:block;margin:16px 0 0;padding-top:14px;border-top:1px solid #ded6e663;font-size:12px;line-height:1.7;color:#8b8094}
+body .calendarSurface .calLegend::before{content:'';display:inline-block;width:10px;height:10px;margin-right:6px;border-radius:3px;background:#eee5f7;border:1px solid #e1d3ee;vertical-align:middle}
+body .holidayPaper .holidayKey i{background:#eee5f7;border:1px solid #e1d3ee}body .holidayPaper .holidayKey i.today{background:transparent;border-color:#a18ab3}
+@media(max-width:360px){body .calendarSurface,body .holidayPaper{padding:10px;border-radius:20px}body .calendarSurface #calendar,body .holidayPaper .holidayDates{gap:3px!important}body .calendarSurface #calendar button,body .holidayPaper .holidayDates button{min-height:44px!important;border-radius:11px!important}}
+@media(prefers-reduced-motion:reduce){body .calendarSurface #calendar button,body .holidayPaper .holidayDates button{transition:none}}
+body .holidayEditor>.calendarSurface{margin-top:14px}body .calendarSurface.holidayEditor{padding:0;border:0;box-shadow:none;background:transparent}
+body .holidayTools{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}body .holidayTools button{background:#f3edf8!important;color:#74598a!important;border:1px solid #e5d9ee!important;border-radius:16px!important;padding:12px 14px!important;margin:0;font-size:14px}
+body .holidayEditor .calendar small{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:3px}
+body .holidayEditFields{display:grid;gap:12px}body .holidayEditFields label{min-width:0;margin:0}body .holidayEditFields input,body .holidayEditFields select{box-sizing:border-box;width:100%;min-width:0;max-width:100%}
+body .weeklyChoices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}body .weeklyChoices label{display:flex;align-items:center;gap:8px;padding:10px;background:#faf7fc;border-radius:14px;margin:0}body .weeklyChoices input{width:20px;height:20px;accent-color:#ae92c3}
