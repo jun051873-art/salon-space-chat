@@ -2,7 +2,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('nod
 const {MessageChannel}=require('node:worker_threads');
 const origin='https://jun051873-art.github.io';
 const source=fs.readFileSync('firebase-messaging-sw.js','utf8');
-async function scenario({role='customer',visibleRole,activeRoom,hidden=false,timeout=false,foreign=false}={}){
+async function scenario({role='customer',visibleRole,activeRoom,hidden=false,timeout=false,foreign=false,badgeError=false}={}){
  const handlers={},shown=[],diagnostics=[],channels=[];let firebasePush=0,badges=0,stopped=false,work;
  const data={url:origin+'/salon-space-chat/'+role+'.html'+(role==='admin'?'?chat=room-a':''),tag:'salon-room-a-msg-1',messageId:'msg-1',body:'測試'};
  const client={url:origin+'/salon-space-chat/'+visibleRole+'.html',visibilityState:hidden?'hidden':'visible',postMessage(message,ports){channels.push(message.type);if(!timeout)ports[0].postMessage({visible:!!activeRoom,rooms:[activeRoom]});}};
@@ -10,7 +10,7 @@ async function scenario({role='customer',visibleRole,activeRoom,hidden=false,tim
   importScripts(path){if(path.startsWith('./'))vm.runInContext(fs.readFileSync(path.split('?')[0],'utf8'),ctx);},
   caches:{open:async()=>({match:async()=>null,put:async(_,response)=>diagnostics.push(await response.json())})},
   firebase:{initializeApp(){},messaging(){return {onBackgroundMessage(){}}}},
-  self:{location:{origin},navigator:{setAppBadge:async()=>badges++},clients:{matchAll:async()=>visibleRole?[client]:[]},registration:{showNotification:async(title,options)=>shown.push({title,options})},addEventListener(type,fn){(handlers[type]??=[]).push(fn);}}
+  self:{location:{origin},navigator:{setAppBadge:async()=>{badges++;if(badgeError)throw Error('badge rejected');}},clients:{matchAll:async()=>visibleRole?[client]:[]},registration:{showNotification:async(title,options)=>shown.push({title,options})},addEventListener(type,fn){(handlers[type]??=[]).push(fn);}}
  };
  vm.createContext(ctx);vm.runInContext(source,ctx);
  // Model Firebase's visible-window path: it would consume the push rather than
@@ -32,6 +32,11 @@ async function scenario({role='customer',visibleRole,activeRoom,hidden=false,tim
   assert.equal((await scenario({role,visibleRole:role,activeRoom:'room-a',hidden:true})).shown.length,1,'background chat still notifies');
   assert.equal((await scenario({role,visibleRole:role,timeout:true})).shown.length,1,'unresponsive page fails open');
  }
+ const rejected=await scenario({role:'admin',badgeError:true});
+ assert.equal(rejected.shown.length,1,'notification still displays when badge is rejected');
+ assert.equal(rejected.diagnostics[0].badgeStatus,'failed');
+ assert.equal(rejected.diagnostics[1].badgeStatus,'failed');
+ assert.equal(rejected.diagnostics[1].data,undefined,'admin badge diagnostics omit the message');
  const foreign=await scenario({foreign:true});assert.equal(foreign.shown.length,0);assert.equal(foreign.firebasePush,1,'unknown payload remains with Firebase');
  const context={URL};vm.createContext(context);vm.runInContext(fs.readFileSync('push-routing.js','utf8'),context);
  assert.equal(context.SalonPushRouting.customerRoom({url:origin+'/salon-space-chat/customer.html',messageId:'id-with-dash',tag:'salon-room-with-dash-id-with-dash'},origin),'room-with-dash');
