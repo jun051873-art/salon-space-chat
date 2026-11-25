@@ -58,7 +58,7 @@ service cloud.firestore {
   }
   match /users/{uid} {
    allow read: if admin() || owner(uid);
-   allow create: if (admin() && owner(uid)) || (owner(uid) && validProfileScene() && request.resource.data.keys().hasOnly(profileFields()) && request.resource.data.role == 'customer' && request.resource.data.get('status','') == 'pending');
+   allow create: if (admin() && owner(uid)) || (owner(uid) && validProfileScene() && request.resource.data.keys().hasOnly(profileFields().concat(['returningCustomer'])) && request.resource.data.get('returningCustomer',false) is bool && request.resource.data.role == 'customer' && request.resource.data.get('status','') == 'pending');
    allow update: if salonProfileUpdate(uid) || (owner(uid) && !admin() && validProfileScene() && resource.data.get('status','active') == 'active' && request.resource.data.diff(resource.data).affectedKeys().hasOnly(profileFields()) && request.resource.data.role == 'customer' && request.resource.data.get('status','active') == 'active');
    allow delete: if admin() && owner(uid);
   }

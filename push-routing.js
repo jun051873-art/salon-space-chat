@@ -4,6 +4,7 @@
  function destination(data,origin){
   try{const url=new URL(data?.url,origin);return url.origin===origin&&/^\/salon-space-chat\/(admin|customer)\.html$/.test(url.pathname)?url:null;}catch{return null;}
  }
+ function isAdmin(data,origin){return destination(data,origin)?.pathname.endsWith('/admin.html')===true;}
  function owns(payload,origin){
   return payload?.from==='103245363547'&&!payload.notification&&!!destination(payload.data,origin)&&String(payload.data?.tag||'').startsWith('salon-');
  }
@@ -26,5 +27,5 @@
    })))).some(Boolean);
   }catch{return false;}
  }
- root.SalonPushRouting={owns,customerRoom,customerChatVisible};
+ root.SalonPushRouting={owns,isAdmin,customerRoom,customerChatVisible};
 })(globalThis);
