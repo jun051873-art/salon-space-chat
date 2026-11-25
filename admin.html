@@ -99,7 +99,7 @@ setTimeout(()=>{
 <button class="toolItem" data-tool="tags"><span>◎</span><b>標籤分類</b></button>
 <button class="toolItem" data-tool="settings"><span>⚙</span><b>設定</b></button>
 </div>
-<details id="adminAccount" class="adminAccountMenu"><summary>帳戶與登入<span aria-hidden="true">⌄</span></summary><div class="accountContents"><p>登出此瀏覽器，雲端顧客資料與聊天紀錄會保留。</p><button type="button" id="adminSignOut">登出帳戶</button><p id="adminSignOutStatus" role="status" aria-live="polite"></p></div></details>
+<details id="adminAccount" class="adminAccountMenu"><summary>帳戶與登入<span aria-hidden="true">⌄</span></summary><div class="accountContents"><p><small id="adminWebVersion">店家端網頁版本 P171</small></p><p>登出此瀏覽器，雲端顧客資料與聊天紀錄會保留。</p><button type="button" id="adminSignOut">登出帳戶</button><p id="adminSignOutStatus" role="status" aria-live="polite"></p></div></details>
 </div>
 <div id="adminTool" class="card hidden shellPage"><button id="toolBack" class="backLink" aria-label="返回上一頁"><svg class="salonIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14 5-7 7 7 7"/></svg><span>返回</span></button><h2 id="toolTitle">功能</h2><div id="toolBody"></div></div>
 <div id="admin" class="card hidden shellPage"><h2>客戶訊息</h2><div id="adminNotifyBox" class="hidden"><button id="adminNotify">🔔 開啟店家通知</button><p id="adminNotifyStatus">這台裝置尚未完成通知設定。</p></div><div id="list">正在載入客戶訊息…</div></div>
