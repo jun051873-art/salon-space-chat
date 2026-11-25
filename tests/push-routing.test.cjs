@@ -3,14 +3,14 @@ const {MessageChannel}=require('node:worker_threads');
 const origin='https://jun051873-art.github.io';
 const source=fs.readFileSync('firebase-messaging-sw.js','utf8');
 async function scenario({role='customer',visibleRole,activeRoom,hidden=false,timeout=false,foreign=false,badgeError=false}={}){
- const handlers={},shown=[],diagnostics=[],channels=[];let firebasePush=0,badges=0,stopped=false,work;
+ const handlers={},shown=[],diagnostics=[],channels=[],order=[];let firebasePush=0,badges=0,stopped=false,work;
  const data={url:origin+'/salon-space-chat/'+role+'.html'+(role==='admin'?'?chat=room-a':''),tag:'salon-room-a-msg-1',messageId:'msg-1',body:'測試'};
  const client={url:origin+'/salon-space-chat/'+visibleRole+'.html',visibilityState:hidden?'hidden':'visible',postMessage(message,ports){channels.push(message.type);if(!timeout)ports[0].postMessage({visible:!!activeRoom,rooms:[activeRoom]});}};
  const ctx={URL,Request,Response,MessageChannel,setTimeout,clearTimeout,console,Date,
   importScripts(path){if(path.startsWith('./'))vm.runInContext(fs.readFileSync(path.split('?')[0],'utf8'),ctx);},
   caches:{open:async()=>({match:async()=>null,put:async(_,response)=>diagnostics.push(await response.json())})},
   firebase:{initializeApp(){},messaging(){return {onBackgroundMessage(){}}}},
-  self:{location:{origin},navigator:{setAppBadge:async()=>{badges++;if(badgeError)throw Error('badge rejected');}},clients:{matchAll:async()=>visibleRole?[client]:[]},registration:{showNotification:async(title,options)=>shown.push({title,options})},addEventListener(type,fn){(handlers[type]??=[]).push(fn);}}
+  self:{location:{origin},navigator:{setAppBadge:async()=>{badges++;order.push('badge');if(badgeError)throw Error('badge rejected');}},clients:{matchAll:async()=>visibleRole?[client]:[]},registration:{showNotification:async(title,options)=>{order.push('alert');shown.push({title,options});}},addEventListener(type,fn){(handlers[type]??=[]).push(fn);}}
  };
  vm.createContext(ctx);vm.runInContext(source,ctx);
  // Model Firebase's visible-window path: it would consume the push rather than
@@ -19,7 +19,7 @@ async function scenario({role='customer',visibleRole,activeRoom,hidden=false,tim
  const payload={from:foreign?'other-project':'103245363547',data};
  for(const listener of handlers.push){if(stopped)break;listener({data:{json:()=>payload},stopImmediatePropagation(){stopped=true},waitUntil(p){work=p}});}
  await work;
- return {shown,badges,firebasePush,diagnostics,channels};
+ return {shown,badges,firebasePush,diagnostics,channels,order};
 }
 (async()=>{
  for(const role of ['admin','customer']){
@@ -34,6 +34,7 @@ async function scenario({role='customer',visibleRole,activeRoom,hidden=false,tim
  }
  const rejected=await scenario({role:'admin',badgeError:true});
  assert.equal(rejected.shown.length,1,'notification still displays when badge is rejected');
+ assert.deepEqual(rejected.order,['alert','badge'],'a store alert is displayed before setting its badge');
  assert.equal(rejected.diagnostics[0].badgeStatus,'failed');
  assert.equal(rejected.diagnostics[1].badgeStatus,'failed');
  assert.equal(rejected.diagnostics[1].data,undefined,'admin badge diagnostics omit the message');

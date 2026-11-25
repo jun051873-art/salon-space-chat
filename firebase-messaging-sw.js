@@ -1,6 +1,6 @@
 importScripts('./push-presentation.js?v=N113');
 importScripts('./admin-notification-visibility.js?v=N131');
-importScripts('./push-routing.js?v=P155');
+importScripts('./push-routing.js?v=P173');
 const NOTIFICATION_VERSION='P155';
 const BRAND_CACHE='salon-notification-brand-v1';
 const BRAND_URL='/salon-space-chat/__notification_brand__';
@@ -62,15 +62,17 @@ async function handleSalonPush(payload){
  const brand=await readBrand();
  if((d.automatic===true||d.automatic==='true')&&(brand.ownerDevice||d.recipientRole==='admin'||String(d.url||'').includes('/admin.html'))){await saveDiag({stage:'automatic-owner-suppressed'}).catch(()=>{});return;}
  const {title,options}=SalonPush.notification(d,brand,self.location.origin);
- // A failed badge update must not delay the lock-screen delivery.
- const badge=updatePushBadge();
+ // Set the store badge after displaying the system alert. Badge errors must
+ // never stop delivery. Keep the existing customer notification path.
+ const adminPush=SalonPushRouting.isAdmin(d,self.location.origin);
+ const badge=adminPush?null:updatePushBadge();
  const notification=(async()=>{
   try{await self.registration.showNotification(title,options);return {stage:'shown'};}
   catch(error){return {stage:'show-error',error:String(error)};}
  })();
- const [badgeStatus,result]=await Promise.all([badge,notification]);
+ const [badgeStatus,result]=await Promise.all([badge||notification.then(updatePushBadge),notification]);
  await saveDiag({...result,badgeStatus,data:d}).catch(()=>{});
- if(SalonAdminNotification.room(d,self.location.origin)){
+ if(adminPush){
   try{
    const cache=await caches.open(DIAG_CACHE);
    await cache.put(new Request(new URL('/salon-space-chat/__admin_badge_diag__',self.location.origin)),new Response(JSON.stringify({badgeStatus,at:new Date().toISOString()})));
