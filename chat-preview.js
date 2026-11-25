@@ -1,17 +1,17 @@
 // A preview is deliberately independent of the live chat/feed/read-receipt lifecycle.
-export function bindLongPress(element, openPreview, {delay=500, tolerance=12}={}) {
+export function bindLongPress(element, openPreview, {delay=750, tolerance=10}={}) {
  let timer=null, start=null, consumed=false;
  element.addEventListener('selectstart',e=>e.preventDefault());
  const cancel=()=>{clearTimeout(timer);timer=null;start=null;};
  element.addEventListener('pointerdown',e=>{
-  if(e.button>0||e.isPrimary===false)return;
-  cancel();consumed=false;start={x:e.clientX,y:e.clientY};
+  if(e.button!==0||e.isPrimary===false)return;
+  cancel();consumed=false;start={x:e.clientX,y:e.clientY,id:e.pointerId};
   timer=setTimeout(()=>{timer=null;consumed=true;globalThis.getSelection?.()?.removeAllRanges();openPreview();},delay);
  });
- element.addEventListener('pointermove',e=>{if(start&&Math.hypot(e.clientX-start.x,e.clientY-start.y)>tolerance)cancel();});
- ['pointerup','pointercancel','lostpointercapture','pointerleave'].forEach(type=>element.addEventListener(type,cancel));
+ element.addEventListener('pointermove',e=>{if(start&&start.id===e.pointerId&&Math.hypot(e.clientX-start.x,e.clientY-start.y)>tolerance)cancel();});
+ ['pointerup','pointercancel','lostpointercapture','pointerleave'].forEach(type=>element.addEventListener(type,e=>{if(start?.id===e.pointerId)cancel();}));
  element.addEventListener('click',e=>{if(consumed){e.preventDefault();e.stopImmediatePropagation();consumed=false;}},true);
- element.addEventListener('contextmenu',e=>{e.preventDefault();cancel();if(!consumed){consumed=true;openPreview();}});
+ element.addEventListener('contextmenu',e=>{e.preventDefault();});
  element.addEventListener('keydown',e=>{if(e.key==='F10'&&e.shiftKey){e.preventDefault();openPreview();}});
  return cancel;
 }

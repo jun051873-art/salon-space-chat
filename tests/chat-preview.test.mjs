@@ -6,6 +6,12 @@ const ev=(type,props={})=>{const event=new Event(type,{cancelable:true});Object.
 ev('pointerdown');await new Promise(r=>setTimeout(r,25));ev('pointerup');assert.equal(count,1);assert.equal(ev('click').defaultPrevented,true);assert.equal(clicks,0);
 ev('pointerdown');ev('pointermove',{clientX:20});await new Promise(r=>setTimeout(r,25));ev('pointerup');assert.equal(count,1);
 ev('pointerdown');ev('pointercancel');await new Promise(r=>setTimeout(r,25));assert.equal(count,1);cancel();
+ev('pointerdown',{pointerId:1});ev('contextmenu');ev('pointerup',{pointerId:1});
+assert.equal(ev('click').defaultPrevented,false,'the iOS menu event cannot turn a tap into preview');
+await new Promise(r=>setTimeout(r,25));assert.equal(count,1);assert.equal(clicks,1);
+ev('pointerdown',{pointerId:1});ev('pointerup',{pointerId:2});
+await new Promise(r=>setTimeout(r,25));ev('pointerup',{pointerId:1});
+assert.equal(count,2,'only the tracked finger ends a deliberate hold');
 const cache=new Map();let reads=0;const read=async(room,n)=>{reads++;assert.equal(n,12);return [{text:room}];};
 await readPreview({room:'a',read,cache,now:100});await readPreview({room:'a',read,cache,now:200});assert.equal(reads,1);await readPreview({room:'a',read,cache,now:20000});assert.equal(reads,2);
 console.log('Preview: long press, click suppression, scroll/cancel and bounded cached read passed.');
