@@ -51,7 +51,7 @@ const messaging=firebase.messaging();
 const DIAG_CACHE="salon-push-diag-v1";
 async function saveDiag(obj){
  const cache=await caches.open(DIAG_CACHE);
- await cache.put(new Request("/salon-space-chat/__push_diag__"),new Response(JSON.stringify({...obj,version:NOTIFICATION_VERSION,at:new Date().toISOString()}),{headers:{"Content-Type":"application/json"}}));
+ await cache.put(new Request(new URL("/salon-space-chat/__push_diag__",self.location.origin)),new Response(JSON.stringify({...obj,version:NOTIFICATION_VERSION,at:new Date().toISOString()}),{headers:{"Content-Type":"application/json"}}));
 }
 self.addEventListener("install",event=>event.waitUntil(self.skipWaiting()));
 self.addEventListener("activate",event=>event.waitUntil(self.clients.claim()));
@@ -61,9 +61,26 @@ async function handleSalonPush(payload){
  if(await SalonPushRouting.customerChatVisible(d,self.clients,self.location.origin)){await saveDiag({stage:'active-customer-chat-suppressed'}).catch(()=>{});return;}
  const brand=await readBrand();
  if((d.automatic===true||d.automatic==='true')&&(brand.ownerDevice||d.recipientRole==='admin'||String(d.url||'').includes('/admin.html'))){await saveDiag({stage:'automatic-owner-suppressed'}).catch(()=>{});return;}
- try{await self.navigator.setAppBadge?.(1);}catch{}
  const {title,options}=SalonPush.notification(d,brand,self.location.origin);
- try{await self.registration.showNotification(title,options);await saveDiag({stage:"shown",data:d}).catch(()=>{});}catch(e){await saveDiag({stage:"show-error",error:String(e),data:d}).catch(()=>{});}
+ // A failed badge update must not delay the lock-screen delivery.
+ const badge=updatePushBadge();
+ const notification=(async()=>{
+  try{await self.registration.showNotification(title,options);return {stage:'shown'};}
+  catch(error){return {stage:'show-error',error:String(error)};}
+ })();
+ const [badgeStatus,result]=await Promise.all([badge,notification]);
+ await saveDiag({...result,badgeStatus,data:d}).catch(()=>{});
+ if(SalonAdminNotification.room(d,self.location.origin)){
+  try{
+   const cache=await caches.open(DIAG_CACHE);
+   await cache.put(new Request(new URL('/salon-space-chat/__admin_badge_diag__',self.location.origin)),new Response(JSON.stringify({badgeStatus,at:new Date().toISOString()})));
+  }catch{/* Diagnostic storage must not affect notification delivery. */}
+ }
+}
+async function updatePushBadge(){
+ if(typeof self.navigator.setAppBadge!=='function')return 'unsupported';
+ try{await self.navigator.setAppBadge(1);return 'accepted';}
+ catch{return 'failed';}
 }
 messaging.onBackgroundMessage(handleSalonPush);
 
