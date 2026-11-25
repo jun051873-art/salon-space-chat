@@ -11,6 +11,23 @@ await assert.rejects(waitForNotificationVersion({active:old},{timeout:0,probe:as
 const moving={active:current};let first=true;
 await waitForNotificationVersion(moving,{probe:async w=>{if(first){first=false;moving.active=old;}return w.version;},pause:async()=>{moving.active=current;}});
 assert.equal(first,false,'recheck registration if its worker changes during acknowledgement');
+const {ensureAdminNotificationWorker}=await import('../notification-worker.js');
+const scriptURL=new URL('../firebase-messaging-sw.js',import.meta.url).href;
+const scope=new URL('../',import.meta.url).href;
+const installed={scope,active:{scriptURL,state:'activated',postMessage(){throw Error('iOS did not reply');}}};
+let refreshes=0;
+assert.equal(await ensureAdminNotificationWorker({
+ getRegistration:async()=>installed,register:async()=>{refreshes++;throw Error('offline while updating');}
+}),installed,'reuse an activated store registration even when refresh fails');
+assert.equal(refreshes,1);
+const firstInstall={scope,active:null};
+await ensureAdminNotificationWorker({
+ getRegistration:async()=>({scope:scope+'customer.html',active:installed.active}),
+ register:async(url,options)=>{assert.equal(url,scriptURL);assert.equal(options.scope,scope);return firstInstall;}
+},{pause:async()=>{firstInstall.active=installed.active;}});
+await assert.rejects(ensureAdminNotificationWorker({
+ getRegistration:async()=>null,register:async()=>({scope,active:null})
+},{timeout:0}),/尚未啟動/);
 const handlers={};const sw=await readFile(new URL('../firebase-messaging-sw.js',import.meta.url),'utf8');
 const end=sw.indexOf('// Register click handling');
 const context={self:{addEventListener:(name,fn)=>handlers[name]=fn},importScripts(){},SalonPush:{}};

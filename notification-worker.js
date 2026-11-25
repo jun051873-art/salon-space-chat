@@ -31,3 +31,29 @@ export function ensureNotificationWorker(){
  })().finally(()=>{pending=null;});
  return pending;
 }
+
+// Store notifications can subscribe through an active registration even when
+// iOS does not answer the optional worker-version message.
+export async function ensureAdminNotificationWorker(env=navigator.serviceWorker,{timeout=12000,pause=ms=>new Promise(resolve=>setTimeout(resolve,ms))}={}){
+ const script=new URL('./firebase-messaging-sw.js',import.meta.url);
+ const scope=new URL('./',script).href;
+ const active=registration=>registration?.scope===scope &&
+  registration.active?.state==='activated' &&
+  registration.active?.scriptURL===script.href;
+ const existing=await env.getRegistration(scope).catch(()=>null);
+ const refresh=()=>env.register(script.href,{scope,updateViaCache:'none'});
+ if(active(existing)){
+  // Reuse the current subscription and refresh without waiting for iOS to
+  // deliver a message-channel reply or download a new worker.
+  void refresh().then(registration=>registration.update()).catch(()=>{});
+  return existing;
+ }
+ const registration=await refresh();
+ const deadline=Date.now()+timeout;
+ do{
+  if(active(registration))return registration;
+  if(Date.now()>=deadline)break;
+  await pause(150);
+ }while(true);
+ throw Error('店家通知服務尚未啟動，請稍候再試。');
+}
