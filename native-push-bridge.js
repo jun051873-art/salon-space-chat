@@ -1,12 +1,13 @@
 // Native tokens are supplied only over Chrome's origin-validated TWA channel.
-export const isNativePushApp=(env=globalThis)=>Number(new URL(env.location.href).searchParams.get('appBuild')||0)>=15;
+export const nativeAppBuild=(env=globalThis)=>Number(new URL(env.location.href).searchParams.get('appBuild')||0);
+export const isNativePushApp=(env=globalThis)=>nativeAppBuild(env)>=15;
 // Chromium serializes the verified app source as android-app://<verified host>.
 export function trustedNativeOrigin(origin,env=globalThis){
  const site=new URL(env.location.href);
  return origin===site.origin||origin==='android-app://'+site.hostname||origin==='android-app://'+site.hostname+'/com.jun051873.salonspace';
 }
 export function createNativePushBridge(env=globalThis){
- let port=null,pending=null,uid='',last=null,receipt=null,phase='尚未收到 App 連線';
+ let port=null,pending=null,uid='',last=null,receipt=null,unread=null,phase='尚未收到 App 連線';
  const post=data=>{if(!port)return false;try{port.postMessage(JSON.stringify({protocol:'SALON_NATIVE_PUSH',...data}));return true;}catch{return false;}};
  function receive(raw){let d;try{d=typeof raw==='string'?JSON.parse(raw):raw;}catch{return;}
   if(d?.protocol!=='SALON_NATIVE_PUSH')return;
@@ -37,8 +38,15 @@ export function createNativePushBridge(env=globalThis){
    pending={promise,resolve,reject};post({type:'REGISTER',uid});
    return promise.finally(()=>{env.clearTimeout(timer);pending=null;});
   },
-  saved(account){if(account===uid&&last){post({type:'SAVED',uid});if(receipt?.account===uid)post({type:'CLEAR',uid,cutoff:receipt.cutoff});}},
+  saved(account){if(account===uid&&last){post({type:'SAVED',uid});if(receipt?.account===uid)post({type:'CLEAR',uid,cutoff:receipt.cutoff});if(unread?.uid===uid)post(unread);}},
   clear(account,cutoff){if(typeof account!=='string'||!Number.isFinite(cutoff))return;receipt={account,cutoff};if(account===uid)post({type:'CLEAR',uid,cutoff});},
+  syncUnread(account,ids,cutoff){
+   if(!account||!Number.isFinite(cutoff))return;
+   const update={type:'UNREAD',uid:account,ids,cutoff};
+   if(JSON.stringify(update).length>32000)return;
+   unread=update;
+   if(account===uid)post(update);
+  },
   settings(){return post({type:'SETTINGS'});}
  };
 }

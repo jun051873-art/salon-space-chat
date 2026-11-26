@@ -10,6 +10,9 @@
  }
  function customerRoom(data,origin){
   const url=destination(data,origin);if(!url?.pathname.endsWith('/customer.html'))return null;
+  return messageRoom(data);
+ }
+ function messageRoom(data){
   // Read legacy payloads as well, so the web fix works before Worker deployment.
   const id=String(data?.messageId||''),tag=String(data?.tag||''),suffix='-'+id;
   return id&&tag.startsWith('salon-')&&tag.endsWith(suffix)?tag.slice(6,-suffix.length)||null:null;
@@ -27,5 +30,5 @@
    })))).some(Boolean);
   }catch{return false;}
  }
- root.SalonPushRouting={owns,isAdmin,customerRoom,customerChatVisible};
+ root.SalonPushRouting={owns,isAdmin,messageRoom,customerRoom,customerChatVisible};
 })(globalThis);
