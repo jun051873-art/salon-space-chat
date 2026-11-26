@@ -107,3 +107,34 @@ assert.deepEqual(played,['page-clear',1],'a real unread message does not clear t
 await publishUnreadMessages('admin',[],time,iphone);
 assert.deepEqual(played,['page-clear',1,'page-clear',0],'worker reconciliation follows the direct clear');
 console.log('PASS foreground zero-unread clears on iPhone without a service-worker handshake');
+
+const savedResponses=new Map(),profileOrigin='https://example.test';
+const storage={open:async()=>({
+ match:async key=>savedResponses.get(key)?.clone(),
+ put:async(key,response)=>savedResponses.set(key,response.clone())
+})};
+const badgeOperations=[];
+const store={location:{href:profileOrigin+'/salon-space-chat/admin.html'},document:{hidden:false},caches:storage,
+ navigator:{clearAppBadge:async()=>badgeOperations.push(0),setAppBadge:async count=>badgeOperations.push(count)}};
+const entries=new Map();
+let pushTime=100;
+const reopenWorker=()=>globalThis.SalonPushBadge.create({
+ load:role=>structuredClone(entries.get(role)),save:(role,state)=>entries.set(role,structuredClone(state)),
+ apply:count=>badgeOperations.push(count),now:()=>pushTime++,
+ checkpoint:()=>globalThis.SalonPushBadge.readCheckpoint(storage,profileOrigin)
+});
+let installedWorker=reopenWorker();
+for(let i=0;i<8;i++)await installedWorker.push('admin','salon-room-old'+i);
+assert.equal(badgeOperations.at(-1),8);
+await publishUnreadMessages('admin',['salon-room-old7'],pushTime,store);
+assert.equal(badgeOperations.at(-1),1,'sync uses the actual count in the video, not eight cached notifications');
+installedWorker=reopenWorker();
+await installedWorker.push('admin','salon-room-new1');
+assert.equal(badgeOperations.at(-1),2,'a restarted worker loads the saved count without postMessage and adds only the new push');
+await installedWorker.push('admin','salon-room-old0');
+assert.equal(badgeOperations.at(-1),2,'retry of an old read message does not inflate the icon');
+await publishUnreadMessages('admin',[],pushTime,store);
+assert.equal(badgeOperations.at(-1),0);
+await reopenWorker().push('admin','salon-room-new2');
+assert.equal(badgeOperations.at(-1),1,'zero stays durable across restart until just one genuinely new push arrives');
+console.log('PASS recorded badge regression: 8 → confirmed 1 → 2, plus clear → one new push');
