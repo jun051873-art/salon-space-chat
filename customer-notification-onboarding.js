@@ -21,7 +21,7 @@ export function mountCustomerNotificationOnboarding({host, enable, guide}) {
   if(busy)return;
   if(!native&&globalThis.Notification?.permission==='denied'){guide();return;}
   busy=true;error='';render();
-  try{await enable();}catch(e){error='設定未完成，請再試一次。';}
+  try{if(await enable()==='native-settings')error='開啟手機通知後，切回專屬空間會自動確認。';}catch(e){error='設定未完成，請再試一次。';}
   finally{busy=false;if(!ready&&!error)error='通知尚未完成。可再試一次，或稍後從上方鈴鐺開啟。';render();}
  };
  later.onclick=()=>{dismissed=true;render();};

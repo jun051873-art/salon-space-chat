@@ -34,7 +34,7 @@ async function scenario({role='customer',visibleRole,activeRoom,hidden=false,tim
  }
  const rejected=await scenario({role:'admin',badgeError:true});
  assert.equal(rejected.shown.length,1,'notification still displays when badge is rejected');
- assert.deepEqual(rejected.order,['alert','badge'],'a store alert is displayed before setting its badge');
+ assert.deepEqual(rejected.order,['badge','alert'],'start applying the badge within the push callback');
  assert.equal(rejected.diagnostics[0].badgeStatus,'failed');
  assert.equal(rejected.diagnostics[1].badgeStatus,'failed');
  assert.equal(rejected.diagnostics[1].data,undefined,'admin badge diagnostics omit the message');
