@@ -7,50 +7,64 @@
 <title>邀請客人｜專屬空間</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#f5f2f7;color:#302937;font:16px/1.6 system-ui,-apple-system,sans-serif}
-main,nav{width:min(100% - 32px,740px);margin:auto}
+body{margin:0;background:#f6efe7;color:#352e29;font:16px/1.6 system-ui,-apple-system,sans-serif}
+main,nav{width:min(100% - 32px,670px);margin:auto}
 nav{padding-top:calc(12px + env(safe-area-inset-top))}
 h1{font-size:clamp(1.55rem,6vw,2rem);margin:.6em 0}
 h2{font-size:1.19rem;margin:0}
 p{margin:.5em 0}
 [hidden]{display:none!important}
-button,.action{display:inline-flex;align-items:center;justify-content:center;min-height:44px;border:1px solid #d9cede;border-radius:14px;background:#fff;color:#473557;padding:8px 12px;font:inherit;text-decoration:none;cursor:pointer}
-.primary{background:#655076;border-color:#655076;color:white}
-button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #655076;outline-offset:3px}
+button,.action{display:inline-flex;align-items:center;justify-content:center;min-height:44px;border:1px solid #d8d7c7;border-radius:14px;background:#fffaf5;color:#45523b;padding:8px 12px;font:inherit;text-decoration:none;cursor:pointer}
+.primary{background:#596c4c;border-color:#596c4c;color:white}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #596c4c;outline-offset:3px}
 .platforms{display:grid;gap:12px;grid-template-columns:repeat(2,minmax(0,1fr))}
-.platform{min-width:0;background:#fff;border:1px solid #e0d9e4;border-radius:20px;padding:16px;text-align:center}
-.platform p{font-size:.88rem;color:#51485b}
-.qr{display:block;width:min(100%,190px);height:auto;margin:12px auto;aspect-ratio:1}
+.platform{min-width:0;background:#fff;border:1px solid #e1d7c9;border-radius:20px;padding:16px;text-align:center}
+.platform p{font-size:.88rem;color:#5e554b}
+.invitePoster{position:relative;margin:10px auto 16px;border-radius:22px;overflow:hidden;box-shadow:0 8px 24px #70574b20}
+.invitePoster img{display:block;width:100%;height:auto}
+.posterLink{position:absolute;top:28.5%;height:37.5%;width:27.7%;border-radius:16px;touch-action:manipulation}
+.posterLink:focus-visible{outline-offset:-4px}
+.posterLink.ios{left:21.6%}
+.posterLink.android{left:50.7%}
 .links{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin:12px 0}
 .links a,.links button{font-size:.88rem}
 .shareLink{display:block;text-align:left}
-.shareLink span{font-size:.8rem;color:#51485b}
-.shareLink input{display:block;width:100%;min-height:44px;padding:8px 10px;border:1px solid #d9cede;border-radius:12px;font:inherit;font-size:.85rem;color:inherit;background:#faf8fc}
+.shareLink span{font-size:.8rem;color:#5e554b}
+.shareLink input{display:block;width:100%;min-height:44px;padding:8px 10px;border:1px solid #d8d7c7;border-radius:12px;font:inherit;font-size:.85rem;color:inherit;background:#fffaf5}
 [data-share-status]{min-height:1.5em}
 .actions{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 28px}
-.printSheet{display:none}
+
 @media(max-width:560px){.platforms{grid-template-columns:1fr}}
 @page{size:A4 portrait;margin:8mm}
 @media print{
  body{background:#fff}
- nav,.inviteScreen{display:none}
+ nav,.inviteScreen,.posterLink{display:none}
  main{width:auto}
- .printSheet{display:block;height:280mm;width:auto;max-width:100%;object-fit:contain;margin:auto}
+ .invitePoster{margin:0;box-shadow:none;border-radius:0;break-inside:avoid}
+ .invitePoster img{height:280mm;width:auto;max-width:100%;object-fit:contain;margin:auto}
 }
 </style>
 </head>
 <body>
 <nav aria-label="頁面導覽"><button id="goBack" type="button">‹ 返回上一頁</button></nav>
 <main>
+<figure class="invitePoster">
+<img src="./SalonSpace-Invite-Poster.jpg" width="1200" height="1697" alt="專屬空間：我們有新的聯絡小天地了。iPhone 掃碼開啟客人頁，Android 掃碼直達 Google Play。">
+<a href="./customer.html" class="posterLink ios" aria-label="iPhone 開啟客人頁" target="_blank" rel="noopener"></a>
+<a href="https://play.google.com/store/apps/details?id=com.jun051873.salonspace" class="posterLink android" aria-label="Android 前往 Google Play" target="_blank" rel="noopener"></a>
+</figure>
 <div class="inviteScreen">
-<h1>邀請客人加入專屬空間</h1>
+<div class="actions">
+<a class="action primary" href="./SalonSpace-Invite-Poster.jpg" download>下載雙 QR 碼海報</a>
+<button id="printPoster" type="button">列印海報</button>
+</div>
+<h1>分享加入網址</h1>
 <div class="platforms">
 <section class="platform" aria-labelledby="iosTitle">
 <h2 id="iosTitle">iPhone｜iOS</h2>
 <p>用 Safari 開啟，再從分享選單加入主畫面。</p>
-<a href="./customer.html" data-invite-link target="_blank" rel="noopener"><img class="qr" src="./customer-qr.svg" width="190" height="190" alt="掃碼開啟 iPhone 客人頁"></a>
 <div class="links">
-<a class="action primary" href="./customer.html" target="_blank" rel="noopener">開啟客人頁</a>
+<a class="action primary" data-invite-link href="./customer.html" target="_blank" rel="noopener">開啟客人頁</a>
 <button type="button" data-copy>複製 iPhone 網址</button>
 <a class="action" href="./customer-qr.svg" download="SalonSpace-iPhone-QR.svg">下載 QR 碼</a>
 <button type="button" data-share hidden>分享</button>
@@ -61,9 +75,8 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #6550
 <section class="platform" aria-labelledby="androidTitle">
 <h2 id="androidTitle">Android｜Google Play</h2>
 <p>掃碼下載，或在 Play 商店搜尋「專屬空間」。</p>
-<a href="https://play.google.com/store/apps/details?id=com.jun051873.salonspace" data-invite-link target="_blank" rel="noopener"><img class="qr" src="./android-play-qr.svg" width="190" height="190" alt="掃碼開啟專屬空間的 Google Play 頁面"></a>
 <div class="links">
-<a class="action primary" href="https://play.google.com/store/apps/details?id=com.jun051873.salonspace" target="_blank" rel="noopener">前往 Google Play</a>
+<a class="action primary" data-invite-link href="https://play.google.com/store/apps/details?id=com.jun051873.salonspace" target="_blank" rel="noopener">前往 Google Play</a>
 <button type="button" data-copy>複製 Android 網址</button>
 <a class="action" href="./android-play-qr.svg" download="SalonSpace-Android-QR.svg">下載 QR 碼</a>
 <button type="button" data-share hidden>分享</button>
@@ -72,12 +85,7 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #6550
 <p data-share-status role="status"></p>
 </section>
 </div>
-<div class="actions">
-<a class="action primary" href="./SalonSpace-QR-Print.png" download>下載雙 QR 碼列印圖</a>
-<button id="printPoster" type="button">列印雙 QR 碼</button>
 </div>
-</div>
-<img class="printSheet" src="./SalonSpace-QR-Print.png" alt="專屬空間 iPhone 與 Android 雙 QR 碼列印圖">
 </main>
 <script>
 let leaving=false;
@@ -123,7 +131,7 @@ for(const panel of document.querySelectorAll('.platform')){
  };
 }
 document.getElementById('printPoster').onclick=async()=>{
- const poster=document.querySelector('.printSheet');
+ const poster=document.querySelector('.invitePoster img');
  try{await poster.decode();}catch{}
  window.print();
 };

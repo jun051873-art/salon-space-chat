@@ -21,9 +21,9 @@ async function run(useClipboard) {
   assert.equal(input.value,expected[i]);
   assert.equal(panel.querySelector('[data-invite-link]').href,expected[i]);
   assert.equal(panel.querySelector('a.primary').href,expected[i]);
-  const picture=panel.querySelector('.qr').getAttribute('src');
+  const picture=panel.querySelector('[download]').getAttribute('href');
   assert.equal(picture,i===0?'./customer-qr.svg':'./android-play-qr.svg');
-  assert.equal(panel.querySelector('[download]').getAttribute('href'),picture);
+  assert.equal(document.querySelectorAll('.posterLink')[i].href,expected[i]);
   assert.ok(fs.existsSync(picture));
   await panel.querySelector('[data-copy]').onclick();
   if(useClipboard)assert.equal(copied,expected[i]);
@@ -34,7 +34,7 @@ async function run(useClipboard) {
   await panel.querySelector('[data-share]').onclick();
   assert.equal(shared,expected[i]);
  }
- assert.equal(document.querySelector('.actions [download]').href,document.querySelector('.printSheet').src);
+ assert.equal(document.querySelector('.actions [download]').href,document.querySelector('.invitePoster img').src);
  await document.getElementById('printPoster').onclick();
  assert.equal(printed,1);
  window.close();
