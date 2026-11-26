@@ -1,8 +1,8 @@
 importScripts('./push-presentation.js?v=N113');
 importScripts('./admin-notification-visibility.js?v=N131');
-importScripts('./push-routing.js?v=P175');
+importScripts('./push-routing.js?v=P181');
 importScripts('./push-badge-ledger.js?v=P180');
-const NOTIFICATION_VERSION='P180';
+const NOTIFICATION_VERSION='P181';
 const badgeLedger=SalonPushBadge.create({
  async load(role){
   const cache=await caches.open('salon-unread-messages');

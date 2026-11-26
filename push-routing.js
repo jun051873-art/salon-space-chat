@@ -30,5 +30,5 @@
    })))).some(Boolean);
   }catch{return false;}
  }
- root.SalonPushRouting={owns,isAdmin,messageRoom,customerRoom,customerChatVisible};
+ root.SalonPushRouting={destination,owns,isAdmin,messageRoom,customerRoom,customerChatVisible};
 })(globalThis);
