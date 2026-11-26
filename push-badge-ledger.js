@@ -2,18 +2,18 @@
 // one another. Store message identifiers only, never push preview text.
 (function(root){
  const retention=7*24*60*60*1000;
- const checkpointPath='/salon-space-chat/__admin_badge_checkpoint__';
- async function readCheckpoint(storage,origin){
+ const checkpointPath=role=>'/salon-space-chat/__'+role+'_badge_checkpoint__';
+ async function readCheckpoint(storage,origin,role='admin'){
   const cache=await storage.open('salon-unread-messages');
-  return (await cache.match(new URL(checkpointPath,origin).href))?.json();
+  return (await cache.match(new URL(checkpointPath(role),origin).href))?.json();
  }
  let writing=Promise.resolve();
- function saveCheckpoint(storage,origin,keys,startedAt){
+ function saveCheckpoint(storage,origin,keys,startedAt,role='admin'){
   const write=writing.then(async()=>{
-   const existing=await readCheckpoint(storage,origin);
+   const existing=await readCheckpoint(storage,origin,role);
    if(existing?.startedAt>startedAt)return;
    const cache=await storage.open('salon-unread-messages');
-   await cache.put(new URL(checkpointPath,origin).href,new Response(JSON.stringify({keys,startedAt})));
+   await cache.put(new URL(checkpointPath(role),origin).href,new Response(JSON.stringify({keys,startedAt})));
   });
   writing=write.catch(()=>{});
   return write;
@@ -32,11 +32,9 @@
     const {unread={},seen={}}=state;
     const time=now();
     for(const [key,at] of Object.entries(seen))if(at<time-retention&&!Object.hasOwn(unread,key))delete seen[key];
-    if(role==='admin'){
-     const saved=await checkpoint().catch(()=>null);
-     if(saved&&Array.isArray(saved.keys)&&Number.isFinite(saved.startedAt)){
-      reconcile(unread,seen,time,state,saved.keys,saved.startedAt);
-     }
+    const saved=await checkpoint(role).catch(()=>null);
+    if(saved&&Array.isArray(saved.keys)&&Number.isFinite(saved.startedAt)){
+     reconcile(unread,seen,time,state,saved.keys,saved.startedAt);
     }
     update(unread,seen,time,state);
     await save(role,{unread,seen,lastSync:state.lastSync||0});

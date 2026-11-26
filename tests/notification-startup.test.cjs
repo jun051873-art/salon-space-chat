@@ -43,3 +43,28 @@ const {JSDOM}=require('jsdom');
  assert.equal(cleared.length,1,'only a confirmed read in a visible conversation clears old notifications');
  dom.window.close();console.log('PASS real owner chat DOM: cold notification removes cover with stalled identity fetch; duplicate opens retain typing; 100 customer events do not reopen; covered chats never mark read');
 })().catch(e=>{console.error(e);process.exitCode=1});
+
+(async()=>{
+ const dom=new JSDOM('<section id="admin"><div id="list"></div></section>');
+ const document=dom.window.document;
+ const source=fs.readFileSync('salon-suite.js','utf8');
+ const {unreadSummary}=await import('../salon-unread.js');
+ const {inboxRoomVisible,groupConversationRows}=await import('../customer-management.js');
+ const snapshots=[
+  {id:'front',data:()=>({name:'第一位',updatedAt:300,lastCustomerMessageAt:300,readAdminMs:200})},
+  {id:'read',data:()=>({name:'已讀',updatedAt:400,lastCustomerMessageAt:400,readAdminMs:400})},
+  {id:'second',data:()=>({name:'第二位',updatedAt:100,lastCustomerMessageAt:100,readAdminMs:0})}
+ ];
+ const context={document,$:id=>document.getElementById(id),unreadSummary,groupConversationRows,inboxRoomVisible,
+  filterDesignerRooms:rows=>rows,liveInboxRows:new Map(),inboxPhotos:new Map(),config:{},designerList:()=>[],designerFilterOptions:()=>[],
+  hasDuplicateCustomers:()=>false,esc:String,icon:()=>'',avatar:()=>'',millis:n=>Number(n||0),appointmentLabel:()=>'',assignedDesignerLabel:()=>'',watchInboxIdentities(){},bindSwipe(){},task(){},openChat(){throw Error('inbox focus must not open a chat');},
+  getDocFromServer:async()=>({...snapshots[2],exists:()=>true}),doc:()=>({}),db:{}};
+ vm.runInNewContext(source.slice(source.indexOf(' let inboxDocs='),source.indexOf(' async function loadDesignerHistory()')),context);
+ context.renderInbox(snapshots.slice(0,2));
+ await context.focusInboxNotification('second');
+ assert.deepEqual([...document.querySelectorAll('.unreadDot')].map(dot=>dot.closest('[data-room]').dataset.room),['front','second']);
+ assert.match(document.querySelector('[data-room="second"]').textContent,/通知帶你到這裡/);
+ assert.equal(document.querySelectorAll('dialog').length,0);
+ dom.window.close();
+ console.log('PASS owner inbox keeps multiple red dots and highlights a notification outside the loaded page');
+})().catch(e=>{console.error(e);process.exit(1);});

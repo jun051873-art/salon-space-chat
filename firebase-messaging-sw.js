@@ -1,8 +1,8 @@
 importScripts('./push-presentation.js?v=N113');
 importScripts('./admin-notification-visibility.js?v=N131');
 importScripts('./push-routing.js?v=P175');
-importScripts('./push-badge-ledger.js?v=P179');
-const NOTIFICATION_VERSION='P179';
+importScripts('./push-badge-ledger.js?v=P180');
+const NOTIFICATION_VERSION='P180';
 const badgeLedger=SalonPushBadge.create({
  async load(role){
   const cache=await caches.open('salon-unread-messages');
@@ -12,7 +12,7 @@ const badgeLedger=SalonPushBadge.create({
   const cache=await caches.open('salon-unread-messages');
   await cache.put(badgeURL(role),new Response(JSON.stringify(state)));
  },
- checkpoint:()=>SalonPushBadge.readCheckpoint(caches,self.location.origin),
+ checkpoint:role=>SalonPushBadge.readCheckpoint(caches,self.location.origin,role),
  apply:count=>updatePushBadge(count)
 });
 function badgeURL(role){return new URL('/salon-space-chat/__unread_'+role+'__',self.location.origin).href;}
