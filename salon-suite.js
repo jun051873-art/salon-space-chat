@@ -33,7 +33,7 @@ import{inquiryTimes,inquiryText}from'./booking-inquiry.js?v=C12';
 import{makeDrawer,applyTheme,mountThemeEditor,showGreeting,hideGreeting,playAtmosphere,stopAtmosphere}from'./salon-theme.js?v=P168';
 import{createCustomerPages}from'./customer-pages.js?v=C9.1';
 import{badge,appDot,unreadSummary,unreadAlert}from'./salon-unread.js?v=P175';
-import{createUnreadMessageCount,publishUnreadMessages}from'./unread-message-count.js?v=P177';
+import{createUnreadMessageCount,publishUnreadMessages}from'./unread-message-count.js?v=P178';
 import{isNativePushApp,nativeAppBuild,nativePushBridge}from'./native-push-bridge.js?v=P175';
 import{accountDialog,installGuide,setupOnboarding}from'./salon-onboarding.js?v=N39';
 import{icon,compressCanvas,loadPhoto,mountPhotoPicker,mountAttachmentPicker,bindSwipe}from'./salon-ui.js?v=P152';
@@ -61,7 +61,7 @@ export function installSuite(ctx){
  document.addEventListener('pointerdown',()=>document.body.dataset.inputModality='pointer',true);document.addEventListener('keydown',e=>{if(['Tab','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Enter',' '].includes(e.key))document.body.dataset.inputModality='keyboard';},true);
  const {auth,db,role,delivery,getChat,renderChat,openChat,showPage}=ctx,$=id=>document.getElementById(id),admin=role==='admin';
  let updateHeader=()=>{};const chatImageURLs=new Map(),chatImagePending=new Map();let demo=false,customers=null,customersAt=0,profile=null,config=null,configAt=0,activeTool='',roomUnsub=null,roomId='',ownRead=0,peerRead=0,receiptTimer=null,receiptBusy=false,receiptWanted=0,receiptFailed=false,toastTimer;
- let liveInboxRows=new Map(),liveInboxComplete=false,adminBadgeRead,adminBadgeRevision=0;
+ let liveInboxRows=new Map(),liveInboxComplete=false,adminBadgeRead,adminBadgeRevision=0,adminBadgeResult;
  const unreadCount=createUnreadMessageCount({role,async load(room,after){
   const ref=collection(db,'chats',room,'messages');
   const snapshots=await getDocsFromServer(query(ref,where('createdAt','>',Timestamp.fromMillis(after))));
@@ -82,7 +82,8 @@ export function installSuite(ctx){
     return;
    }
   }
-  return publishUnreadMessages(role,keys,startedAt);
+  const device=await publishUnreadMessages(role,keys,startedAt);
+  if(admin)adminBadgeResult={count,device};
  }});
  let unreadStop=null,pendingStop=null;let contentUnsub=null,capabilityPromise=null;const cache=new Map(),cacheTimes=new Map();
  async function capabilities(){if(demo)return {keywordContains:true,keywordReplies:true,timeReplies:true,appointmentReminders:true,visitCare:true,personalVisitCare:true};if(!capabilityPromise){const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),7000);capabilityPromise=fetch('https://salon-space-notify.jun051873.workers.dev/',{signal:ctrl.signal}).then(r=>r.json()).then(r=>r.features||{}).catch(()=>({})).finally(()=>clearTimeout(timer));}return capabilityPromise;}
@@ -585,14 +586,23 @@ $('appointmentSettings').onclick=()=>appointmentSettings().catch(fail);const edi
   liveInboxComplete=snapshot.size<500;
   if(!wasComplete||!liveInboxComplete)badge(document.querySelector('[data-admin-page=admin]'),unreadSummary(groupConversationRows(rows)),'未讀對話',!liveInboxComplete);
   if(!$('admin').classList.contains('hidden'))renderInbox(inboxDocs);
-  if(liveInboxComplete)void unreadCount.update(rows,startedAt);
+  if(liveInboxComplete)return unreadCount.update(rows,startedAt);
  }
  function refreshAdminBadge(){
-  if(!admin||demo||!unreadStop||!auth.currentUser||document.hidden||adminBadgeRead)return;
+  if(!admin||demo||!unreadStop||!auth.currentUser||document.hidden)return;
+  if(adminBadgeRead)return adminBadgeRead;
   const startedAt=Date.now(),revision=adminBadgeRevision,user=auth.currentUser.uid;
   adminBadgeRead=getDocsFromServer(adminUnreadQuery()).then(snapshot=>{
-   if(auth.currentUser?.uid===user&&unreadStop&&revision===adminBadgeRevision)applyAdminUnread(snapshot,startedAt);
+   if(auth.currentUser?.uid===user&&unreadStop&&revision===adminBadgeRevision)return applyAdminUnread(snapshot,startedAt);
   }).catch(()=>{}).finally(()=>{adminBadgeRead=null;});
+  return adminBadgeRead;
+ }
+ async function syncStoreBadge(){
+  adminBadgeResult=null;
+  await refreshAdminBadge();
+  await unreadCount.whenIdle();
+  if(!adminBadgeResult)throw Error('尚未取得完整的伺服器未讀數，請保持網路連線再試。');
+  return adminBadgeResult;
  }
  function stopUnread(){stopListIdentities();ownIdentityStop?.();ownIdentityStop=null;pendingStop?.();pendingStop=null;unreadCount.reset();adminBadgeRevision++;liveInboxRows.clear();liveInboxComplete=false;$('newCustomerAlert')?.remove();unreadStop?.();unreadStop=null;document.getElementById('salonUnreadAlert')?.remove();badge(document.querySelector('[data-admin-page=admin]'),0);}
  window.addEventListener('salon:resume',()=>{receiptFailed=false;receiptWanted=ownRead;const v=getChat();if(v&&v.el.getClientRects().length&&!roomUnsub)attachChat(v);queueReceipt();if(admin)refreshAdminBadge();else void unreadCount.refresh();});document.addEventListener('visibilitychange',()=>{if(document.hidden)return;if(admin)refreshAdminBadge();else void unreadCount.refresh();});navigator.serviceWorker?.addEventListener?.('controllerchange',()=>{if(admin){if(adminBadgeRead)void adminBadgeRead.then(refreshAdminBadge);else refreshAdminBadge();}else void unreadCount.refresh();});document.addEventListener('close',()=>requestAnimationFrame(queueReceipt),true);
@@ -780,7 +790,7 @@ $('appointmentSettings').onclick=()=>appointmentSettings().catch(fail);const edi
   if(refreshRoute()===route)await page(route,{throwOnError:true});
  }
  mountPullRefresh({enabled:()=>!customerRefreshBusy&&!!refreshRoute(),refresh:refreshVisiblePage});
- return {renderInbox,openTool,page,authReady,stopChatMode,attachChat,bindChat,stopReceipt,stopUnread,startDemo,demoList,toast,get demo(){return demo;}};
+ return {renderInbox,syncStoreBadge,openTool,page,authReady,stopChatMode,attachChat,bindChat,stopReceipt,stopUnread,startDemo,demoList,toast,get demo(){return demo;}};
 }
 
 

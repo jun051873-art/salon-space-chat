@@ -6,7 +6,7 @@ export function notificationState({apple,standalone,supported,permission,ready,n
  if(permission==='denied')return 'denied';
  return permission==='granted'&&ready?'ready':'enable';
 }
-export function mountNotificationHelp(host,enable,role){
+export function mountNotificationHelp(host,enable,role,{syncBadge}={}){
  const box=document.createElement('section');box.className='notificationHelp';host.prepend(box);
  const style=document.createElement('style');style.textContent='.notificationHelp{margin:14px 0;padding:16px;border:1px solid #c9a67c;border-radius:22px;background:#fff8ee;color:#403427}.notificationHelp p{font-size:15px;line-height:1.65;margin:8px 0}.notificationHelp button{font:inherit;min-height:44px;padding:10px 16px;border-radius:22px}.notificationHelp[data-ready=true]{background:#f1f7f2;border-color:#c2d6c6}.notificationGuide{max-width:440px;width:calc(100% - 60px);border:0;border-radius:24px;padding:22px;color:#302e28;background:#fffcf7}.notificationGuide::backdrop{background:#0007}.notificationGuide p{line-height:1.7}.notificationGuide button{min-height:44px}';document.head.append(style);
  let ready=false,error='',busy=false;
@@ -20,14 +20,16 @@ export function mountNotificationHelp(host,enable,role){
  box.append(title,p,enableButton);if(androidWeb){const steps=document.createElement('p');steps.textContent='橫幅與角標設定：按下方按鈕，再下拉通知中心，長按剛收到的引導通知進入設定。網址版無法直接開啟系統內的網站通知開關。';box.append(steps);}if(role==='admin'||androidWeb)box.append(test);box.append(help);
  const appleAdmin=role==='admin'&&(/iPhone|iPad|iPod/.test(navigator.userAgent)||(/Macintosh/.test(navigator.userAgent)&&navigator.maxTouchPoints>1));
  const badgeTest=document.createElement('button'),badgeResult=document.createElement('p'),badgeHistory=document.createElement('p');
- badgeTest.type='button';badgeTest.textContent='測試主畫面紅色 1';badgeResult.setAttribute('role','status');
+ badgeTest.type='button';badgeTest.textContent='同步桌面角標';badgeResult.setAttribute('role','status');
  if(appleAdmin)box.append(badgeTest,badgeResult,badgeHistory);
  badgeTest.onclick=async()=>{
   if(badgeTest.disabled)return;
-  if(typeof navigator.setAppBadge!=='function'){badgeResult.textContent='這個開啟方式不支援角標。請從原本的「沙龍管理」主畫面圖示開啟。';return;}
-  badgeTest.disabled=true;
-  try{await navigator.setAppBadge(1);badgeResult.textContent='已要求 iPhone 顯示紅色 1。回到主畫面查看「沙龍管理」圖示。';}
-  catch{badgeResult.textContent='iPhone 未接受這次角標更新。';}
+  badgeTest.disabled=true;badgeResult.textContent='正在向伺服器確認未讀訊息…';
+  try{
+   const {count,device}=await syncBadge();
+   badgeResult.textContent=count>0?'伺服器確認有 '+count+' 則未讀訊息，請到「訊息」查看。':
+    device==='cleared'?'伺服器確認沒有未讀訊息，已要求 iPhone 清除桌面角標。':'伺服器確認沒有未讀訊息，背景通知服務正在同步角標。';
+  }catch(error){badgeResult.textContent=error.message;}
   finally{badgeTest.disabled=false;}
  };
  async function showBadgeHistory(){
@@ -56,11 +58,12 @@ export function mountNotificationHelp(host,enable,role){
  }
  let lastState='';
  function render(){const s=state(),key=JSON.stringify([s,busy,error]);if(key===lastState)return;lastState=key;const ok=s==='ready';if(document.body?.dataset)document.body.dataset.notificationReady=String(ok);box.dataset.ready=String(ok);if(indicator){indicator.dataset.ready=String(ok);if(role==='customer')indicator.hidden=ok;indicator.setAttribute('aria-label',(ok?'通知已開啟':'通知尚未開啟')+(s==='enable'?'，點擊快速啟用':'，點擊查看狀態'));indicator.title=indicator.getAttribute('aria-label');}box.setAttribute('aria-busy',String(busy));
- title.textContent=ok?(androidWeb?'橫幅與角標設定':'✓ 通知已開啟'):busy?'正在設定通知…':'開啟通知，不漏看新訊息';
- p.textContent=error||({install:'請從桌面 App 圖示開啟，再允許通知。',unsupported:'目前瀏覽器未支援背景通知，請查看教學。',denied:'通知已關閉，請到手機設定允許通知後再回來。',enable:'點一下開啟，完成後會顯示綠色勾勾。',ready:androidWeb?'網站通知已啟用；橫幅與角標由手機控制，目前無法讀取它們的開關狀態。':'此裝置已完成設定；鎖定畫面與聲音可查看教學。'})[s];
- enableButton.hidden=s!=='enable';enableButton.disabled=busy;enableButton.textContent=busy?'正在設定…':'開啟訊息通知';test.hidden=!ok;badgeTest.hidden=s==='install'||globalThis.Notification?.permission!=='granted';
+ const checking=appleAdmin&&s==='enable'&&globalThis.Notification?.permission==='granted';
+ title.textContent=ok?(androidWeb?'橫幅與角標設定':'✓ 通知已開啟'):checking?'iPhone 已允許通知':busy?'正在設定通知…':'開啟通知，不漏看新訊息';
+ p.textContent=error||({install:'請從桌面 App 圖示開啟，再允許通知。',unsupported:'目前瀏覽器未支援背景通知，請查看教學。',denied:'通知已關閉，請到手機設定允許通知後再回來。',enable:checking?'正在確認這台裝置的推播註冊，可在此重新同步。':'點一下開啟，完成後會顯示綠色勾勾。',ready:androidWeb?'網站通知已啟用；橫幅與角標由手機控制，目前無法讀取它們的開關狀態。':'此裝置已完成設定；鎖定畫面與聲音可查看教學。'})[s];
+ enableButton.hidden=s!=='enable';enableButton.disabled=busy;enableButton.textContent=busy?'正在同步…':checking?'重新同步通知':'開啟訊息通知';test.hidden=!ok;badgeTest.hidden=s==='install'||globalThis.Notification?.permission!=='granted';
  if(typeof window.dispatchEvent==='function'&&typeof CustomEvent==='function')window.dispatchEvent(new CustomEvent('salon:notification-state',{detail:{ready:ok,busy,error}}));
  }
- function open(){render();if(panel&&!panel.open)panel.showModal();if(appleAdmin)void showBadgeHistory();if(state()==='enable'&&!busy)enableButton.click();}
+ function open(){render();if(panel&&!panel.open)panel.showModal();if(appleAdmin)void showBadgeHistory();if(state()==='enable'&&!busy&&!(appleAdmin&&Notification.permission==='granted'))enableButton.click();}
  render();return {update(ok=false,message=''){ready=ok;error=message;render();},guide,open};
 }

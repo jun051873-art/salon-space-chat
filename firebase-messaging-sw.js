@@ -2,7 +2,7 @@ importScripts('./push-presentation.js?v=N113');
 importScripts('./admin-notification-visibility.js?v=N131');
 importScripts('./push-routing.js?v=P175');
 importScripts('./push-badge-ledger.js?v=P177');
-const NOTIFICATION_VERSION='P177';
+const NOTIFICATION_VERSION='P178';
 const badgeLedger=SalonPushBadge.create({
  async load(role){
   const cache=await caches.open('salon-unread-messages');
@@ -26,13 +26,7 @@ self.addEventListener('message',event=>{
   if((role==='admin'||role==='customer')&&path?.endsWith('/'+role+'.html')
     &&Array.isArray(keys)&&keys.length<=50000&&keys.every(key=>typeof key==='string'&&/^salon-[A-Za-z0-9_-]{3,320}$/.test(key))
     &&Number.isFinite(startedAt)&&startedAt>0&&startedAt<=Date.now()+1000){
-   const reply=role==='admin'?event.ports?.[0]:null;
-   event.waitUntil(badgeLedger.sync(role,keys,startedAt,async count=>{
-    const result=await updatePushBadge(count);
-    if(reply&&count===0)await clearBadgeInStorePage(reply);
-    else reply?.postMessage({type:'SALON_BADGE_SYNCED'});
-    return result;
-   }).catch(()=>{}).finally(()=>reply?.close()));
+   event.waitUntil(badgeLedger.sync(role,keys,startedAt).catch(()=>{}));
   }
   return;
  }
@@ -110,18 +104,6 @@ async function handleSalonPush(payload){
    await cache.put(new Request(new URL('/salon-space-chat/__admin_badge_diag__',self.location.origin)),new Response(JSON.stringify({badgeStatus,at:new Date().toISOString()})));
   }catch{/* Diagnostic storage must not affect notification delivery. */}
  }
-}
-// WebKit also exposes badging on the installed store page. Keep this call
-// inside the ledger queue so a newer push cannot race a foreground clear.
-function clearBadgeInStorePage(port){
- return new Promise(resolve=>{
-  const timer=setTimeout(resolve,400);
-  port.onmessage=event=>{
-   if(event.data?.type==='SALON_BADGE_SYNCED'){clearTimeout(timer);resolve();}
-  };
-  try{port.postMessage({type:'SALON_CLEAR_CONFIRMED_BADGE',expiresAt:Date.now()+300});}
-  catch{clearTimeout(timer);resolve();}
- });
 }
 async function updatePushBadge(count){
  const navigator=self.navigator;
