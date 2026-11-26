@@ -90,29 +90,20 @@ assert.equal(await ios.updatePushBadge(2),'accepted');
 assert.equal(platform.number,2);
 console.log('PASS stale iPhone badge: refresh cutoff, valid background delivery and explicit clear API');
 
-const uiLedger=openLedger();
-await uiLedger.push('admin','salon-room-manual');
-const recorded=[];
-let pageCount=5;
-const pageEnvironment={
+
+const played=[];
+const iphone={
  location:{href:'https://example.test/salon-space-chat/admin.html'},document:{hidden:false},
- MessageChannel,setTimeout,clearTimeout,
  navigator:{
-  async clearAppBadge(){pageCount=0;recorded.push('page-clear');},
-  serviceWorker:{getRegistration:async()=>({active:{postMessage(message,[reply]){
-   void uiLedger.sync(message.role,message.keys,message.startedAt,async count=>{
-    recorded.push(count);
-    if(count===0)await new Promise(resolve=>{
-     reply.onmessage=event=>{assert.equal(event.data.type,'SALON_BADGE_SYNCED');reply.close();resolve();};
-     reply.postMessage({type:'SALON_CLEAR_CONFIRMED_BADGE',expiresAt:Date.now()+300});
-    });
-   });
-  }}})}
+  async clearAppBadge(){played.push('page-clear');},
+  serviceWorker:{getRegistration:async()=>undefined}
  }
 };
-await publishUnreadMessages('admin',[],time+1,pageEnvironment);
-await uiLedger.push('admin','salon-room-new');
-assert.deepEqual(recorded,[0,'page-clear']);
-assert.equal(pageCount,0);
-assert.equal(displayed.at(-1),1,'a push queued during foreground clear restores its unread badge');
-console.log('PASS zero-unread foreground iPhone clear completes before queued push');
+assert.equal(await publishUnreadMessages('admin',[],time,iphone),'cleared');
+assert.deepEqual(played,['page-clear'],'the installed app can clear without an active worker');
+iphone.navigator.serviceWorker.getRegistration=async()=>({active:{postMessage:message=>played.push(message.keys.length)}});
+await publishUnreadMessages('admin',['salon-keep-open'],time,iphone);
+assert.deepEqual(played,['page-clear',1],'a real unread message does not clear the badge');
+await publishUnreadMessages('admin',[],time,iphone);
+assert.deepEqual(played,['page-clear',1,'page-clear',0],'worker reconciliation follows the direct clear');
+console.log('PASS foreground zero-unread clears on iPhone without a service-worker handshake');

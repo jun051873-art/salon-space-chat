@@ -11,6 +11,7 @@ export function unreadRooms(rows,role){
 export function createUnreadMessageCount({role,load,publish,visible=()=>!document.hidden,now=Date.now}){
  let snapshot=null,observedAt=0,revision=0,running=false,queued=false;
  let cache=new Map();
+ const idle=[];
  async function flush(){
   if(!snapshot||!visible())return;
   if(running){queued=true;return;}
@@ -38,36 +39,31 @@ export function createUnreadMessageCount({role,load,publish,visible=()=>!documen
   }catch{
    // Keep the worker's current badge when a cloud fetch is incomplete.
    if(queued)queueMicrotask(flush);
-  }finally{running=false;}
+  }finally{running=false;for(const resolve of idle.splice(0))resolve();}
  }
  return {
   update(rows,startedAt=now()){snapshot=unreadRooms(rows,role);observedAt=startedAt;revision++;return flush();},
   refresh:flush,
+  whenIdle:()=>running?new Promise(resolve=>idle.push(resolve)):Promise.resolve(),
   reset(){snapshot=null;revision++;cache.clear();}
  };
 }
 
 export async function publishUnreadMessages(role,keys,startedAt,env=globalThis){
- const url=new URL(env.location.href);
- const registration=await env.navigator.serviceWorker?.getRegistration(url.href);
- const worker=registration?.active;
- if(!worker||(role!=='admin'&&env.document.hidden))return;
- const message={type:'SALON_UNREAD_MESSAGES',role,keys,startedAt};
- if(role!=='admin'||keys.length||!env.MessageChannel||typeof env.navigator.clearAppBadge!=='function'){
-  worker.postMessage(message);
-  return;
+ const navigator=env.navigator;
+ let device='unknown';
+ // A confirmed zero must reach the installed icon even if the previous
+ // service worker is active or the new worker is not controlling this page.
+ if(role==='admin'&&!keys.length&&!env.document.hidden&&typeof navigator.clearAppBadge==='function'){
+  try{await navigator.clearAppBadge();device='cleared';}catch{device='failed';}
  }
- const {port1,port2}=new env.MessageChannel();
- const expiry=env.setTimeout(()=>port1.close(),1500);
- const close=()=>{env.clearTimeout(expiry);port1.close();};
- port1.onmessage=async event=>{
-  if(event.data?.type==='SALON_CLEAR_CONFIRMED_BADGE'&&Date.now()<=event.data.expiresAt){
-   try{await env.navigator.clearAppBadge();}
-   catch{}
-   finally{port1.postMessage({type:'SALON_BADGE_SYNCED'});}
+ // Reconcile last, so a push received after the server snapshot can restore
+ // its count if it arrived while the foreground clear was in flight.
+ try{
+  const registration=await navigator.serviceWorker?.getRegistration(env.location.href);
+  if(registration?.active&&(role==='admin'||!env.document.hidden)){
+   registration.active.postMessage({type:'SALON_UNREAD_MESSAGES',role,keys,startedAt});
   }
-  close();
- };
- try{worker.postMessage(message,[port2]);}
- catch(error){close();throw error;}
+ }catch{}
+ return device;
 }
