@@ -27,7 +27,7 @@ export function mountNotificationHelp(host,enable,role,{syncBadge}={}){
   badgeTest.disabled=true;badgeResult.textContent='正在向伺服器確認未讀訊息…';
   try{
    const {count,device}=await syncBadge();
-   badgeResult.textContent=count>0?'伺服器確認有 '+count+' 則未讀訊息，請到「訊息」查看。':
+   badgeResult.textContent=count>0?'伺服器確認有 '+count+' 則未讀訊息'+(device==='updated'?'，已同步桌面角標。':'，請到「訊息」查看。'):
     device==='cleared'?'伺服器確認沒有未讀訊息，已要求 iPhone 清除桌面角標。':'伺服器確認沒有未讀訊息，背景通知服務正在同步角標。';
   }catch(error){badgeResult.textContent=error.message;}
   finally{badgeTest.disabled=false;}

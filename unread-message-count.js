@@ -1,3 +1,5 @@
+import './push-badge-ledger.js?v=P179';
+
 function millis(value){return value?.toMillis?.()??Number(value||0);}
 
 export function unreadRooms(rows,role){
@@ -52,10 +54,19 @@ export function createUnreadMessageCount({role,load,publish,visible=()=>!documen
 export async function publishUnreadMessages(role,keys,startedAt,env=globalThis){
  const navigator=env.navigator;
  let device='unknown';
- // A confirmed zero must reach the installed icon even if the previous
- // service worker is active or the new worker is not controlling this page.
- if(role==='admin'&&!keys.length&&!env.document.hidden&&typeof navigator.clearAppBadge==='function'){
-  try{await navigator.clearAppBadge();device='cleared';}catch{device='failed';}
+ if(role==='admin'){
+  // Persist the authoritative count before changing the installed icon. A
+  // suspended or newly started worker can then reconcile before its next push.
+  if(env.caches)try{
+   await globalThis.SalonPushBadge.saveCheckpoint(env.caches,new URL(env.location.href).origin,keys,startedAt);
+  }catch{}
+  if(!env.document.hidden)try{
+   if(!keys.length&&typeof navigator.clearAppBadge==='function'){
+    await navigator.clearAppBadge();device='cleared';
+   }else if(typeof navigator.setAppBadge==='function'){
+    await navigator.setAppBadge(keys.length);device=keys.length?'updated':'cleared';
+   }
+  }catch{device='failed';}
  }
  // Reconcile last, so a push received after the server snapshot can restore
  // its count if it arrived while the foreground clear was in flight.
