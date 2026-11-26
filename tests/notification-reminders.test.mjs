@@ -14,7 +14,7 @@ const {appDot,refreshAppBadge,unreadSummary}=await load('../salon-unread.js');
 const calls=[];
 Object.defineProperty(globalThis,'navigator',{configurable:true,value:{setAppBadge:n=>{calls.push(n);return Promise.resolve();},clearAppBadge:()=>{calls.push('clear');return Promise.resolve();}}});
 appDot(true,true);appDot(false,false);appDot(false,true);
-refreshAppBadge();assert.deepEqual(calls,[1,'clear','clear'],'unconfirmed empty data must not clear the desktop badge');
+refreshAppBadge();assert.deepEqual(calls,[1,'clear'],'unconfirmed empty data must not clear the desktop badge');
 assert.equal(unreadSummary([{lastCustomerMessageAt:{toMillis:()=>200},readAdminMs:100},{lastCustomerMessageAt:100,readAdminMs:100}]),1);
 Object.defineProperty(globalThis,'navigator',{configurable:true,value:{}});
 assert.doesNotThrow(()=>appDot(true));

@@ -7,7 +7,7 @@ export function trustedNativeOrigin(origin,env=globalThis){
 }
 export function createNativePushBridge(env=globalThis){
  let port=null,pending=null,uid='',last=null,receipt=null,phase='尚未收到 App 連線';
- const post=data=>port?.postMessage(JSON.stringify({protocol:'SALON_NATIVE_PUSH',...data}));
+ const post=data=>{if(!port)return false;try{port.postMessage(JSON.stringify({protocol:'SALON_NATIVE_PUSH',...data}));return true;}catch{return false;}};
  function receive(raw){let d;try{d=typeof raw==='string'?JSON.parse(raw):raw;}catch{return;}
   if(d?.protocol!=='SALON_NATIVE_PUSH')return;
   if(d.type==='HELLO'){post({type:'READY'});phase='已連接 App，等待通知識別碼';if(pending)post({type:'REGISTER',uid});return;}
@@ -39,7 +39,23 @@ export function createNativePushBridge(env=globalThis){
   },
   saved(account){if(account===uid&&last){post({type:'SAVED',uid});if(receipt?.account===uid)post({type:'CLEAR',uid,cutoff:receipt.cutoff});}},
   clear(account,cutoff){if(typeof account!=='string'||!Number.isFinite(cutoff))return;receipt={account,cutoff};if(account===uid)post({type:'CLEAR',uid,cutoff});},
-  settings(){post({type:'SETTINGS'});}
+  settings(){return post({type:'SETTINGS'});}
  };
+}
+export function openNativeNotificationSettings({bridge,env=globalThis,onReturn}){
+ if(!isNativePushApp(env))return false;
+ const page=env.document;
+ let left=false,expiry;
+ function stop(){page.removeEventListener('visibilitychange',changed);env.clearTimeout(expiry);}
+ function changed(){
+  if(page.hidden){left=true;return;}
+  if(left){stop();onReturn?.();}
+ }
+ page.addEventListener('visibilitychange',changed);
+ expiry=env.setTimeout(stop,600000);
+ // External intents require a user tap. Navigate immediately if the native
+ // Chrome bridge is still starting, without waiting for token registration.
+ if(!bridge?.settings())env.location.assign('intent://notifications#Intent;scheme=salonspace;package=com.jun051873.salonspace;end');
+ return true;
 }
 export const nativePushBridge=typeof window==='undefined'?null:(window.__salonNativePushBridge ||= createNativePushBridge(window));

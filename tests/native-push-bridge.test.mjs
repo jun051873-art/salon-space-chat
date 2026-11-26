@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {createNativePushBridge,isNativePushApp} from '../native-push-bridge.js';
+import {createNativePushBridge,isNativePushApp,openNativeNotificationSettings} from '../native-push-bridge.js';
 let handler,timer;const sent=[];
 const env={location:{href:'https://jun051873-art.github.io/salon-space-chat/customer.html?appBuild=15',origin:'https://jun051873-art.github.io'},addEventListener:(t,h)=>handler=h,setTimeout:h=>(timer=h,1),clearTimeout:()=>{}};
 const bridge=createNativePushBridge(env),port={postMessage:s=>sent.push(JSON.parse(s)),start(){},close(){}};
@@ -42,3 +42,20 @@ assert.equal(earlySent.at(-1).type,'REGISTER');
 earlyPort.onmessage({data:JSON.stringify({protocol:'SALON_NATIVE_PUSH',type:'TOKEN',uid:'earlyUser',value:'t'.repeat(100),allowed:true})});
 assert.equal((await earlyPending).allowed,true);
 console.log('Early bootstrap before module load retained and acknowledged PASS');
+
+const settingsDocument=new EventTarget();
+settingsDocument.hidden=false;
+const settingsUrls=[];
+let returned=0;
+const settingsEnv={...env,document:settingsDocument,location:{href:env.location.href,assign:url=>settingsUrls.push(url)}};
+assert.equal(openNativeNotificationSettings({env:settingsEnv,bridge:{settings:()=>false},onReturn:()=>returned++}),true);
+assert.match(settingsUrls[0],/^intent:\/\/notifications#Intent;scheme=salonspace;package=com\.jun051873\.salonspace;end$/);
+settingsDocument.dispatchEvent(new Event('visibilitychange'));
+assert.equal(returned,0);
+settingsDocument.hidden=true;
+settingsDocument.dispatchEvent(new Event('visibilitychange'));
+settingsDocument.hidden=false;
+settingsDocument.dispatchEvent(new Event('visibilitychange'));
+settingsDocument.dispatchEvent(new Event('visibilitychange'));
+assert.equal(returned,1);
+console.log('Native notification settings launched from tap and synchronize once on return PASS');
