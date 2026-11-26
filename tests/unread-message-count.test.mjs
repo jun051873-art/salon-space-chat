@@ -89,3 +89,30 @@ assert.equal(platform.number,undefined);
 assert.equal(await ios.updatePushBadge(2),'accepted');
 assert.equal(platform.number,2);
 console.log('PASS stale iPhone badge: refresh cutoff, valid background delivery and explicit clear API');
+
+const uiLedger=openLedger();
+await uiLedger.push('admin','salon-room-manual');
+const recorded=[];
+let pageCount=5;
+const pageEnvironment={
+ location:{href:'https://example.test/salon-space-chat/admin.html'},document:{hidden:false},
+ MessageChannel,setTimeout,clearTimeout,
+ navigator:{
+  async clearAppBadge(){pageCount=0;recorded.push('page-clear');},
+  serviceWorker:{getRegistration:async()=>({active:{postMessage(message,[reply]){
+   void uiLedger.sync(message.role,message.keys,message.startedAt,async count=>{
+    recorded.push(count);
+    if(count===0)await new Promise(resolve=>{
+     reply.onmessage=event=>{assert.equal(event.data.type,'SALON_BADGE_SYNCED');reply.close();resolve();};
+     reply.postMessage({type:'SALON_CLEAR_CONFIRMED_BADGE',expiresAt:Date.now()+300});
+    });
+   });
+  }}})}
+ }
+};
+await publishUnreadMessages('admin',[],time+1,pageEnvironment);
+await uiLedger.push('admin','salon-room-new');
+assert.deepEqual(recorded,[0,'page-clear']);
+assert.equal(pageCount,0);
+assert.equal(displayed.at(-1),1,'a push queued during foreground clear restores its unread badge');
+console.log('PASS zero-unread foreground iPhone clear completes before queued push');
