@@ -2,7 +2,7 @@ importScripts('./push-presentation.js?v=N113');
 importScripts('./admin-notification-visibility.js?v=N131');
 importScripts('./push-routing.js?v=P175');
 importScripts('./push-badge-ledger.js?v=P175');
-const NOTIFICATION_VERSION='P175';
+const NOTIFICATION_VERSION='P176';
 const badgeLedger=SalonPushBadge.create({
  async load(role){
   const cache=await caches.open('salon-unread-messages');
@@ -106,8 +106,13 @@ async function handleSalonPush(payload){
  }
 }
 async function updatePushBadge(count){
- if(typeof self.navigator.setAppBadge!=='function')return 'unsupported';
- try{await self.navigator.setAppBadge(count);return 'accepted';}
+ const navigator=self.navigator;
+ try{
+  if(count===0&&typeof navigator.clearAppBadge==='function')await navigator.clearAppBadge();
+  else if(typeof navigator.setAppBadge==='function')await navigator.setAppBadge(count);
+  else return 'unsupported';
+  return 'accepted';
+ }
  catch{return 'failed';}
 }
 messaging.onBackgroundMessage(handleSalonPush);

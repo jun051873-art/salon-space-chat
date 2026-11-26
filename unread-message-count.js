@@ -30,7 +30,7 @@ export function createUnreadMessageCount({role,load,publish,visible=()=>!documen
       for(const message of msgs)keys.push('salon-'+room.id+'-'+message);
      }));
     }
-    if(version===revision&&visible()){
+    if(version===revision&&(role==='admin'||visible())){
      cache=next;
      await publish(role,keys,startedAt);
     }
@@ -41,7 +41,7 @@ export function createUnreadMessageCount({role,load,publish,visible=()=>!documen
   }finally{running=false;}
  }
  return {
-  update(rows){snapshot=unreadRooms(rows,role);observedAt=now();revision++;return flush();},
+  update(rows,startedAt=now()){snapshot=unreadRooms(rows,role);observedAt=startedAt;revision++;return flush();},
   refresh:flush,
   reset(){snapshot=null;revision++;cache.clear();}
  };
@@ -51,5 +51,5 @@ export async function publishUnreadMessages(role,keys,startedAt,env=globalThis){
  const url=new URL(env.location.href);
  const registration=await env.navigator.serviceWorker?.getRegistration(url.href);
  const worker=registration?.active;
- if(worker&&!env.document.hidden)worker.postMessage({type:'SALON_UNREAD_MESSAGES',role,keys,startedAt});
+ if(worker&&(role==='admin'||!env.document.hidden))worker.postMessage({type:'SALON_UNREAD_MESSAGES',role,keys,startedAt});
 }
