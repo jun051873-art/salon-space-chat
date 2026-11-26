@@ -57,13 +57,22 @@ const {JSDOM}=require('jsdom');
  ];
  const context={document,$:id=>document.getElementById(id),unreadSummary,groupConversationRows,inboxRoomVisible,
   filterDesignerRooms:rows=>rows,liveInboxRows:new Map(),inboxPhotos:new Map(),config:{},designerList:()=>[],designerFilterOptions:()=>[],
-  hasDuplicateCustomers:()=>false,esc:String,icon:()=>'',avatar:()=>'',millis:n=>Number(n||0),appointmentLabel:()=>'',assignedDesignerLabel:()=>'',watchInboxIdentities(){},bindSwipe(){},task(){},openChat(){throw Error('inbox focus must not open a chat');},
+  hasDuplicateCustomers:()=>false,esc:String,icon:()=>'',avatar:()=>'',millis:n=>Number(n||0),appointmentLabel:()=>'',assignedDesignerLabel:row=>row.assignedDesignerName||'未指定',watchInboxIdentities(){},bindSwipe(){},task(){},openChat(){throw Error('inbox focus must not open a chat');},
   getDocFromServer:async()=>({...snapshots[2],exists:()=>true}),doc:()=>({}),db:{}};
  vm.runInNewContext(source.slice(source.indexOf(' let inboxDocs='),source.indexOf(' async function loadDesignerHistory()')),context);
  context.renderInbox(snapshots.slice(0,2));
  await context.focusInboxNotification('second');
  assert.deepEqual([...document.querySelectorAll('.unreadDot')].map(dot=>dot.closest('[data-room]').dataset.room),['front','second']);
  assert.match(document.querySelector('[data-room="second"]').textContent,/通知帶你到這裡/);
+ const primary={id:'primary',data:()=>({name:'小芳',conversationId:'merged',conversationPrimaryUid:'primary',updatedAt:100,assignedDesignerId:'dao',assignedDesignerName:'小刀'})};
+ const old={id:'old',data:()=>({name:'舊對話',conversationId:'merged',conversationPrimaryUid:'primary',updatedAt:200,assignedDesignerId:''})};
+ context.renderInbox([primary,old]);
+ assert.equal(document.querySelector('[data-room="old"] .assignedDesigner').textContent,'小刀');
+ context.inboxPhotos.set('old',{primaryId:'primary',assignedDesignerId:'dao',assignedDesignerName:'小刀'});
+ context.renderInbox([old]);
+ assert.equal(document.querySelector('[data-room="old"] .assignedDesigner').textContent,'小刀');
+ context.renderInbox([{...primary,data:()=>({...primary.data(),assignedDesignerId:'',assignedDesignerName:''})},old]);
+ assert.equal(document.querySelector('[data-room="old"] .assignedDesigner').textContent,'未指定');
  assert.equal(document.querySelectorAll('dialog').length,0);
  dom.window.close();
  console.log('PASS owner inbox keeps multiple red dots and highlights a notification outside the loaded page');
