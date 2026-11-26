@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
-import {createUnreadMessageCount} from '../unread-message-count.js';
+import {createUnreadMessageCount,publishUnreadMessages} from '../unread-message-count.js';
 
 const persistent=new Map(),displayed=[];
 let time=200;
@@ -56,3 +56,36 @@ unblock(['read']);
 await first;
 assert.deepEqual(revisions,[[]],'in-flight initial result cannot restore a read message');
 console.log('PASS 400 concurrent push deliveries, both badge roles, restart, retries, cloud reconciliation, receipt races and bounded room reads');
+
+const visiblePage={hidden:false};
+let finishRegistration,posted;
+const clearSent=publishUnreadMessages('admin',[],100,{
+ location:{href:'https://example.test/salon-space-chat/admin.html'},document:visiblePage,
+ navigator:{serviceWorker:{getRegistration:()=>new Promise(resolve=>finishRegistration=resolve)}}
+});
+visiblePage.hidden=true;
+finishRegistration({active:{postMessage:value=>{posted=value;}}});
+await clearSent;
+assert.deepEqual(posted,{type:'SALON_UNREAD_MESSAGES',role:'admin',keys:[],startedAt:100},
+ 'confirmed empty result still reaches the worker if iOS backgrounds the window');
+
+const lagging=openLedger();
+await lagging.push('admin','salon-ghost-1');
+await lagging.sync('admin',[],time-1);
+assert(displayed.at(-1)>0,'old snapshots must preserve newer pushes');
+await lagging.sync('admin',[],time+1);
+assert.equal(displayed.at(-1),0,'fresh empty server scan clears the stale icon');
+
+const platform={navigator:{
+ clearAppBadge:async()=>{platform.cleared=(platform.cleared||0)+1;},
+ setAppBadge:async number=>{platform.number=number;}
+}};
+const worker=fs.readFileSync('firebase-messaging-sw.js','utf8');
+const ios=vm.createContext({self:platform});
+vm.runInContext(worker.slice(worker.indexOf('async function updatePushBadge'),worker.indexOf('messaging.onBackgroundMessage')),ios);
+assert.equal(await ios.updatePushBadge(0),'accepted');
+assert.equal(platform.cleared,1);
+assert.equal(platform.number,undefined);
+assert.equal(await ios.updatePushBadge(2),'accepted');
+assert.equal(platform.number,2);
+console.log('PASS stale iPhone badge: refresh cutoff, valid background delivery and explicit clear API');
