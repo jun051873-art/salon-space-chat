@@ -6,7 +6,7 @@ import {inquiryTimes,inquiryText} from '../booking-inquiry.js';
 const source=fs.readFileSync(new URL('../salon-suite.js',import.meta.url),'utf8');
 const start=source.indexOf(' async function calendar('),end=source.indexOf('\n }',source.indexOf(' async function showSlots('))+3;
 class Node {
- constructor(){this.nodes=new Map();this.buttons=[];this.classList={contains:()=>false};this.value='';this.attrs={};}
+ constructor(){this.isConnected=true;this.nodes=new Map();this.buttons=[];this.classList={contains:()=>false};this.value='';this.attrs={};}
  set innerHTML(v){this.html=v;this.nodes.clear();this.buttons=[...v.matchAll(/<button\b([^>]*)>/g)].map(([,a])=>{const n=new Node();n.disabled=/\bdisabled\b/.test(a);n.dataset=Object.fromEntries([...a.matchAll(/data-([\w-]+)="([^"]*)"/g)].map(([,k,v])=>[k.replace(/-([a-z])/g,(_,x)=>x.toUpperCase()),v]));return n;});}
  get innerHTML(){return this.html||'';}
  querySelector(sel){for(const child of this.nodes.values())if(child.innerHTML.includes('id="'+sel.slice(1)+'"'))return child.querySelector(sel);if(!this.nodes.has(sel))this.nodes.set(sel,new Node());return this.nodes.get(sel);}
