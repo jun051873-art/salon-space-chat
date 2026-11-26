@@ -10,6 +10,7 @@ async function run(rejectOld){
  let release;
  const gate=new Promise(resolve=>release=resolve);
  const scope={stopListIdentities(){},chatIdentityStop:null,document,$:id=>document.getElementById(id),activeTool:'',roomUnsub:null,contentUnsub:null,ctx:{},esc:String,icon:()=>'<svg></svg>',
+ settings:async body=>{body.innerHTML="<p>客人主頁展示</p>";},
  boardEditor:async body=>{await gate;if(rejectOld)throw Error('old request failed');body.innerHTML='<p>OLD BOARD</p>';}};
  vm.createContext(scope);vm.runInContext(code+';this.openTool=openTool;',scope);
  const pending=scope.openTool('board');
@@ -18,9 +19,9 @@ async function run(rejectOld){
  const current=document.getElementById('toolBody');
  assert.notEqual(current,old);
  release();await pending;
- assert.match(current.textContent,/選擇要更新的內容/);
+ assert.match(current.textContent,/客人主頁展示/);
  assert.doesNotMatch(current.textContent,/OLD BOARD|old request failed/);
- assert.equal(document.getElementById('toolTitle').textContent,'客人頁面管理');
+ assert.equal(document.getElementById('toolTitle').textContent,'客人首頁設定');
  dom.window.close();
 }
 (async()=>{await run(false);await run(true);console.log('PASS stale tool success and error cannot overwrite new screen');})().catch(e=>{console.error(e);process.exitCode=1;});

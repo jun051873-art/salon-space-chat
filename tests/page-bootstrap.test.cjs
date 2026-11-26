@@ -6,7 +6,7 @@ const { JSDOM } = require('jsdom');
 const origin = 'https://example.test/salon-space-chat/';
 const owner = 'HcFJGmzHw6MYoWbFmtq9IyFSjvL2';
 
-async function open(role, search = '') {
+async function open(role, search = '', { waitForConfig } = {}) {
  const url = new URL(role + '.html' + search, origin);
  const html = fs.readFileSync(role + '.html', 'utf8');
  const dom = new JSDOM(html, { url: url.href, pretendToBeVisual: true, runScripts: 'outside-only' });
@@ -15,8 +15,11 @@ async function open(role, search = '') {
  const user = { uid: role === 'admin' ? owner : 'test-customer' };
  const auth = { currentUser: user };
  const observers = [];
+ const reads = new Map();
  const modules = new Map();
  window.scrollTo = () => {};
+ window.HTMLDialogElement.prototype.showModal = function(){this.open=true;};
+ window.HTMLDialogElement.prototype.close = function(){this.open=false;this.dispatchEvent(new window.Event("close"));};
  window.Element.prototype.getAnimations = () => [];
  window.ResizeObserver = class { observe() {} disconnect() {} };
  window.matchMedia = () => ({ matches: false, addEventListener() {}, addListener() {} });
@@ -40,7 +43,11 @@ async function open(role, search = '') {
   onAuthStateChanged: (_, fn) => observers.push(fn), setPersistence: async () => {},
   doc: (_, ...parts) => parts.join('/'), collection: (_, ...parts) => parts.join('/'),
   query: path => path, where() {}, orderBy() {}, limit() {}, startAfter() {},
-  getDoc: async path => snapshot(path), getDocFromServer: async path => snapshot(path),
+  getDoc: async path => snapshot(path), getDocFromServer: async path => {
+   reads.set(path,(reads.get(path)||0)+1);
+   if(path==='announcements/settings'&&waitForConfig)await waitForConfig;
+   return snapshot(path);
+  },
   getDocsFromServer: async path => snapshot(path),
   onSnapshot: (path, ...args) => {
    const next = args.find(arg => typeof arg === 'function');
@@ -82,7 +89,7 @@ async function open(role, search = '') {
    await module.evaluate();
   }
   for (const observe of observers) await observe(user);
-  return { window, get, close: () => window.close() };
+  return { window, get, reads, close: () => window.close() };
  } catch (error) {
   window.close();
   throw error;
@@ -115,6 +122,67 @@ async function open(role, search = '') {
    admin.window.document.querySelector('[data-admin-page=admin]').click();
    assert.ok(!admin.get('admin').classList.contains('hidden'));
   }
+  const { window, get } = admin;
+  const document = window.document;
+  const home = document.querySelector('[data-admin-page=adminHome]');
+  const tools = {
+   customers: '顧客資料庫', broadcast: '群發訊息', gallery: '商品管理',
+   notice: '跑馬燈與休假', board: '公告與活動', display: '客人首頁設定',
+   approvals: '新客加入審核', tags: '標籤庫', designers: '設計師管理',
+   phrases: '常用訊息設定', autoreply: '快捷詢問・自動回覆', welcome: '新客歡迎',
+   automation: '自動提醒（自行啟用）', switches: '功能開關',
+   theme: '外觀與玻璃', feedback: '客人回報'
+  };
+  assert.deepEqual(Object.keys(tools).sort(),[...document.querySelectorAll('#adminHome [data-tool]')].map(button=>button.dataset.tool).sort());
+  for(const [key,title] of Object.entries(tools)){
+   home.click();
+   const button=document.querySelector('#adminHome [data-tool='+key+']');
+   const group=button.closest('details');
+   if(group)group.open=true;
+   button.click();
+   await new Promise(setImmediate);
+   assert.equal(get('toolTitle').textContent,title,key);
+   assert.ok(!get('adminTool').classList.contains('hidden'),key);
+   assert.doesNotMatch(get('toolBody').textContent,/^載入中…$|無法載入：/,key);
+   if(key==='display'){
+    const section=[...get('toolBody').querySelectorAll('details[open] > summary')].find(summary=>summary.textContent.includes('客人主頁展示'));
+    assert.ok(section,'customer-home controls are open on first entry');
+   }
+   if(key==='gallery'||key==='board'){
+    get(key==='gallery'?'newProduct':'boardNew').click();
+    await new Promise(setImmediate);
+    const dialog=document.querySelector('dialog[open]');
+    assert.ok(dialog,key+' opens its editor');
+    assert.ok(dialog.querySelector(key==='gallery'?'#prodTitle':'#boardTitle'));
+    dialog.querySelector('[data-close]').click();
+    await new Promise(setImmediate);
+   }
+   get('toolBack').click();
+   await new Promise(setImmediate);
+   assert.ok(!get('adminHome').classList.contains('hidden'),key+' back to home');
+  }
+  document.querySelector('[data-admin-page=adminAnalysis]').click();
+  await new Promise(setImmediate);
+  assert.match(get('adminAnalysis').textContent,/顧客概況/);
+  assert.equal(admin.reads.get('announcements/settings'),1,'switching owner pages uses the same settings fetch');
  } finally { admin.close(); }
- console.log('PASS full module startup: web customer, Android customer, and store; 75 navigation round trips');
+ let resumeConfig;
+ const stalledConfig=new Promise(resolve=>{resumeConfig=resolve;});
+ const slow=await open('admin','',{waitForConfig:stalledConfig});
+ try{
+  await new Promise(setImmediate);
+  assert.equal(slow.get('bootSplash'),null,'the owner home responds with settings still pending');
+  const document=slow.window.document;
+  for(let i=0;i<20;i++){
+   document.querySelector('[data-tool=display]').click();
+   slow.get('toolBack').click();
+   document.querySelector('[data-admin-page=admin]').click();
+   document.querySelector('[data-admin-page=adminHome]').click();
+  }
+  resumeConfig();
+  await new Promise(setImmediate);
+  assert.ok(!slow.get('adminHome').classList.contains('hidden'));
+  assert.equal(slow.reads.get('announcements/settings'),1,'rapid navigation shares one in-flight read');
+ }finally{resumeConfig();slow.close();}
+ console.log('PASS full module startup: web customer, Android customer, and store; 75 navigation round trips and all 16 store tools');
 })().catch(error => { console.error(error); process.exitCode = 1; });
