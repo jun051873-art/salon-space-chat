@@ -20,8 +20,8 @@ assert.throws(()=>customerListProfile(secondary,completed,primary));
 const source=fs.readFileSync('salon-suite.js','utf8');
 const page=source.split('\n').find(l=>l.startsWith(' async function customerPage('));
 const dom=new JSDOM('<div id="toolBody"></div>');
-const rows=[{...primary},{...secondary}],listeners=new Map();
-const scope={document:dom.window.document,$:id=>dom.window.document.getElementById(id),activeTool:'customers',demo:false,config:{},customerDesignerFilter:'',customerIdentityStops:[],loadCustomers:async()=>rows,customerScope:()=>'',hasDuplicateCustomers:()=>false,countHTML:()=>'',filterHTML:()=>'',designerList:()=>[],designerFilterOptions:()=>[],filterDesignerRooms:r=>r,manualMatch:u=>!u.adminDeleted,getFilter:()=>({}),avatar:()=>'',esc:String,ago:()=>'',pills:()=>'',customTags:()=>[],assignedDesignerLabel:()=>'',followOwner:(id,cb)=>{listeners.set(id,cb);return()=>{};},customerListProfile,bindFilter(){},bindGroups(){},task(){},refreshCustomerData(){},moreCustomers(){},editCustomer(){},sample:{}};
+const rows=[{...primary},{...secondary}],listeners=new Map(),renders=[];
+const scope={requestAnimationFrame:callback=>renders.push(callback),document:dom.window.document,$:id=>dom.window.document.getElementById(id),activeTool:'customers',demo:false,config:{},customerDesignerFilter:'',customerIdentityStops:[],loadCustomers:async()=>rows,customerScope:()=>'',hasDuplicateCustomers:()=>false,countHTML:()=>'',filterHTML:()=>'',designerList:()=>[],designerFilterOptions:()=>[],filterDesignerRooms:r=>r,manualMatch:u=>!u.adminDeleted,getFilter:()=>({}),avatar:()=>'',esc:String,ago:()=>'',pills:()=>'',customTags:()=>[],assignedDesignerLabel:()=>'',followOwner:(id,cb)=>{listeners.set(id,cb);return()=>{};},customerListProfile,bindFilter(){},bindGroups(){},task(){},refreshCustomerData(){},moreCustomers(){},editCustomer(){},sample:{}};
 vm.createContext(scope);vm.runInContext(page,scope);
 await scope.customerPage(scope.$('toolBody'));
 for(let n=0;n<3;n++){
@@ -29,6 +29,8 @@ for(let n=0;n<3;n++){
  assert.equal(scope.$('customerResults').querySelectorAll('[data-profile]').length,1,'deleted/merged card must not reappear on live updates');
  assert.equal(rows[1].id,'old');assert.equal(rows[1].adminDeleted,true);
 }
+assert.equal(renders.length,1,'live updates in the same frame redraw once');
+renders.pop()();
 assert.equal(scope.$('customerResults').querySelector('[data-profile]').dataset.profile,'chosen');
 dom.window.close();
 console.log('PASS P140 actual customer list: repeated live updates preserve IDs, merged/deleted state and explicit photo removal');
