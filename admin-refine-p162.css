@@ -77,3 +77,53 @@ body.adminApp .ownerTools162 .toolCells .toolItem{height:100%!important;box-sizi
 body.adminApp .ownerTools162 .toolCells .toolItem>b{align-self:start;margin:0;line-height:1.5;overflow-wrap:anywhere}
 body.adminApp .ownerTools162 .toolCells .toolItem>.toolHint{align-self:start;margin:0;line-height:1.5}
 @media(max-width:600px){body.adminApp .ownerTools162 .toolCells .toolItem{grid-template-columns:1fr;grid-template-rows:64px minmax(3em,auto) minmax(3em,auto);justify-items:center;text-align:center!important;padding:16px 10px!important;gap:8px;min-width:0}body.adminApp .ownerTools162 .toolCells .toolItem>span:first-child{grid-row:auto!important;align-self:center;height:60px;width:var(--tool-icon-width,60px)}body.adminApp .ownerTools162 .toolCells .toolItem>b{font-size:15px!important}body.adminApp .ownerTools162 .toolCells .toolItem>.toolHint{font-size:12px!important}}
+
+/* Store tools are compact action tiles with a consistent tap area. */
+html body.adminApp #adminHome .ownerTools162 .toolCells {
+  grid-auto-rows: auto;
+  gap: 8px !important;
+}
+html body.adminApp #adminHome .ownerTools162 .toolCells .toolItem {
+  grid-template-columns: 32px minmax(0, 1fr) !important;
+  grid-template-rows: auto;
+  align-content: center;
+  justify-items: start;
+  min-height: 68px !important;
+  height: auto !important;
+  padding: 10px !important;
+  gap: 8px;
+  text-align: left !important;
+  border-radius: 16px !important;
+  box-shadow: none !important;
+}
+html body.adminApp #adminHome .ownerTools162 .toolItem > span:not(.countBadge) {
+  grid-row: auto;
+  width: 32px !important;
+  height: 32px !important;
+  margin: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+html body.adminApp #adminHome .ownerTools162 .toolItem > b {
+  align-self: center;
+  min-height: 0;
+  text-align: left;
+  font-size: 14px !important;
+}
+body.adminApp dialog.roomMenuCompact .roomPrimary span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+body.adminApp dialog.roomMenuCompact #roomDesigner small {
+  display: block;
+  font-weight: 500;
+}
+body.adminApp dialog.roomMenuCompact .roomSecondary button {
+  min-height: 44px;
+  background: transparent;
+  box-shadow: none;
+}
+body.adminApp dialog.roomMenuCompact .roundActions svg {
+  flex: 0 0 20px;
+}
