@@ -1,4 +1,4 @@
-export const NOTIFICATION_VERSION='P176';
+export const NOTIFICATION_VERSION='P177';
 function versionOf(worker,timeout=500){
  if(!worker||worker.state!=='activated')return Promise.resolve(null);
  return new Promise(resolve=>{

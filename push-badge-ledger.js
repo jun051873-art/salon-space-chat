@@ -4,7 +4,7 @@
  const retention=7*24*60*60*1000;
  function create({load,save,apply,now=Date.now}){
   let pending=Promise.resolve();
-  function change(role,update){
+  function change(role,update,applyCount=apply){
    const task=pending.then(async()=>{
     const state=await load(role)||{};
     const {unread={},seen={}}=state;
@@ -12,7 +12,7 @@
     for(const [key,at] of Object.entries(seen))if(at<time-retention&&!Object.hasOwn(unread,key))delete seen[key];
     update(unread,seen,time,state);
     await save(role,{unread,seen,lastSync:state.lastSync||0});
-    return apply(Object.keys(unread).length);
+    return applyCount(Object.keys(unread).length);
    });
    pending=task.catch(()=>{});
    return task;
@@ -22,12 +22,12 @@
     if(!Object.hasOwn(seen,key))unread[key]=time;
     seen[key]=time;
    });},
-   sync(role,keys,startedAt){return change(role,(unread,seen,time,state)=>{
+   sync(role,keys,startedAt,applyCount){return change(role,(unread,seen,time,state)=>{
     if((state.lastSync||0)>startedAt)return;
     state.lastSync=startedAt;
     for(const key of Object.keys(unread))if(unread[key]<startedAt)delete unread[key];
     for(const key of keys){unread[key]??=startedAt;seen[key]=time;}
-   });}
+   },applyCount);}
   };
  }
  root.SalonPushBadge={create};

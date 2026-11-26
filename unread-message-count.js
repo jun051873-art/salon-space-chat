@@ -51,5 +51,23 @@ export async function publishUnreadMessages(role,keys,startedAt,env=globalThis){
  const url=new URL(env.location.href);
  const registration=await env.navigator.serviceWorker?.getRegistration(url.href);
  const worker=registration?.active;
- if(worker&&(role==='admin'||!env.document.hidden))worker.postMessage({type:'SALON_UNREAD_MESSAGES',role,keys,startedAt});
+ if(!worker||(role!=='admin'&&env.document.hidden))return;
+ const message={type:'SALON_UNREAD_MESSAGES',role,keys,startedAt};
+ if(role!=='admin'||keys.length||!env.MessageChannel||typeof env.navigator.clearAppBadge!=='function'){
+  worker.postMessage(message);
+  return;
+ }
+ const {port1,port2}=new env.MessageChannel();
+ const expiry=env.setTimeout(()=>port1.close(),1500);
+ const close=()=>{env.clearTimeout(expiry);port1.close();};
+ port1.onmessage=async event=>{
+  if(event.data?.type==='SALON_CLEAR_CONFIRMED_BADGE'&&Date.now()<=event.data.expiresAt){
+   try{await env.navigator.clearAppBadge();}
+   catch{}
+   finally{port1.postMessage({type:'SALON_BADGE_SYNCED'});}
+  }
+  close();
+ };
+ try{worker.postMessage(message,[port2]);}
+ catch(error){close();throw error;}
 }
