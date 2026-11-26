@@ -121,7 +121,7 @@ let pushTime=100;
 const reopenWorker=()=>globalThis.SalonPushBadge.create({
  load:role=>structuredClone(entries.get(role)),save:(role,state)=>entries.set(role,structuredClone(state)),
  apply:count=>badgeOperations.push(count),now:()=>pushTime++,
- checkpoint:()=>globalThis.SalonPushBadge.readCheckpoint(storage,profileOrigin)
+ checkpoint:role=>globalThis.SalonPushBadge.readCheckpoint(storage,profileOrigin,role)
 });
 let installedWorker=reopenWorker();
 for(let i=0;i<8;i++)await installedWorker.push('admin','salon-room-old'+i);
@@ -138,3 +138,27 @@ assert.equal(badgeOperations.at(-1),0);
 await reopenWorker().push('admin','salon-room-new2');
 assert.equal(badgeOperations.at(-1),1,'zero stays durable across restart until just one genuinely new push arrives');
 console.log('PASS recorded badge regression: 8 → confirmed 1 → 2, plus clear → one new push');
+
+const customerPhone={...store,location:{href:profileOrigin+'/salon-space-chat/customer.html'},document:{hidden:false}};
+installedWorker=reopenWorker();
+await installedWorker.push('customer','salon-client-old1');
+await installedWorker.push('customer','salon-client-old2');
+assert.equal(badgeOperations.at(-1),2);
+await publishUnreadMessages('customer',[],pushTime,customerPhone);
+assert.equal(badgeOperations.at(-1),0);
+const bothRoles=()=>globalThis.SalonPushBadge.create({
+ load:role=>structuredClone(entries.get(role)),save:(role,state)=>entries.set(role,structuredClone(state)),
+ apply:count=>badgeOperations.push(count),now:()=>pushTime++,
+ checkpoint:role=>globalThis.SalonPushBadge.readCheckpoint(storage,profileOrigin,role)
+});
+await bothRoles().push('customer','salon-client-new');
+assert.equal(badgeOperations.at(-1),1,'read iPhone customer messages do not return on a push');
+assert.equal(Object.keys(entries.get('admin').unread).length,1,'customer sync never clears the owner count');
+const hiddenCustomer=[];
+const quickExit=createUnreadMessageCount({role:'customer',visible:()=>false,
+ async load(){throw Error('zero unread should not query messages');},publish:async(role,keys)=>hiddenCustomer.push({role,keys})});
+await quickExit.update([{id:'customer',lastAdminMessageAt:44,readCustomerMs:44}],45);
+assert.equal(hiddenCustomer.length,0,'an ordinary hidden update is deferred');
+await quickExit.update([{id:'customer',lastAdminMessageAt:44,readCustomerMs:44}],45,true);
+assert.deepEqual(hiddenCustomer,[{role:'customer',keys:[]}],'a server-acknowledged read still syncs on immediate exit');
+console.log('PASS installed customer resets only its own badge and catches read-on-exit');

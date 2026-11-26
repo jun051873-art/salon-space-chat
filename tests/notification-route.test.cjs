@@ -21,7 +21,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('nod
  assert.equal(new URL(calls.find(c=>c[0]==='message')[1]).searchParams.get('appBuild'),'11','APK native-settings context survives notification navigation');
  calls.length=0;url=origin+'/salon-space-chat/admin.html?chat=outside-first-page';
  client.url=origin+'/salon-space-chat/admin.html';client.navigate=async dest=>{calls.push(['navigate',dest]);return client};client.focus=async()=>calls.push(['focus']);sc.self.clients.matchAll=async()=>[client];
- for(const platform of ['Android','iPhone']){calls.length=0;sc.self.navigator.userAgent=platform;click();await pending;assert.deepEqual(calls,[['navigate',url],['message',url],['focus']],platform+' owner resumes exact room');}
+ for(const platform of ['Android','iPhone']){calls.length=0;sc.self.navigator.userAgent=platform;click();await pending;assert.deepEqual(calls,[['navigate',url],['message',url],['focus']],platform+' owner notification retains exact destination');}
  console.log('PASS notification route: loading auth retains intent, hash resume, iPhone existing-window URL, navigation fallback, cold launch');
 })().catch(e=>{console.error(e);process.exit(1)});
 // Resume must replace a potentially frozen subscription while preserving the view.
@@ -36,9 +36,9 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('nod
 }
 (async()=>{
  const html=fs.readFileSync('admin.html','utf8'),pages=[],rooms=[];
- const ctx={booted:true,history:{replaceState(){}},openCustomerChat:async id=>rooms.push(id),auth:{currentUser:{uid:'owner'}},ADMIN:'owner',URL,location:{href:'https://example.test/salon-space-chat/admin.html',origin:'https://example.test',pathname:'/salon-space-chat/admin.html'},showAdminPage:p=>pages.push(p),openTool:p=>pages.push(p),console};
+ const ctx={booted:true,history:{replaceState(){}},suite:{focusInboxNotification:async id=>rooms.push(id)},openCustomerChat(){throw Error("push must not open a conversation")},auth:{currentUser:{uid:'owner'}},ADMIN:'owner',URL,location:{href:'https://example.test/salon-space-chat/admin.html',origin:'https://example.test',pathname:'/salon-space-chat/admin.html'},showAdminPage:p=>pages.push(p),openTool:p=>pages.push(p),console};
  vm.createContext(ctx);vm.runInContext(html.slice(html.indexOf('let pendingNotificationURL='),html.indexOf("navigator.serviceWorker?.addEventListener('message'",html.indexOf('let pendingNotificationURL='))),ctx);
- await ctx.routeNotification({url:ctx.location.href+'?chat=customer'});assert.deepEqual(rooms,['customer']);assert.deepEqual(pages,[]);
+ await ctx.routeNotification({url:ctx.location.href+'?chat=customer'});assert.deepEqual(rooms,['customer']);assert.deepEqual(pages,['admin']);
  await ctx.routeNotification({url:ctx.location.href+'#chat/legacy'});assert.equal(rooms.at(-1),'legacy');
  ctx.auth.currentUser=null;ctx.booted=false;
  await ctx.routeNotification({url:ctx.location.href+'?chat=outside-first-page'});assert.equal(rooms.length,2,'pre-auth intent cannot open data');
