@@ -8,7 +8,7 @@ async function scenario({role='customer',visibleRole,activeRoom,hidden=false,tim
  const client={url:origin+'/salon-space-chat/'+visibleRole+'.html',visibilityState:hidden?'hidden':'visible',postMessage(message,ports){channels.push(message.type);if(!timeout)ports[0].postMessage({visible:!!activeRoom,rooms:[activeRoom]});}};
  const ctx={URL,Request,Response,MessageChannel,setTimeout,clearTimeout,console,Date,
   importScripts(path){if(path.startsWith('./'))vm.runInContext(fs.readFileSync(path.split('?')[0],'utf8'),ctx);},
-  caches:{open:async()=>({match:async()=>null,put:async(_,response)=>diagnostics.push(await response.json())})},
+  caches:{open:async name=>({match:async()=>null,put:async(_,response)=>{if(name==='salon-push-diag-v1')diagnostics.push(await response.json());}})},
   firebase:{initializeApp(){},messaging(){return {onBackgroundMessage(){}}}},
   self:{location:{origin},navigator:{setAppBadge:async()=>{badges++;order.push('badge');if(badgeError)throw Error('badge rejected');}},clients:{matchAll:async()=>visibleRole?[client]:[]},registration:{showNotification:async(title,options)=>{order.push('alert');shown.push({title,options});}},addEventListener(type,fn){(handlers[type]??=[]).push(fn);}}
  };
@@ -34,7 +34,7 @@ async function scenario({role='customer',visibleRole,activeRoom,hidden=false,tim
  }
  const rejected=await scenario({role:'admin',badgeError:true});
  assert.equal(rejected.shown.length,1,'notification still displays when badge is rejected');
- assert.deepEqual(rejected.order,['badge','alert'],'start applying the badge within the push callback');
+ assert.deepEqual(rejected.order,['badge','alert'],'start applying the store badge before showing its alert');
  assert.equal(rejected.diagnostics[0].badgeStatus,'failed');
  assert.equal(rejected.diagnostics[1].badgeStatus,'failed');
  assert.equal(rejected.diagnostics[1].data,undefined,'admin badge diagnostics omit the message');

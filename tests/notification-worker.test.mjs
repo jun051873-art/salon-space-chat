@@ -30,7 +30,7 @@ await assert.rejects(ensureAdminNotificationWorker({
 },{timeout:0}),/尚未啟動/);
 const handlers={};const sw=await readFile(new URL('../firebase-messaging-sw.js',import.meta.url),'utf8');
 const end=sw.indexOf('// Register click handling');
-const context={self:{addEventListener:(name,fn)=>handlers[name]=fn},importScripts(){},SalonPush:{}};
+const context={self:{addEventListener:(name,fn)=>handlers[name]=fn},importScripts(){},SalonPushBadge:{create:()=>({})},SalonPush:{}};
 vm.runInNewContext(sw.slice(0,end),context);
 let response;
 handlers.message({data:{type:'SALON_NOTIFICATION_VERSION'},ports:[{postMessage:x=>response=x}]});

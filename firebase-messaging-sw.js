@@ -1,12 +1,35 @@
 importScripts('./push-presentation.js?v=N113');
 importScripts('./admin-notification-visibility.js?v=N131');
-importScripts('./push-routing.js?v=P173');
-const NOTIFICATION_VERSION='P174';
+importScripts('./push-routing.js?v=P175');
+importScripts('./push-badge-ledger.js?v=P175');
+const NOTIFICATION_VERSION='P175';
+const badgeLedger=SalonPushBadge.create({
+ async load(role){
+  const cache=await caches.open('salon-unread-messages');
+  return (await cache.match(badgeURL(role)))?.json();
+ },
+ async save(role,state){
+  const cache=await caches.open('salon-unread-messages');
+  await cache.put(badgeURL(role),new Response(JSON.stringify(state)));
+ },
+ apply:count=>updatePushBadge(count)
+});
+function badgeURL(role){return new URL('/salon-space-chat/__unread_'+role+'__',self.location.origin).href;}
 const BRAND_CACHE='salon-notification-brand-v1';
 const BRAND_URL='/salon-space-chat/__notification_brand__';
 async function readBrand(){try{const response=await (await caches.open(BRAND_CACHE)).match(BRAND_URL);return response?await response.json():{};}catch{return {};}}
 self.addEventListener('message',event=>{
  if(event.data?.type==='SALON_NOTIFICATION_VERSION'){event.ports?.[0]?.postMessage({version:NOTIFICATION_VERSION});return;}
+ if(event.data?.type==='SALON_UNREAD_MESSAGES'){
+  const {role,keys,startedAt}=event.data;
+  const path=SalonPushRouting.destination({url:event.source?.url},self.location.origin)?.pathname;
+  if((role==='admin'||role==='customer')&&path?.endsWith('/'+role+'.html')
+    &&Array.isArray(keys)&&keys.length<=50000&&keys.every(key=>typeof key==='string'&&/^salon-[A-Za-z0-9_-]{3,320}$/.test(key))
+    &&Number.isFinite(startedAt)&&startedAt>0&&startedAt<=Date.now()+1000){
+   event.waitUntil(badgeLedger.sync(role,keys,startedAt).catch(()=>{}));
+  }
+  return;
+ }
  if(event.data?.type!=='SALON_NOTIFICATION_BRAND')return;
  const input=event.data.branding||{},branding={};
  for(const role of ['admin','customer'])branding[role]={name:String(input[role]?.name||'專屬空間').slice(0,100),color:SalonPush.palette(input[role]?.color,role)};
@@ -63,9 +86,13 @@ async function handleSalonPush(payload){
  if((d.automatic===true||d.automatic==='true')&&(brand.ownerDevice||d.recipientRole==='admin'||String(d.url||'').includes('/admin.html'))){await saveDiag({stage:'automatic-owner-suppressed'}).catch(()=>{});return;}
  const {title,options}=SalonPush.notification(d,brand,self.location.origin);
  const adminPush=SalonPushRouting.isAdmin(d,self.location.origin);
- // Start the badge while handling the push. Do not delay the system alert.
- const badge=updatePushBadge();
+ // Start the badge before iOS presents the alert, with a short deadline.
+ const role=adminPush?'admin':'customer';
+ const badge=SalonPushRouting.messageRoom(d)
+  ?badgeLedger.push(role,d.tag).catch(()=> 'failed')
+  :Promise.resolve('unchanged');
  const notification=(async()=>{
+  if(adminPush)await Promise.race([badge,new Promise(resolve=>setTimeout(resolve,200))]);
   try{await self.registration.showNotification(title,options);return {stage:'shown'};}
   catch(error){return {stage:'show-error',error:String(error)};}
  })();
@@ -78,9 +105,9 @@ async function handleSalonPush(payload){
   }catch{/* Diagnostic storage must not affect notification delivery. */}
  }
 }
-async function updatePushBadge(){
+async function updatePushBadge(count){
  if(typeof self.navigator.setAppBadge!=='function')return 'unsupported';
- try{await self.navigator.setAppBadge(1);return 'accepted';}
+ try{await self.navigator.setAppBadge(count);return 'accepted';}
  catch{return 'failed';}
 }
 messaging.onBackgroundMessage(handleSalonPush);
