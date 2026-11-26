@@ -1,53 +1,132 @@
 <!doctype html>
-<html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<link rel="manifest" href="./manifest-customer.json?v=N102"><meta name="apple-mobile-web-app-title" content="專屬空間"><link rel="apple-touch-icon" href="./icons/customer-es-512.png"><link rel="icon" href="./icons/customer-es-512.png"><title>新的聯絡小天地｜專屬空間</title>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="icon" href="./icons/customer-es-512.png">
+<title>邀請客人｜專屬空間</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#f3eee8;color:#352e29;font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif;line-height:1.7}button,a{touch-action:manipulation}button,.button{font:inherit;min-height:46px;border:1px solid #d8d7c7;border-radius:24px;background:#fffaf5;color:#475444;padding:10px 20px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px}button:focus-visible,a:focus-visible{outline:3px solid #788b62;outline-offset:4px}nav{max-width:660px;margin:0 auto;padding:calc(12px + env(safe-area-inset-top)) 16px 12px}nav button{background:transparent;border:0;padding-left:0}.poster{max-width:600px;margin:0 auto;padding:34px 24px 28px;text-align:center;position:relative;isolation:isolate;overflow:hidden;background:#fff8ef;border-radius:32px;box-shadow:0 10px 36px #6e625512}.poster:before,.poster:after{content:"";position:absolute;z-index:-1;width:170px;height:110px;border-radius:50%;background:#dce3c5;transform:rotate(-25deg);top:-55px;left:-45px}.poster:after{background:#f6d5d7;left:auto;top:auto;right:-60px;bottom:-60px}.brand{display:inline-block;padding:5px 26px;background:#f6d5d7;border-radius:45% 40% 42% 40%;font-size:clamp(27px,7vw,40px);font-weight:800;letter-spacing:.08em;margin:0 0 18px}.headline{font-size:clamp(22px,5.7vw,32px);line-height:1.45;margin:0 0 10px;letter-spacing:.02em}.features{font-size:clamp(13px,3.3vw,17px);font-weight:600;margin:0 0 18px}.qr-row{position:relative;max-width:420px;margin:0 auto 18px}.qr{display:block;width:74%;max-width:312px;height:auto;margin:auto;background:#fff;border-radius:16px;padding:6px}.sprig{position:absolute;width:54px;height:94px;bottom:12px;left:0}.sprig.right{left:auto;right:0;transform:scaleX(-1)}.tagline{font-size:clamp(18px,4.7vw,26px);line-height:1.5;background:#dce3c5;border-radius:35px;padding:9px 10px;margin:0 0 12px;font-weight:800}.description{font-size:clamp(14px,3.5vw,18px);margin:0 0 24px}.reminder{background:#f9dfe0;border-radius:32px;padding:0 14px 16px;margin-top:28px}.reminder h2{display:inline-block;font-size:19px;line-height:1.5;margin:-13px 0 8px;padding:3px 24px;background:#f3c5ca;border-radius:20px}.reminder p{font-size:15px;margin:0}.actions{max-width:600px;margin:18px auto 32px;padding:0 16px;text-align:center}.primary{background:#63785b;color:white;border-color:#63785b;width:100%;font-weight:700}.help{font-size:13px;color:#736e65;text-align:left;padding:14px 8px}.help p{margin:5px 0}.downloads{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}.downloads>*{flex:1 1 150px;font-size:14px}#downloadStatus{font-size:14px;color:#617052;min-height:24px}.tiny-link{display:inline-block;color:#6d7467;font-size:13px;margin-top:10px}@media(max-width:380px){.poster{padding:28px 16px 24px;border-radius:24px}.sprig{width:40px}}@media print{@page{size:A4 portrait;margin:12mm}body{background:white;-webkit-print-color-adjust:exact;print-color-adjust:exact}nav,.actions{display:none!important}.poster{width:100%;max-width:none;box-shadow:none;border-radius:20px;padding:12mm 10mm;break-inside:avoid}.brand{font-size:34pt}.headline{font-size:27pt}.features{font-size:15pt}.qr{width:90mm;max-width:none}.qr-row{max-width:140mm;margin:8mm auto}.tagline{font-size:23pt}.description{font-size:16pt}.reminder p{font-size:15pt}}
-.shareActions{display:grid;gap:10px}.shareActions [hidden]{display:none}#shareStatus{min-height:1.7em;margin:8px 0;color:#665183;font-size:14px}.linkLabel{display:block;text-align:left;font-size:13px;color:#64596e}#joinLink{width:100%;min-height:46px;border:1px solid #d9cee5;border-radius:14px;padding:10px;font:inherit;font-size:13px;background:white;color:#453b50}.linkHint{font-size:13px;color:#6f627a}.secondary{background:#f1e9fa;color:#594269;width:100%}.primary{background:#806495;border-color:#806495}button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #806495;outline-offset:3px}</style></head><body>
+*{box-sizing:border-box}
+body{margin:0;background:#f5f2f7;color:#302937;font:16px/1.6 system-ui,-apple-system,sans-serif}
+main,nav{width:min(100% - 32px,740px);margin:auto}
+nav{padding-top:calc(12px + env(safe-area-inset-top))}
+h1{font-size:clamp(1.55rem,6vw,2rem);margin:.6em 0}
+h2{font-size:1.19rem;margin:0}
+p{margin:.5em 0}
+[hidden]{display:none!important}
+button,.action{display:inline-flex;align-items:center;justify-content:center;min-height:44px;border:1px solid #d9cede;border-radius:14px;background:#fff;color:#473557;padding:8px 12px;font:inherit;text-decoration:none;cursor:pointer}
+.primary{background:#655076;border-color:#655076;color:white}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #655076;outline-offset:3px}
+.platforms{display:grid;gap:12px;grid-template-columns:repeat(2,minmax(0,1fr))}
+.platform{min-width:0;background:#fff;border:1px solid #e0d9e4;border-radius:20px;padding:16px;text-align:center}
+.platform p{font-size:.88rem;color:#51485b}
+.qr{display:block;width:min(100%,190px);height:auto;margin:12px auto;aspect-ratio:1}
+.links{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin:12px 0}
+.links a,.links button{font-size:.88rem}
+.shareLink{display:block;text-align:left}
+.shareLink span{font-size:.8rem;color:#51485b}
+.shareLink input{display:block;width:100%;min-height:44px;padding:8px 10px;border:1px solid #d9cede;border-radius:12px;font:inherit;font-size:.85rem;color:inherit;background:#faf8fc}
+[data-share-status]{min-height:1.5em}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 28px}
+.printSheet{display:none}
+@media(max-width:560px){.platforms{grid-template-columns:1fr}}
+@page{size:A4 portrait;margin:8mm}
+@media print{
+ body{background:#fff}
+ nav,.inviteScreen{display:none}
+ main{width:auto}
+ .printSheet{display:block;height:280mm;width:auto;max-width:100%;object-fit:contain;margin:auto}
+}
+</style>
+</head>
+<body>
 <nav aria-label="頁面導覽"><button id="goBack" type="button">‹ 返回上一頁</button></nav>
-<main class="poster" id="poster" aria-label="專屬空間加入海報">
-<p class="brand">專屬空間</p><h1 class="headline">我們有新的聯絡小天地了</h1><p class="features">店休公告・最新活動・服務與預約詢問</p>
-<div class="qr-row"><svg class="sprig" viewBox="0 0 60 100" aria-hidden="true"><path d="M48 95Q20 60 24 10" fill="none" stroke="#99aa78" stroke-width="4" stroke-linecap="round"/><g fill="#acba8d"><ellipse cx="22" cy="18" rx="10" ry="17" transform="rotate(-25 22 18)"/><ellipse cx="14" cy="49" rx="10" ry="17" transform="rotate(-55 14 49)"/><ellipse cx="37" cy="48" rx="9" ry="16" transform="rotate(30 37 48)"/><ellipse cx="27" cy="74" rx="9" ry="16" transform="rotate(-60 27 74)"/></g></svg><img class="qr" id="joinQr" src="./customer-qr.svg" width="312" height="312" alt="掃描 QR 碼，開啟專屬空間客人端"><svg class="sprig right" viewBox="0 0 60 100" aria-hidden="true"><path d="M48 95Q20 60 24 10M31 64L48 40M27 45L10 30" fill="none" stroke="#99aa78" stroke-width="4" stroke-linecap="round"/><g fill="#dfa3ab"><circle cx="24" cy="12" r="10"/><circle cx="49" cy="35" r="9"/><circle cx="10" cy="27" r="9"/></g></svg></div>
-<h2 class="tagline">掃碼加入，之後在這裡找我們</h2><p class="description">休假與活動消息，都幫你放在這裡。<br>想換個髮型、問問時間？傳個訊息就好。</p>
-<section class="reminder"><h2>加入前的小提醒</h2><p>先加入手機主畫面，再填寫資料開始使用。<br>完成後開啟通知，讓我們的回覆找得到你。</p></section>
+<main>
+<div class="inviteScreen">
+<h1>邀請客人加入專屬空間</h1>
+<div class="platforms">
+<section class="platform" aria-labelledby="iosTitle">
+<h2 id="iosTitle">iPhone｜iOS</h2>
+<p>用 Safari 開啟，再從分享選單加入主畫面。</p>
+<a href="./customer.html" data-invite-link target="_blank" rel="noopener"><img class="qr" src="./customer-qr.svg" width="190" height="190" alt="掃碼開啟 iPhone 客人頁"></a>
+<div class="links">
+<a class="action primary" href="./customer.html" target="_blank" rel="noopener">開啟客人頁</a>
+<button type="button" data-copy>複製 iPhone 網址</button>
+<a class="action" href="./customer-qr.svg" download="SalonSpace-iPhone-QR.svg">下載 QR 碼</a>
+<button type="button" data-share hidden>分享</button>
+</div>
+<label class="shareLink"><span>iPhone 網址</span><input data-share-url readonly aria-label="iPhone 網址"></label>
+<p data-share-status role="status"></p>
+</section>
+<section class="platform" aria-labelledby="androidTitle">
+<h2 id="androidTitle">Android｜Google Play</h2>
+<p>掃碼下載，或在 Play 商店搜尋「專屬空間」。</p>
+<a href="https://play.google.com/store/apps/details?id=com.jun051873.salonspace" data-invite-link target="_blank" rel="noopener"><img class="qr" src="./android-play-qr.svg" width="190" height="190" alt="掃碼開啟專屬空間的 Google Play 頁面"></a>
+<div class="links">
+<a class="action primary" href="https://play.google.com/store/apps/details?id=com.jun051873.salonspace" target="_blank" rel="noopener">前往 Google Play</a>
+<button type="button" data-copy>複製 Android 網址</button>
+<a class="action" href="./android-play-qr.svg" download="SalonSpace-Android-QR.svg">下載 QR 碼</a>
+<button type="button" data-share hidden>分享</button>
+</div>
+<label class="shareLink"><span>Android 網址</span><input data-share-url readonly aria-label="Android 網址"></label>
+<p data-share-status role="status"></p>
+</section>
+</div>
+<div class="actions">
+<a class="action primary" href="./SalonSpace-QR-Print.png" download>下載雙 QR 碼列印圖</a>
+<button id="printPoster" type="button">列印雙 QR 碼</button>
+</div>
+</div>
+<img class="printSheet" src="./SalonSpace-QR-Print.png" alt="專屬空間 iPhone 與 Android 雙 QR 碼列印圖">
 </main>
-<section class="actions" aria-label="開啟與下載"><div class="shareActions"><button class="primary" id="copyJoinLink" type="button">複製客人加入連結</button><button id="shareJoinLink" type="button" hidden>分享給客人</button></div><p id="shareStatus" role="status" aria-live="polite"></p><label class="linkLabel" for="joinLink">客人加入網址</label><input id="joinLink" readonly aria-label="客人加入網址"><p class="linkHint">可貼到 LINE 或訊息；請客人用 Safari 或 Chrome 開啟。</p><a class="button secondary" href="./customer.html" target="_blank" rel="noopener">另開客人端預覽 ↗</a><div class="help"><p><b>iPhone</b>：用 Safari 開啟 → 分享 → 加入主畫面</p><p><b>Android</b>：用 Chrome 開啟 → 選單 → 安裝應用程式／加入主畫面</p><p>預約為訊息詢問，時間以店家回覆確認為準。</p></div><div class="downloads"><button id="printPoster" type="button">列印完整海報</button><button id="downloadPoster" type="button">下載海報圖片</button></div><a class="tiny-link" href="./customer-qr.svg" download="專屬空間-QR碼.svg">只下載 QR 碼</a><p id="downloadStatus" role="status" aria-live="polite"></p></section>
 <script>
-(()=>{
- let leaving=false;
- const fallback=new URLSearchParams(location.search).get('from')==='admin'?'./admin.html':'./customer.html';
- function back(){if(leaving)return;leaving=true;let internal=false;try{const ref=new URL(document.referrer);internal=ref.origin===location.origin&&ref.pathname.startsWith('/salon-space-chat/');}catch{}if(internal&&history.length>1)history.back();else location.replace(fallback);}
- document.getElementById('goBack').addEventListener('click',back);
- addEventListener('pageshow',()=>{leaving=false;});
-})();
-</script><script>
-const joinUrl=new URL('./customer.html',location.href).href;
-const joinInput=document.getElementById('joinLink'),shareStatus=document.getElementById('shareStatus');joinInput.value=joinUrl;
-joinInput.onclick=()=>joinInput.select();
-document.getElementById('copyJoinLink').onclick=async()=>{
- try{await navigator.clipboard.writeText(joinUrl);shareStatus.textContent='連結已複製，可貼給客人。';}
- catch{joinInput.focus();joinInput.select();joinInput.setSelectionRange(0,joinInput.value.length);let copied=false;try{copied=document.execCommand('copy');}catch{}shareStatus.textContent=copied?'連結已複製，可貼給客人。':'請長按上方網址，選擇「複製」。';}
-};
-const shareButton=document.getElementById('shareJoinLink');
-if(typeof navigator.share==='function'){shareButton.hidden=false;shareButton.onclick=async()=>{try{await navigator.share({title:'專屬空間',text:'加入我們的聯絡小天地',url:joinUrl});}catch(e){if(e.name!=='AbortError')shareStatus.textContent='請使用「複製客人加入連結」分享。';}};}
-document.getElementById('printPoster').onclick=()=>window.print();
-document.getElementById('downloadPoster').onclick=async()=>{
- const button=document.getElementById('downloadPoster'),status=document.getElementById('downloadStatus');button.disabled=true;status.textContent='正在準備海報…';
+let leaving=false;
+const fallback=new URLSearchParams(location.search).get('from')==='admin'?'./admin.html':'./customer.html';
+document.getElementById('goBack').onclick=()=>{
+ if(leaving)return;
+ leaving=true;
+ let internal=false;
  try{
- const qr=new Image();qr.src='./customer-qr.svg';await qr.decode();
- await document.fonts.ready;
- const c=document.createElement('canvas');c.width=1400;c.height=1980;const x=c.getContext('2d');
- x.fillStyle='#fff8ef';x.fillRect(0,0,1400,1980);
- function pill(a,b,w,h,color){x.fillStyle=color;x.beginPath();x.roundRect(a,b,w,h,h/2);x.fill();}
- function text(s,y,size=40,weight=500,color='#352e29'){x.fillStyle=color;x.font=weight+' '+size+'px system-ui, sans-serif';x.textAlign='center';x.fillText(s,700,y,1280);}
- pill(-120,-95,500,220,'#dce3c5');pill(1100,1870,450,210,'#f6d5d7');pill(360,110,680,150,'#f6d5d7');text('專屬空間',215,86,800);
- text('我們有新的聯絡小天地了',365,65,800);text('店休公告・最新活動・服務與預約詢問',445,38,600);
- x.fillStyle='white';x.fillRect(290,505,820,820);x.drawImage(qr,300,515,800,800);
- for(const side of [-1,1]){x.save();x.translate(700+side*530,1180);x.scale(-side,1);x.strokeStyle='#99aa78';x.lineWidth=7;x.beginPath();x.moveTo(45,85);x.quadraticCurveTo(-25,0,0,-110);x.stroke();for(let i=0;i<4;i++){x.fillStyle=side<0?'#acba8d':'#dfa3ab';x.beginPath();x.ellipse((i%2?25:-16),-90+i*45,19,side<0?32:20,(i%2?.5:-.6),0,Math.PI*2);x.fill();}x.restore();}
- pill(95,1380,1210,120,'#dce3c5');text('掃碼加入，之後在這裡找我們',1460,55,800);
- text('休假與活動消息，都幫你放在這裡。',1570,40);text('想換個髮型、問問時間？傳個訊息就好。',1635,40);
- pill(95,1750,1210,170,'#f9dfe0');pill(470,1705,460,85,'#f3c5ca');text('加入前的小提醒',1765,42,700);text('先加入手機主畫面，再填寫資料開始使用。',1835,35);text('完成後開啟通知，讓我們的回覆找得到你。',1890,33);
- const blob=await new Promise(resolve=>c.toBlob(resolve,'image/png'));if(!blob)throw Error('export');const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='專屬空間-聯絡小天地海報.png';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);status.textContent='海報已準備好；若開啟圖片，請長按儲存。';
- }catch(e){status.textContent='圖片暫時無法下載，請稍後重試，或使用「列印完整海報」。';}finally{button.disabled=false;}
+  const ref=new URL(document.referrer);
+  internal=ref.origin===location.origin&&ref.pathname.startsWith('/salon-space-chat/');
+ }catch{}
+ if(internal&&history.length>1)history.back();
+ else location.replace(fallback);
 };
-</script></body></html>
+addEventListener('pageshow',()=>{leaving=false;});
+for(const panel of document.querySelectorAll('.platform')){
+ const url=panel.querySelector('[data-invite-link]').href;
+ const input=panel.querySelector('[data-share-url]');
+ const status=panel.querySelector('[data-share-status]');
+ input.value=url;
+ input.onclick=()=>input.select();
+ const share=panel.querySelector('[data-share]');
+ if(typeof navigator.share==='function'){
+  share.hidden=false;
+  share.onclick=async()=>{
+   try{await navigator.share({title:'專屬空間',url});}
+   catch(error){if(error.name!=='AbortError')status.textContent='請改用「複製網址」分享。';}
+  };
+ }
+ panel.querySelector('[data-copy]').onclick=async()=>{
+  try{
+   await navigator.clipboard.writeText(url);
+   status.textContent='網址已複製。';
+  }catch{
+   input.focus();
+   input.select();
+   input.setSelectionRange(0,url.length);
+   let copied=false;
+   try{copied=document.execCommand('copy');}catch{}
+   status.textContent=copied?'網址已複製。':'請長按網址，選擇「複製」。';
+  }
+ };
+}
+document.getElementById('printPoster').onclick=async()=>{
+ const poster=document.querySelector('.printSheet');
+ try{await poster.decode();}catch{}
+ window.print();
+};
+</script>
+</body>
+</html>

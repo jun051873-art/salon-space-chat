@@ -1,23 +1,52 @@
-const fs=require('fs'),assert=require('assert/strict'),{JSDOM}=require('jsdom');
-const html=fs.readFileSync('join.html','utf8');
-async function run(mode){
- const dom=new JSDOM(html,{url:'https://jun051873-art.github.io/salon-space-chat/join.html?from=admin',runScripts:'outside-only'}),w=dom.window;let copied='',shared=null;
- Object.defineProperty(w.navigator,'clipboard',{value:{writeText:async s=>{if(mode==='fallback')throw Error('denied');copied=s;}}});
- w.document.execCommand=()=>false;w.navigator.share=async s=>{shared=s;};
- for(const script of w.document.scripts)w.eval(script.textContent);
- const url='https://jun051873-art.github.io/salon-space-chat/customer.html';
- assert.equal(w.document.querySelector('#joinLink').value,url);
- await w.document.querySelector('#copyJoinLink').onclick();
- if(mode==='fallback'){assert.match(w.document.querySelector('#shareStatus').textContent,/長按/);assert.equal(w.document.activeElement.id,'joinLink');}else assert.equal(copied,url);
- await w.document.querySelector('#shareJoinLink').onclick();assert.equal(shared.url,url);
- assert.equal(w.document.querySelector('.secondary').target,'_blank');
- w.close();
+const fs = require('node:fs');
+const assert = require('node:assert/strict');
+const { JSDOM } = require('jsdom');
+const html = fs.readFileSync('join.html', 'utf8');
+const root = 'https://jun051873-art.github.io/salon-space-chat/';
+const expected = [root+'customer.html', 'https://play.google.com/store/apps/details?id=com.jun051873.salonspace'];
+
+async function run(useClipboard) {
+ const dom = new JSDOM(html, { url:root+'join.html?from=admin', runScripts:'outside-only' });
+ const {window}=dom, {document}=window;
+ let copied, shared, printed=0;
+ if(useClipboard)Object.defineProperty(window.navigator,'clipboard',{value:{writeText:async url=>{copied=url;}}});
+ window.document.execCommand=()=>false;
+ window.navigator.share=async data=>{shared=data.url;};
+ window.print=()=>{printed++;};
+ for(const script of document.scripts)window.eval(script.textContent);
+ const panels=[...document.querySelectorAll('.platform')];
+ assert.equal(panels.length,2);
+ for(const [i,panel] of panels.entries()){
+  const input=panel.querySelector('[data-share-url]');
+  assert.equal(input.value,expected[i]);
+  assert.equal(panel.querySelector('[data-invite-link]').href,expected[i]);
+  assert.equal(panel.querySelector('a.primary').href,expected[i]);
+  const picture=panel.querySelector('.qr').getAttribute('src');
+  assert.equal(picture,i===0?'./customer-qr.svg':'./android-play-qr.svg');
+  assert.equal(panel.querySelector('[download]').getAttribute('href'),picture);
+  assert.ok(fs.existsSync(picture));
+  await panel.querySelector('[data-copy]').onclick();
+  if(useClipboard)assert.equal(copied,expected[i]);
+  else{
+   assert.equal(document.activeElement,input);
+   assert.match(panel.querySelector('[role=status]').textContent,/複製/);
+  }
+  await panel.querySelector('[data-share]').onclick();
+  assert.equal(shared,expected[i]);
+ }
+ assert.equal(document.querySelector('.actions [download]').href,document.querySelector('.printSheet').src);
+ await document.getElementById('printPoster').onclick();
+ assert.equal(printed,1);
+ window.close();
 }
-(async()=>{await run('clipboard');await run('fallback');
+
+(async()=>{
+ await run(true);
+ await run(false);
  const admin=new JSDOM(fs.readFileSync('admin.html','utf8')).window.document;
- assert.equal(admin.querySelector('#adminAccount').tagName,'DETAILS');assert.equal(admin.querySelector('#adminAccount').open,false);assert.equal(admin.querySelectorAll('#adminSignOut').length,1);
- const src=fs.readFileSync('salon-suite.js','utf8');const frag=src.slice(src.indexOf("if(key==='display'){body.innerHTML="),src.indexOf("}else if(key==='approvals')"));
- const w=new JSDOM('<main id="body"></main>',{runScripts:'outside-only'}).window;w.eval("const key='display',body=document.querySelector('main'),icon=()=>'<svg></svg>',ctx={openTool:k=>window.clicked=k};"+frag+'}');
- const cards=[...w.document.querySelectorAll('[data-manage-tool]')];assert.equal(cards.length,5);for(const card of cards){assert(card.querySelector('.managementCopy b'));assert(card.querySelector('.managementCopy small'));assert(card.querySelector('.managementIcon svg'));card.click();assert.equal(w.clicked,card.dataset.manageTool);}w.close();
- console.log('PASS share clipboard/fallback/native sharing, account collapse, 5 management routes');
-})().catch(e=>{console.error(e);process.exit(1)});
+ assert.equal(admin.querySelector('#adminAccount').tagName,'DETAILS');
+ assert.equal(admin.querySelector('#adminAccount').open,false);
+ assert.equal(admin.querySelectorAll('#adminSignOut').length,1);
+ assert.match(fs.readFileSync('salon-suite.js','utf8'),/join\.html\?from=admin/);
+ console.log('PASS iPhone and Android invitation links, sharing, clipboard fallback, individual QR downloads, and print');
+})().catch(error=>{console.error(error);process.exitCode=1;});
