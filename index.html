@@ -3,9 +3,17 @@
 <body style="font-family:system-ui;background:#f5f1ea;padding:24px"><p>正在開啟聊天室…</p><p><a href="./customer.html">客戶端</a> · <a href="./admin.html">店家端</a></p>
 <script>
 const params=new URLSearchParams(location.search);
-let saved="";try{saved=localStorage.getItem("salonMode")||"";}catch{}
-const mode=params.get("mode")||saved;
-const target=new URL(mode==="admin"||params.has("chat")?"./admin.html":"./customer.html",location.href);
-if(params.has("chat"))target.searchParams.set("chat",params.get("chat"));
+let saved="";
+try{saved=localStorage.getItem("salonMode")||"";}catch{}
+const requested=params.get("mode");
+const customerIntent=requested==="customer"||params.get("openChat")==="1"||location.hash==="#chat";
+const adminIntent=requested==="admin"||(!customerIntent&&(params.has("chat")||["messages","approvals"].includes(params.get("view"))||saved==="admin"));
+const target=new URL(adminIntent?"./admin.html":"./customer.html",location.href);
+if(adminIntent){
+ if(params.has("chat"))target.searchParams.set("chat",params.get("chat"));
+ if(params.has("view"))target.searchParams.set("view",params.get("view"));
+}else if(params.get("openChat")==="1"||location.hash==="#chat"){
+ target.searchParams.set("openChat","1");
+}
 location.replace(target.href);
 </script></body></html>

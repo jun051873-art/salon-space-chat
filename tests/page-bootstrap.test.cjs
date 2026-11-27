@@ -6,7 +6,7 @@ const { JSDOM } = require('jsdom');
 const origin = 'https://example.test/salon-space-chat/';
 const owner = 'HcFJGmzHw6MYoWbFmtq9IyFSjvL2';
 
-async function open(role, search = '', { waitForConfig } = {}) {
+async function open(role, search = '', { waitForConfig, waitForBoard } = {}) {
  const url = new URL(role + '.html' + search, origin);
  const html = fs.readFileSync(role + '.html', 'utf8');
  const dom = new JSDOM(html, { url: url.href, pretendToBeVisual: true, runScripts: 'outside-only' });
@@ -46,6 +46,7 @@ async function open(role, search = '', { waitForConfig } = {}) {
   getDoc: async path => snapshot(path), getDocFromServer: async path => {
    reads.set(path,(reads.get(path)||0)+1);
    if(path==='announcements/settings'&&waitForConfig)await waitForConfig;
+   if(path==='announcements/board'&&waitForBoard)await waitForBoard;
    return snapshot(path);
   },
   getDocsFromServer: async path => snapshot(path),
@@ -103,6 +104,7 @@ async function open(role, search = '', { waitForConfig } = {}) {
    const { window, get } = customer;
    await new Promise(setImmediate);
    assert.equal(window.document.body.dataset.page, 'inbox');
+   assert.equal(customer.reads.get('announcements/board'),undefined,'customer launch does not fetch announcements before opening them');
    assert.equal(get('homeCards')?.querySelectorAll('[data-topic]').length, 4, 'the customer home renders all four cards');
    for (let i = 0; i < 25; i++) {
     get('enterChat').click();
@@ -113,6 +115,20 @@ async function open(role, search = '', { waitForConfig } = {}) {
    }
   } finally { customer.close(); }
  }
+ let finishBoard;
+ const waitForBoard=new Promise(resolve=>{finishBoard=resolve;});
+ const late=await open('customer','',{waitForBoard});
+ try{
+  await new Promise(setImmediate);
+  const {get,window}=late;
+  get('homeCards').querySelector('[data-home-collection]').click();
+  assert.equal(late.reads.get('announcements/board'),1);
+  get('enterChat').click();
+  finishBoard();
+  await new Promise(setImmediate);
+  assert.equal(window.document.body.dataset.page,'chat');
+  assert.equal(window.document.querySelector('dialog.topicCollectionDialog'),null,'late announcement cannot cover chat');
+ }finally{finishBoard();late.close();}
  const admin = await open('admin', '?view=messages');
  try {
   assert.ok(!admin.get('admin').classList.contains('hidden'), 'store notification opens the inbox');
@@ -161,6 +177,13 @@ async function open(role, search = '', { waitForConfig } = {}) {
    await new Promise(setImmediate);
    assert.ok(!get('adminHome').classList.contains('hidden'),key+' back to home');
   }
+  home.click();
+  document.querySelector('[data-tool=display]').click();
+  const discardedTool=get('toolBody');
+  home.click();
+  assert.equal(discardedTool.isConnected,false,'leaving for home invalidates a pending tool');
+  await new Promise(setImmediate);
+  assert.ok(!get('adminHome').classList.contains('hidden'),'late tool load cannot return to the abandoned screen');
   document.querySelector('[data-admin-page=adminAnalysis]').click();
   await new Promise(setImmediate);
   assert.match(get('adminAnalysis').textContent,/顧客概況/);

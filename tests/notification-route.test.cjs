@@ -1,9 +1,13 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 (async()=>{
  const html=fs.readFileSync('customer.html','utf8'),handlers={},swHandlers={},pages=[];
- const ctx={document:{documentElement:{dataset:{}},body:{dataset:{}}},resumeVisibleReads(){},uid:undefined,profileReady:false,location:{hash:''},history:{replaceState:(_,__,hash)=>ctx.location.hash=hash},showCustomerPage:p=>pages.push(p),window:{addEventListener:(n,f)=>handlers[n]=f},navigator:{serviceWorker:{addEventListener:(n,f)=>swHandlers[n]=f}}};
+ const ctx={document:{documentElement:{dataset:{}},body:{dataset:{}}},resumeVisibleReads(){},uid:undefined,profileReady:false,URL,location:{hash:'',href:'https://example.test/salon-space-chat/customer.html',origin:'https://example.test',pathname:'/salon-space-chat/customer.html'},history:{replaceState:(_,__,hash)=>ctx.location.hash=hash},showCustomerPage:p=>pages.push(p),window:{addEventListener:(n,f)=>handlers[n]=f},navigator:{serviceWorker:{addEventListener:(n,f)=>swHandlers[n]=f}}};
  vm.runInNewContext(html.slice(html.indexOf('function restoreNotificationRoute()'),html.indexOf('$("chatShortcuts").onclick')),ctx);
- swHandlers.message({data:{type:'OPEN_NOTIFICATION_URL'}});assert.equal(ctx.location.hash,'#chat');assert.equal(ctx.document.documentElement.dataset.notificationChat,'pending');assert.equal(pages.length,0,'not accessible before auth');
+ for(const url of [undefined,'https://example.test/salon-space-chat/admin.html?chat=test','https://other.test/salon-space-chat/customer.html#chat']){
+  swHandlers.message({data:{type:'OPEN_NOTIFICATION_URL',url}});
+  assert.equal(ctx.location.hash,'','only this customer endpoint can activate its notification route');
+ }
+ swHandlers.message({data:{type:'OPEN_NOTIFICATION_URL',url:ctx.location.href+'?openChat=1'}});assert.equal(ctx.location.hash,'#chat');assert.equal(ctx.document.documentElement.dataset.notificationChat,'pending');assert.equal(pages.length,0,'not accessible before auth');
  ctx.uid='test';ctx.profileReady=true;handlers.hashchange();assert.deepEqual(pages,['chat']);
  ctx.location.hash='';handlers.hashchange();assert.equal(pages.at(-1),'chat','hash removal must not reset the restored page');ctx.backCustomerPage=()=>pages.push('gallery');handlers.popstate();assert.equal(pages.at(-1),'gallery');handlers.hashchange();assert.equal(pages.at(-1),'gallery','popstate plus hashchange returns only once');handlers['salon:open-notification']();assert.equal(pages.at(-1),'chat');
  const sw=fs.readFileSync('firebase-messaging-sw.js','utf8'),events={},calls=[];let pending;
@@ -47,7 +51,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('nod
  ctx.booted=true;ctx.$=()=>({classList:{remove(){}}});ctx.syncPushToken=()=>{};
  await ctx.openAdminHome();assert.equal(rooms.at(-1),'outside-first-page','owner boot consumes pending notification');
  pages.length=0;
- ctx.location.href+='?chat=cold-launch';await ctx.openAdminHome();assert.equal(rooms.at(-1),'cold-launch');
+ ctx.location.href+='?chat=cold-launch';await ctx.openAdminHome();assert.equal(rooms.at(-1),'cold-launch');assert.deepEqual(pages,['admin'],'cold push must not flash the owner home');
  ctx.location.href=ctx.location.href.split('?')[0];pages.length=0;
  await ctx.routeNotification({url:ctx.location.href+'?chat=bad%2Fpath'});assert.equal(pages.at(-1),'admin');assert.equal(rooms.length,4);
  pages.length=0;
@@ -68,7 +72,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('nod
 // Chat shell is available after access validation; quick replies must not hold the cover.
 {
  const html=fs.readFileSync('customer.html','utf8');
- assert.ok(html.includes('releaseCoverAfter(id==="chat"?undefined:rendered,splash,'));
+ assert.ok(html.includes('releaseCoverAfter(undefined,splash,'));
  assert.ok(html.includes('<p class="startupHelp" hidden>'));
  assert.ok(html.includes("showCustomerPage(location.hash==='#chat'?'chat':'inbox')"));
  console.log('PASS cold chat route and nonblocking chat cover; startup recovery remains available');
