@@ -72,8 +72,8 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('nod
 // Chat shell is available after access validation; quick replies must not hold the cover.
 {
  const html=fs.readFileSync('customer.html','utf8');
- assert.ok(html.includes('releaseCoverAfter(undefined,splash,'));
+ assert.ok(html.includes('releaseCoverAfter(id==="setup"?undefined:suite?.prepareAppearance?.(),splash,'));
  assert.ok(html.includes('<p class="startupHelp" hidden>'));
  assert.ok(html.includes("showCustomerPage(location.hash==='#chat'?'chat':'inbox')"));
- console.log('PASS cold chat route and nonblocking chat cover; startup recovery remains available');
+ console.log('PASS cold chat route and appearance-aware cover; startup recovery remains available');
 }

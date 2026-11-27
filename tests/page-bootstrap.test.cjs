@@ -6,18 +6,20 @@ const { JSDOM } = require('jsdom');
 const origin = 'https://example.test/salon-space-chat/';
 const owner = 'HcFJGmzHw6MYoWbFmtq9IyFSjvL2';
 
-async function open(role, search = '', { waitForConfig, waitForBoard } = {}) {
+async function open(role, search = '', { waitForConfig, waitForBoard, waitForSettingsSnapshot, cachedAppearance, waitForPhoto } = {}) {
  const url = new URL(role + '.html' + search, origin);
  const html = fs.readFileSync(role + '.html', 'utf8');
  const dom = new JSDOM(html, { url: url.href, pretendToBeVisual: true, runScripts: 'outside-only' });
  const { window } = dom;
  const context = dom.getInternalVMContext();
+ if(cachedAppearance)window.localStorage.setItem('salon-startup-appearance-v1:'+role,JSON.stringify(cachedAppearance));
  const user = { uid: role === 'admin' ? owner : 'test-customer' };
  const auth = { currentUser: user };
  const observers = [];
  const reads = new Map();
  const modules = new Map();
  window.scrollTo = () => {};
+ if(waitForPhoto)window.HTMLImageElement.prototype.decode=()=>waitForPhoto;
  window.HTMLDialogElement.prototype.showModal = function(){this.open=true;};
  window.HTMLDialogElement.prototype.close = function(){this.open=false;this.dispatchEvent(new window.Event("close"));};
  window.Element.prototype.getAnimations = () => [];
@@ -31,7 +33,7 @@ async function open(role, search = '', { waitForConfig, waitForBoard } = {}) {
  window.structuredClone = structuredClone;
  const records = {
   'users/test-customer': { name: '測試客人', status: 'active' },
-  'announcements/settings': { name: '專屬空間' },
+  'announcements/settings': { name: '專屬空間', salonAvatar:'data:image/gif;base64,R0lGODlhAQABAAAAACwAAAAAAQABAAA=', theme:{background:'#dceae6'}, adminTheme:{background:'#e7def2'} },
   'chats/test-customer': { name: '測試客人' }
  };
  const snapshot = (path = '') => ({
@@ -52,7 +54,8 @@ async function open(role, search = '', { waitForConfig, waitForBoard } = {}) {
   getDocsFromServer: async path => snapshot(path),
   onSnapshot: (path, ...args) => {
    const next = args.find(arg => typeof arg === 'function');
-   queueMicrotask(() => next(snapshot(path)));
+   if(path==='announcements/settings'&&waitForSettingsSnapshot)waitForSettingsSnapshot.then(()=>next(snapshot(path)));
+   else queueMicrotask(() => next(snapshot(path)));
    return () => {};
   },
   isSupported: async () => false, Timestamp: { fromMillis: value => value }
@@ -207,5 +210,41 @@ async function open(role, search = '', { waitForConfig, waitForBoard } = {}) {
   assert.ok(!slow.get('adminHome').classList.contains('hidden'));
   assert.equal(slow.reads.get('announcements/settings'),1,'rapid navigation shares one in-flight read');
  }finally{resumeConfig();slow.close();}
+ for(const role of ['admin','customer']){
+  const cover=role==='admin'?'bootSplash':'splash';
+  let release;
+  const delay=new Promise(resolve=>{release=resolve;});
+  let finishPhoto;
+  const waitForPhoto=new Promise(resolve=>{finishPhoto=resolve;});
+  const offlineGate={waitForConfig:delay,waitForSettingsSnapshot:delay,waitForPhoto};
+  const cold=await open(role,'',offlineGate);
+  try{
+   await new Promise(setImmediate);
+   assert.ok(cold.get(cover),role+' keeps the cover until the first real appearance is ready');
+   release();
+   await new Promise(setImmediate);
+   assert.ok(cold.get(cover),role+' waits for the branded avatar to decode');
+   const avatar=cold.window.document.querySelector(role==='admin'?'.shopLogo img':'#enterChat .salonMonogram img');
+   assert.match(avatar?.getAttribute('src')||'',/^data:image/);
+   finishPhoto();
+   await new Promise(setImmediate);
+   assert.equal(cold.get(cover),null);
+   const doc=cold.window.document;
+   const correct=role==='admin'?'#e7def2':'#dceae6';
+   assert.equal(doc.documentElement.style.getPropertyValue('--salon-bg'),correct);
+   if(role==='customer')assert.equal(cold.get('homeCards').querySelectorAll('[data-topic]').length,4);
+   const saved=JSON.parse(cold.window.localStorage.getItem('salon-startup-appearance-v1:'+role));
+   assert.equal(saved.theme.background,correct);
+   let resume;
+   const slowRefresh=new Promise(resolve=>{resume=resolve;});
+   const warm=await open(role,'',{waitForConfig:slowRefresh,waitForSettingsSnapshot:slowRefresh,cachedAppearance:saved});
+   try{
+    await new Promise(setImmediate);
+    assert.equal(warm.get(cover),null,role+' uses cached appearance without waiting for the cloud');
+    assert.equal(warm.window.document.documentElement.style.getPropertyValue('--salon-bg'),correct);
+    if(role==='customer')assert.equal(warm.get('homeCards').querySelectorAll('[data-topic]').length,4);
+   }finally{resume();await new Promise(setImmediate);warm.close();}
+  }finally{release();finishPhoto();cold.close();}
+ }
  console.log('PASS full module startup: web customer, Android customer, and store; 75 navigation round trips and all 16 store tools');
 })().catch(error => { console.error(error); process.exitCode = 1; });
