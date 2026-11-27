@@ -9,7 +9,7 @@ for (const fail of [null, 'notifications', 'auth']) {
   navigate:()=>calls.push('navigate')
  });
  if(fail){await assert.rejects(run);assert.deepEqual(calls,fail==='notifications'?['notifications']:['notifications','auth']);}
- else {await run;assert.deepEqual(calls,['notifications','auth',['remove','salonAdminLoggedIn'],['set','salonMode','customer'],'navigate']);}
+ else {await run;assert.deepEqual(calls,['notifications','auth',['remove','salonAdminLoggedIn'],['set','salonMode','admin'],'navigate']);}
 }
 let navigated=false;
 await performAdminLogout({stopNotifications:async()=>{},signOut:async()=>{},storage:{removeItem(){throw Error('blocked');}},navigate:()=>{navigated=true;}});
